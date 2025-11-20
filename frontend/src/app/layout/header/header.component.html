@@ -1,0 +1,17 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <button mat-icon-button (click)="toggleMenu()" aria-label="Toggle sidenav">
+    <mat-icon>menu</mat-icon>
+  </button>
+
+  <span class="app-name">My Garage</span>
+
+  <span class="spacer"></span>
+
+  <div class="user-info">
+    <img [src]="user.imageUrl" alt="User Image" class="user-image">
+    <span class="user-name">{{ user.name }}</span>
+    <button mat-icon-button (click)="logout()" aria-label="Logout">
+      <mat-icon>logout</mat-icon>
+    </button>
+  </div>
+</mat-toolbar>
