@@ -8,7 +8,8 @@
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Email</mat-label>
-                    <input matInput formControlName="username" placeholder="admin@example.com" type="email">
+                    <input matInput formControlName="username" placeholder="admin@example.com" type="email"
+                        autocomplete="username">
                     <mat-error *ngIf="loginForm.get('username')?.hasError('required')">Email is required</mat-error>
                     <mat-error *ngIf="loginForm.get('username')?.hasError('email')">Please enter a valid
                         email</mat-error>
@@ -16,7 +17,7 @@
 
                 <mat-form-field appearance="outline" class="full-width">
                     <mat-label>Password</mat-label>
-                    <input matInput formControlName="password" type="password">
+                    <input matInput formControlName="password" type="password" autocomplete="current-password">
                     <mat-error *ngIf="loginForm.get('password')?.hasError('required')">Password is required</mat-error>
                 </mat-form-field>
 
