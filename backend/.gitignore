@@ -1,0 +1,40 @@
+# ------------------------------------
+# 🐍 PYTHON / FASTAPI (Backend)
+# ------------------------------------
+# Archivos de caché
+__pycache__/
+*.pyc
+*.pyd
+*.pyo
+*.egg-info/
+.pytest_cache/
+
+# Entornos Virtuales
+# Ignora cualquier carpeta que se use como entorno virtual (e.g., venv, .venv)
+venv/
+.venv/
+env/
+.env/
+.Python
+pip-log.txt
+
+# Configuración y Bases de Datos
+# Archivos de configuración de variables de entorno locales
+.env
+.flaskenv
+# Bases de datos SQLite local (comúnmente usada durante el desarrollo)
+*.db
+*.sqlite
+*.sqlite3
+
+# Alembic
+# Ignorar el directorio de migraciones (a menos que quieras rastrearlo)
+# Si deseas rastrear tus scripts de migración, comenta la siguiente línea:
+# migrations/
+# versions/
+# Nota: Generalmente SÍ quieres rastrear las carpetas 'migrations/' o 'versions/'
+# pero si accidentalmente incluyes archivos temporales, aquí va.
+
+# Ficheros de log y editor
+*.log
+.vscode/
