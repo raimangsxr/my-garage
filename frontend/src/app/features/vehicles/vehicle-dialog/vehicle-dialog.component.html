@@ -23,10 +23,40 @@
             </mat-form-field>
         </div>
 
-        <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Image URL</mat-label>
-            <input matInput formControlName="image_url" placeholder="https://example.com/car.jpg">
-        </mat-form-field>
+        <div class="image-upload-section">
+            <h3>Vehicle Image</h3>
+
+            <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Image Source</mat-label>
+                <mat-select [(value)]="imageSource" (selectionChange)="onImageSourceChange()">
+                    <mat-option value="file">Upload from Computer</mat-option>
+                    <mat-option value="url">Load from URL</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div *ngIf="imageSource === 'file'">
+                <input type="file" accept="image/*" (change)="onFileSelected($event)" #fileInput style="display: none">
+                <button mat-raised-button type="button" (click)="fileInput.click()">
+                    Choose Image
+                </button>
+            </div>
+
+            <div *ngIf="imageSource === 'url'" class="url-input-section">
+                <mat-form-field appearance="outline" class="full-width">
+                    <mat-label>Image URL</mat-label>
+                    <input matInput [(ngModel)]="imageUrl" [ngModelOptions]="{standalone: true}"
+                        placeholder="https://example.com/car.jpg">
+                </mat-form-field>
+                <button mat-raised-button type="button" (click)="loadImageFromUrl()"
+                    [disabled]="!imageUrl || imageUrl.trim() === ''">
+                    Load Image
+                </button>
+            </div>
+
+            <div *ngIf="imagePreview" class="image-preview">
+                <img [src]="imagePreview" alt="Vehicle preview">
+            </div>
+        </div>
 
         <h3>Dates & Amounts</h3>
 

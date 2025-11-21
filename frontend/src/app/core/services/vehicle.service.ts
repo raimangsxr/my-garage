@@ -40,4 +40,10 @@ export class VehicleService {
     deleteVehicle(id: number): Observable<Vehicle> {
         return this.http.delete<Vehicle>(`${this.apiUrl}${id}`);
     }
+
+    uploadImage(id: number, file: File): Observable<any> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post(`${this.apiUrl}${id}/image`, formData);
+    }
 }
