@@ -18,6 +18,9 @@ export const routes: Routes = [
             { path: 'maintenance', loadComponent: () => import('./features/maintenance/maintenance.component').then(m => m.MaintenanceComponent) },
             { path: 'invoices', loadComponent: () => import('./features/invoices/invoices.component').then(m => m.InvoicesComponent) },
             { path: 'suppliers', loadComponent: () => import('./features/suppliers/suppliers.component').then(m => m.SuppliersComponent) },
+            { path: 'profile', loadComponent: () => import('./features/profile/user-profile/user-profile').then(m => m.UserProfile) },
+            { path: 'notifications', loadComponent: () => import('./features/notifications/notifications/notifications').then(m => m.Notifications) },
+            { path: 'change-password', loadComponent: () => import('./features/profile/change-password/change-password').then(m => m.ChangePassword) },
         ]
     },
     { path: '**', redirectTo: '' }
