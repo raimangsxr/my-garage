@@ -1,0 +1,72 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Vehicle' : 'Add Vehicle' }}</h2>
+<mat-dialog-content>
+    <form [formGroup]="form" class="vehicle-form">
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Brand</mat-label>
+                <input matInput formControlName="brand" placeholder="e.g. Toyota">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Model</mat-label>
+                <input matInput formControlName="model" placeholder="e.g. Corolla">
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Year</mat-label>
+                <input matInput type="number" formControlName="year">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>License Plate</mat-label>
+                <input matInput formControlName="license_plate">
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Image URL</mat-label>
+            <input matInput formControlName="image_url" placeholder="https://example.com/car.jpg">
+        </mat-form-field>
+
+        <h3>Dates & Amounts</h3>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Next ITV Date</mat-label>
+                <input matInput [matDatepicker]="itvPicker" formControlName="next_itv_date">
+                <mat-datepicker-toggle matIconSuffix [for]="itvPicker"></mat-datepicker-toggle>
+                <mat-datepicker #itvPicker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Next Insurance Date</mat-label>
+                <input matInput [matDatepicker]="insPicker" formControlName="next_insurance_date">
+                <mat-datepicker-toggle matIconSuffix [for]="insPicker"></mat-datepicker-toggle>
+                <mat-datepicker #insPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Last Insurance Amount (€)</mat-label>
+                <input matInput type="number" formControlName="last_insurance_amount">
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Next Road Tax Date</mat-label>
+                <input matInput [matDatepicker]="taxPicker" formControlName="next_road_tax_date">
+                <mat-datepicker-toggle matIconSuffix [for]="taxPicker"></mat-datepicker-toggle>
+                <mat-datepicker #taxPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+                <mat-label>Last Road Tax Amount (€)</mat-label>
+                <input matInput type="number" formControlName="last_road_tax_amount">
+            </mat-form-field>
+        </div>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>

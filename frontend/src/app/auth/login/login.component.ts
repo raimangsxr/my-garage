@@ -4,9 +4,10 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { AuthService } from '../../core/services/auth.service';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { AuthService } from '../../core/services/auth.service';
 
 @Component({
     selector: 'app-login',
@@ -18,7 +19,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
         MatFormFieldModule,
         MatInputModule,
         MatButtonModule,
-        MatSnackBarModule
+        MatSnackBarModule,
+        MatIconModule
     ],
     templateUrl: './login.component.html',
     styleUrls: ['./login.component.scss']
@@ -26,6 +28,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 export class LoginComponent {
     loginForm: FormGroup;
     isLoading = false;
+    hide = true;
 
     constructor(
         private fb: FormBuilder,

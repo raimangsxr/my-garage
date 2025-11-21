@@ -9,31 +9,64 @@
 .login-card {
     width: 100%;
     max-width: 400px;
-    padding: 2rem;
+    padding: 32px 24px;
     border-radius: 16px;
     background: rgba(255, 255, 255, 0.95);
     backdrop-filter: blur(10px);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 
+    // Custom header styling to override Material default layout if needed
+    // or just treating it as a flex container
     mat-card-header {
-        justify-content: center;
-        margin-bottom: 2rem;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        // Resetting internal wrapper styles if any
+        ::ng-deep .mat-mdc-card-header-text {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .logo-container {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+
+            .login-logo {
+                height: 240px; // Much larger logo
+                width: auto;
+                object-fit: contain;
+            }
+        }
 
         mat-card-title {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--primary-color);
+            font-size: 1.25rem; // Smaller title (approx 20px)
+            font-weight: 500;
+            margin-bottom: 4px;
+            text-align: center;
+            color: #333;
+        }
+
+        mat-card-subtitle {
+            font-size: 0.875rem; // Smaller subtitle (14px)
+            margin: 0;
+            text-align: center;
+            color: #666;
         }
     }
-}
 
-.full-width {
-    width: 100%;
-    margin-bottom: 1rem;
-}
+    .full-width {
+        width: 100%;
+        margin-bottom: 16px;
+    }
 
-button[type="submit"] {
-    height: 48px;
-    font-size: 1.1rem;
-    margin-top: 1rem;
+    button[type="submit"] {
+        margin-top: 8px;
+        padding: 6px 0;
+        font-size: 16px;
+    }
 }

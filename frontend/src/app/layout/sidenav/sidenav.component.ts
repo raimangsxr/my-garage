@@ -13,7 +13,7 @@ import { CommonModule } from '@angular/common';
 })
 export class SidenavComponent {
     modules = [
-        { name: 'Dashboard', icon: 'dashboard', route: '/' },
+        { name: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
         { name: 'Vehicles', icon: 'directions_car', route: '/vehicles' },
         { name: 'Maintenance', icon: 'build', route: '/maintenance' },
         { name: 'Invoices', icon: 'receipt', route: '/invoices' },

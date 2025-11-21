@@ -1,0 +1,25 @@
+<ng-container *ngIf="isAuthenticated$ | async; else publicLayout">
+  <div class="app-layout">
+    <app-header (menuToggle)="drawer.toggle()"></app-header>
+
+    <mat-sidenav-container class="sidenav-container">
+      <mat-sidenav #drawer class="sidenav" fixedInViewport="false"
+        [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'" [mode]="(isHandset$ | async) ? 'over' : 'side'"
+        [opened]="(isHandset$ | async) === false">
+        <app-sidenav></app-sidenav>
+      </mat-sidenav>
+
+      <mat-sidenav-content>
+        <main class="main-content">
+          <router-outlet></router-outlet>
+        </main>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
+
+    <app-footer></app-footer>
+  </div>
+</ng-container>
+
+<ng-template #publicLayout>
+  <router-outlet></router-outlet>
+</ng-template>

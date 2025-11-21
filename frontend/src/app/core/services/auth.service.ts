@@ -12,7 +12,7 @@ interface LoginResponse {
     providedIn: 'root'
 })
 export class AuthService {
-    private apiUrl = '/api/v1/login/access-token'; // Proxy will handle /api/v1
+    private apiUrl = '/api/v1/auth/login/access-token'; // Proxy will handle /api/v1
     private tokenKey = 'access_token';
     private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 

@@ -1,0 +1,61 @@
+<div class="vehicles-container">
+    <div class="header">
+        <h2>My Vehicles</h2>
+    </div>
+
+    <div class="vehicles-grid">
+        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card">
+            <div class="vehicle-image"
+                [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
+                <div class="license-plate">{{ vehicle.license_plate }}</div>
+            </div>
+
+            <mat-card-content>
+                <h3>{{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.year }})</h3>
+
+                <div class="info-row" [class.expired]="isItvExpired(vehicle.next_itv_date)">
+                    <span class="label">Next ITV:</span>
+                    <span class="value">{{ (vehicle.next_itv_date | date:'mediumDate') || 'N/A' }}</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Insurance:</span>
+                    <span class="value">
+                        {{ (vehicle.next_insurance_date | date:'mediumDate') || 'N/A' }}
+                        <span class="amount" *ngIf="vehicle.last_insurance_amount">({{ vehicle.last_insurance_amount |
+                            currency:'EUR' }})</span>
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="label">Road Tax:</span>
+                    <span class="value">
+                        {{ (vehicle.next_road_tax_date | date:'mediumDate') || 'N/A' }}
+                        <span class="amount" *ngIf="vehicle.last_road_tax_amount">({{ vehicle.last_road_tax_amount |
+                            currency:'EUR' }})</span>
+                    </span>
+                </div>
+            </mat-card-content>
+
+            <div class="card-actions">
+                <button mat-icon-button [matMenuTriggerFor]="menu">
+                    <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openVehicleDialog(vehicle)">
+                        <mat-icon>edit</mat-icon>
+                        <span>Edit</span>
+                    </button>
+                    <button mat-menu-item (click)="deleteVehicle(vehicle.id!)">
+                        <mat-icon>delete</mat-icon>
+                        <span>Delete</span>
+                    </button>
+                </mat-menu>
+            </div>
+        </mat-card>
+    </div>
+
+    <button mat-fab color="primary" class="add-button" (click)="openVehicleDialog()">
+        <mat-icon>add</mat-icon>
+    </button>
+</div>
