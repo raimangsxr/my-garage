@@ -38,4 +38,8 @@ export class UserService {
     getAvatars(): Observable<string[]> {
         return this.http.get<string[]>(`${this.apiUrl}avatars`);
     }
+
+    changePassword(data: { current_password: string; new_password: string }): Observable<any> {
+        return this.http.post(`${this.apiUrl}me/password`, data);
+    }
 }

@@ -1,0 +1,44 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Invoice' : 'Add Invoice' }}</h2>
+<mat-dialog-content>
+    <form [formGroup]="form" class="invoice-form">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Invoice Number</mat-label>
+            <input matInput formControlName="number">
+            <mat-error *ngIf="form.get('number')?.hasError('required')">Number is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="form.get('date')?.hasError('required')">Date is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount (€)</mat-label>
+            <input matInput type="number" formControlName="amount" min="0">
+            <mat-error *ngIf="form.get('amount')?.hasError('required')">Amount is required</mat-error>
+            <mat-error *ngIf="form.get('amount')?.hasError('min')">Amount must be positive</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Maintenance Record</mat-label>
+            <mat-select formControlName="maintenance_id">
+                <mat-option [value]="null">None</mat-option>
+                <mat-option *ngFor="let maintenance of maintenances" [value]="maintenance.id">
+                    {{ maintenance.description }} ({{ maintenance.date | date }})
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>File URL (Optional)</mat-label>
+            <input matInput formControlName="file_url">
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>

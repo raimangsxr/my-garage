@@ -1,3 +1,23 @@
 .container {
     padding: 20px;
 }
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.invoice-card {
+    overflow: hidden;
+}
+
+.invoice-table {
+    width: 100%;
+}
+
+.mat-column-actions {
+    width: 100px;
+    text-align: right;
+}

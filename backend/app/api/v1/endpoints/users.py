@@ -5,7 +5,7 @@ import base64
 import requests
 
 from app.api import deps
-from app.models import User, UserRead
+from app.models import User, UserRead, UserPasswordUpdate
 
 router = APIRouter()
 
@@ -82,3 +82,24 @@ def get_avatars(
         "https://cdn-icons-png.flaticon.com/512/147/147140.png",
         "https://cdn-icons-png.flaticon.com/512/4333/4333609.png"
     ]
+
+@router.post("/me/password", response_model=Any)
+def update_password(
+    *,
+    session: Session = Depends(deps.get_db),
+    body: UserPasswordUpdate,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update own password.
+    """
+    from app.core.security import verify_password, get_password_hash
+    
+    if not verify_password(body.current_password, current_user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect password")
+    
+    current_user.hashed_password = get_password_hash(body.new_password)
+    session.add(current_user)
+    session.commit()
+    
+    return {"message": "Password updated successfully"}
