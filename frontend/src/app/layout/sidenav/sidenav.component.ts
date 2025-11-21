@@ -18,5 +18,6 @@ export class SidenavComponent {
         { name: 'Maintenance', icon: 'build', route: '/maintenance' },
         { name: 'Invoices', icon: 'receipt', route: '/invoices' },
         { name: 'Suppliers', icon: 'store', route: '/suppliers' },
+        { name: 'Parts', icon: 'extension', route: '/parts' },
     ];
 }

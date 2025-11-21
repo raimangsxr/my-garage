@@ -16,12 +16,14 @@ export interface Vehicle {
     last_road_tax_amount?: number;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
     providedIn: 'root'
 })
 export class VehicleService {
     private http = inject(HttpClient);
-    private apiUrl = '/api/v1/vehicles/';
+    private apiUrl = `${environment.apiUrl}/vehicles/`;
 
     getVehicles(): Observable<Vehicle[]> {
         return this.http.get<Vehicle[]>(this.apiUrl);

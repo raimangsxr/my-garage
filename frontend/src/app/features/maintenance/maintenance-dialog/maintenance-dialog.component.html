@@ -1,0 +1,48 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Maintenance' : 'Add Maintenance' }}</h2>
+<mat-dialog-content>
+    <form [formGroup]="form" class="maintenance-form">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Vehicle</mat-label>
+            <mat-select formControlName="vehicle_id">
+                <mat-option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+                    {{ vehicle.brand }} {{ vehicle.model }} ({{ vehicle.license_plate }})
+                </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('vehicle_id')?.hasError('required')">Vehicle is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Date</mat-label>
+            <input matInput [matDatepicker]="picker" formControlName="date">
+            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
+            <mat-error *ngIf="form.get('date')?.hasError('required')">Date is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description</mat-label>
+            <textarea matInput formControlName="description" rows="3"></textarea>
+            <mat-error *ngIf="form.get('description')?.hasError('required')">Description is required</mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Mileage (km)</mat-label>
+                <input matInput type="number" formControlName="mileage" min="0">
+                <mat-error *ngIf="form.get('mileage')?.hasError('required')">Mileage is required</mat-error>
+                <mat-error *ngIf="form.get('mileage')?.hasError('min')">Mileage must be positive</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Cost (€)</mat-label>
+                <input matInput type="number" formControlName="cost" min="0">
+                <mat-error *ngIf="form.get('cost')?.hasError('required')">Cost is required</mat-error>
+                <mat-error *ngIf="form.get('cost')?.hasError('min')">Cost must be positive</mat-error>
+            </mat-form-field>
+        </div>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button (click)="onCancel()">Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSave()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>

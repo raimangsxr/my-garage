@@ -1,12 +1,10 @@
+
 from sqlmodel import SQLModel, create_engine, Session
 from typing import Generator
 
-import os
+from app.core.config import settings
 
-# Default to local PostgreSQL if DATABASE_URL is not set
-DATABASE_URL = os.environ.get("DATABASE_URL", "postgresql://adminuser:z^Lg!%Bhg1QIV$@192.168.11.21:5432/mygarage_dev")
-
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(settings.DATABASE_URL, echo=True)
 
 def get_session() -> Generator[Session, None, None]:
     with Session(engine) as session:

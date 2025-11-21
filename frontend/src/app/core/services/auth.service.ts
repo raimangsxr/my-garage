@@ -8,11 +8,13 @@ interface LoginResponse {
     token_type: string;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private apiUrl = '/api/v1/auth/'; // Base auth URL
+    private apiUrl = `${environment.apiUrl}/auth/`; // Base auth URL
     private tokenKey = 'access_token';
     private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 

@@ -11,12 +11,14 @@ export interface User {
     is_superuser: boolean;
 }
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
     providedIn: 'root'
 })
 export class UserService {
     private http = inject(HttpClient);
-    private apiUrl = '/api/v1/users/';
+    private apiUrl = `${environment.apiUrl}/users/`;
 
     private currentUserSubject = new BehaviorSubject<User | null>(null);
     currentUser$ = this.currentUserSubject.asObservable();
