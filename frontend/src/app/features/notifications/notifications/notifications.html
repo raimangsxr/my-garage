@@ -1,2 +1,31 @@
-<h2>Notifications</h2>
-<p>Your notifications will appear here.</p>
+<div class="container">
+    <div class="header">
+        <h2>Notifications</h2>
+    </div>
+
+    <mat-card class="notifications-card">
+        <mat-card-content>
+            <mat-list>
+                <div *ngIf="notifications.length === 0" class="empty-state">
+                    <mat-icon>notifications_off</mat-icon>
+                    <p>No notifications</p>
+                </div>
+
+                <mat-list-item *ngFor="let notification of notifications" [class.read]="notification.is_read"
+                    [class.unread]="!notification.is_read" (click)="markAsRead(notification)" class="notification-item">
+                    <mat-icon matListItemIcon [ngClass]="getClass(notification.type)">{{ getIcon(notification.type)
+                        }}</mat-icon>
+                    <div matListItemTitle class="notification-title">
+                        {{ notification.title }}
+                        <span class="date">{{ notification.created_at | date:'short' }}</span>
+                    </div>
+                    <div matListItemLine>{{ notification.message }}</div>
+                    <button mat-icon-button matListItemMeta (click)="markAsUnread($event, notification)"
+                        *ngIf="notification.is_read" matTooltip="Mark as unread">
+                        <mat-icon>mark_email_unread</mat-icon>
+                    </button>
+                </mat-list-item>
+            </mat-list>
+        </mat-card-content>
+    </mat-card>
+</div>

@@ -8,7 +8,10 @@
   <span class="spacer"></span>
 
   <div class="user-info" [matMenuTriggerFor]="userMenu" *ngIf="user">
-    <img [src]="user.image_url || 'assets/images/default-avatar.png'" alt="User Image" class="user-image">
+    <div class="avatar-container" [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn"
+      matBadgeSize="small">
+      <img [src]="user.image_url || 'assets/images/default-avatar.png'" alt="User Image" class="user-image">
+    </div>
     <span class="user-name">{{ user.full_name }}</span>
     <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
   </div>
@@ -19,7 +22,8 @@
       <span>Profile</span>
     </button>
     <button mat-menu-item routerLink="/notifications">
-      <mat-icon>notifications</mat-icon>
+      <mat-icon [matBadge]="unreadCount" [matBadgeHidden]="unreadCount === 0" matBadgeColor="warn"
+        matBadgeSize="small">notifications</mat-icon>
       <span>Notifications</span>
     </button>
     <button mat-menu-item routerLink="/change-password">
