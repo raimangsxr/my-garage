@@ -1,0 +1,56 @@
+.image-cropper-wrapper {
+    width: 100%;
+}
+
+.upload-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+
+    .url-input {
+        flex: 1;
+        min-width: 200px;
+        margin-bottom: -1.25em; // Fix material spacing
+    }
+}
+
+.cropper-container {
+    margin-top: 1rem;
+    text-align: center;
+    background: #333;
+    padding: 1rem;
+    border-radius: 8px;
+    color: white;
+
+    p {
+        margin-bottom: 1rem;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    canvas {
+        max-width: 100%;
+        border-radius: 4px;
+        cursor: move;
+        touch-action: none; // Prevent scrolling on touch devices
+        background-color: #000;
+    }
+
+    .cropper-actions {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+
+        .cancel-btn {
+            color: white !important;
+            border-color: rgba(255, 255, 255, 0.5) !important;
+
+            &:hover {
+                background-color: rgba(255, 255, 255, 0.1) !important;
+                border-color: white !important;
+            }
+        }
+    }
+}
