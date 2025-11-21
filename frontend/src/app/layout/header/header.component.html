@@ -7,9 +7,9 @@
 
   <span class="spacer"></span>
 
-  <div class="user-info" [matMenuTriggerFor]="userMenu">
-    <img [src]="user.imageUrl" alt="User Image" class="user-image">
-    <span class="user-name">{{ user.name }}</span>
+  <div class="user-info" [matMenuTriggerFor]="userMenu" *ngIf="user">
+    <img [src]="user.image_url || 'assets/images/default-avatar.png'" alt="User Image" class="user-image">
+    <span class="user-name">{{ user.full_name }}</span>
     <mat-icon class="dropdown-icon">arrow_drop_down</mat-icon>
   </div>
 

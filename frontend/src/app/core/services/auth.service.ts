@@ -12,7 +12,7 @@ interface LoginResponse {
     providedIn: 'root'
 })
 export class AuthService {
-    private apiUrl = '/api/v1/auth/login/access-token'; // Proxy will handle /api/v1
+    private apiUrl = '/api/v1/auth/'; // Base auth URL
     private tokenKey = 'access_token';
     private isAuthenticatedSubject = new BehaviorSubject<boolean>(this.hasToken());
 
@@ -33,7 +33,7 @@ export class AuthService {
             'Content-Type': 'application/x-www-form-urlencoded'
         });
 
-        return this.http.post<LoginResponse>(this.apiUrl, body.toString(), { headers }).pipe(
+        return this.http.post<LoginResponse>(`${this.apiUrl}login/access-token`, body.toString(), { headers }).pipe(
             tap(response => {
                 localStorage.setItem(this.tokenKey, response.access_token);
                 this.isAuthenticatedSubject.next(true);

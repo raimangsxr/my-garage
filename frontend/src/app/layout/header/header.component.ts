@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
+import { UserService, User } from '../../core/services/user.service';
 
 @Component({
     selector: 'app-header',
@@ -15,16 +16,22 @@ import { AuthService } from '../../core/services/auth.service';
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnInit {
     @Output() menuToggle = new EventEmitter<void>();
 
-    // Mock user data
-    user = {
-        name: 'Ricardo Romaní',
-        imageUrl: 'https://material.angular.io/assets/img/examples/shiba1.jpg'
-    };
+    private authService = inject(AuthService);
+    private userService = inject(UserService);
 
-    constructor(private authService: AuthService) { }
+    user: User | null = null;
+
+    ngOnInit() {
+        this.userService.currentUser$.subscribe(user => {
+            this.user = user;
+        });
+
+        // Initial fetch
+        this.userService.getMe().subscribe();
+    }
 
     toggleMenu() {
         this.menuToggle.emit();
