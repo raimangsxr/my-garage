@@ -2,7 +2,7 @@
     <h1>Dashboard</h1>
 
     <div class="stats-grid">
-        <mat-card *ngFor="let stat of stats" class="stat-card">
+        <mat-card *ngFor="let stat of stats" class="stat-card clickable-card" [routerLink]="stat.link">
             <mat-card-content>
                 <div class="stat-icon" [ngClass]="stat.color">
                     <mat-icon>{{ stat.icon }}</mat-icon>

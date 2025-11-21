@@ -16,6 +16,16 @@ h1 {
 }
 
 .stat-card {
+    &.clickable-card {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+
+        &:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+    }
+
     mat-card-content {
         display: flex;
         align-items: center;
