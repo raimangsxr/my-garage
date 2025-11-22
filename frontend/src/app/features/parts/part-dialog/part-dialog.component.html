@@ -27,6 +27,36 @@
                 <mat-error *ngIf="form.get('quantity')?.hasError('min')">Quantity must be positive</mat-error>
             </mat-form-field>
         </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Supplier</mat-label>
+            <mat-select formControlName="supplier_id">
+                <mat-option [value]="null">- None -</mat-option>
+                <mat-option *ngFor="let supplier of suppliers" [value]="supplier.id">
+                    {{ supplier.name }}
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Invoice</mat-label>
+            <mat-select formControlName="invoice_id">
+                <mat-option [value]="null">- None -</mat-option>
+                <mat-option *ngFor="let invoice of invoices" [value]="invoice.id">
+                    #{{ invoice.number }} ({{ invoice.date | date }})
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Maintenance</mat-label>
+            <mat-select formControlName="maintenance_id">
+                <mat-option [value]="null">- None -</mat-option>
+                <mat-option *ngFor="let maintenance of maintenances" [value]="maintenance.id">
+                    {{ maintenance.description }} ({{ maintenance.date | date }})
+                </mat-option>
+            </mat-select>
+        </mat-form-field>
     </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

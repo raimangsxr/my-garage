@@ -199,20 +199,42 @@ def get_vehicle_details(
     
     # Get maintenance records with related data
     maintenances_data = []
+    all_parts = []
+    all_invoices = []
+    
     for maintenance in vehicle.maintenances:
         maint_dict = maintenance.model_dump()
         
         # Get parts for this maintenance
-        parts_stmt = select(Part).where(Part.maintenance_id == maintenance.id)
+        parts_stmt = select(Part).where(Part.maintenance_id == maintenance.id).options(
+            selectinload(Part.supplier),
+            selectinload(Part.invoice)
+        )
         parts = db.exec(parts_stmt).all()
-        maint_dict["parts"] = [p.model_dump() for p in parts]
+        maint_parts = []
+        for p in parts:
+            p_dict = p.model_dump()
+            if p.supplier:
+                p_dict["supplier"] = p.supplier.model_dump()
+            if p.invoice:
+                p_dict["invoice"] = p.invoice.model_dump()
+            maint_parts.append(p_dict)
+            all_parts.append(p_dict)
         
-        # Get invoice if exists
-        invoice_stmt = select(Invoice).where(Invoice.maintenance_id == maintenance.id)
-        invoice = db.exec(invoice_stmt).first()
-        maint_dict["invoice"] = invoice.model_dump() if invoice else None
+        maint_dict["parts"] = maint_parts
         
-        # Get supplier if exists
+        # Get invoices for this maintenance
+        invoices_stmt = select(Invoice).where(Invoice.maintenance_id == maintenance.id)
+        invoices = db.exec(invoices_stmt).all()
+        maint_invoices = []
+        for i in invoices:
+            i_dict = i.model_dump()
+            maint_invoices.append(i_dict)
+            all_invoices.append(i_dict)
+            
+        maint_dict["invoices"] = maint_invoices
+        
+        # Get supplier if exists (labor supplier)
         if maintenance.supplier_id:
             supplier = db.get(Supplier, maintenance.supplier_id)
             maint_dict["supplier"] = supplier.model_dump() if supplier else None
@@ -224,5 +246,7 @@ def get_vehicle_details(
     return {
         "vehicle": VehicleRead(**vehicle_dict),
         "specs": specs_dict,
-        "maintenances": maintenances_data
+        "maintenances": maintenances_data,
+        "parts": all_parts,
+        "invoices": all_invoices
     }

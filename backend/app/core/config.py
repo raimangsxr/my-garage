@@ -18,7 +18,8 @@ class Settings(BaseSettings):
             return v
         raise ValueError(v)
 
-    DATABASE_URL: str
+    DATABASE_URL: str # override in .env
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
 
     class Config:
         case_sensitive = True

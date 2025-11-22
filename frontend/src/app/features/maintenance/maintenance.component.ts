@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -6,9 +6,17 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MatMenuModule } from '@angular/material/menu';
+import { MaintenanceService, Maintenance } from '../../core/services/maintenance.service';
+import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
+import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
-import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
+
+interface VehicleMaintenanceGroup {
+    vehicle: Vehicle;
+    maintenances: Maintenance[];
+}
 
 @Component({
     selector: 'app-maintenance',
@@ -20,22 +28,24 @@ import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
         MatIconModule,
         MatTableModule,
         MatDialogModule,
-        MatSnackBarModule
+        MatSnackBarModule,
+        MatExpansionModule,
+        MatMenuModule
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
 })
 export class MaintenanceComponent implements OnInit {
+    private maintenanceService = inject(MaintenanceService);
+    private vehicleService = inject(VehicleService);
+    private supplierService = inject(SupplierService);
+    private dialog = inject(MatDialog);
+    private snackBar = inject(MatSnackBar);
+
     maintenances: Maintenance[] = [];
     vehicles: Vehicle[] = [];
-    displayedColumns: string[] = ['date', 'vehicle', 'description', 'mileage', 'cost', 'actions'];
-
-    constructor(
-        private maintenanceService: MaintenanceService,
-        private vehicleService: VehicleService,
-        private dialog: MatDialog,
-        private snackBar: MatSnackBar
-    ) { }
+    suppliers: Supplier[] = [];
+    groupedMaintenances: VehicleMaintenanceGroup[] = [];
 
     ngOnInit(): void {
         this.loadData();
@@ -46,6 +56,7 @@ export class MaintenanceComponent implements OnInit {
             next: (vehicles) => {
                 this.vehicles = vehicles;
                 this.loadMaintenances();
+                this.loadSuppliers();
             },
             error: (err) => {
                 console.error('Error loading vehicles', err);
@@ -54,10 +65,22 @@ export class MaintenanceComponent implements OnInit {
         });
     }
 
+    loadSuppliers(): void {
+        this.supplierService.getSuppliers().subscribe({
+            next: (suppliers) => {
+                this.suppliers = suppliers;
+            },
+            error: (err) => {
+                console.error('Error loading suppliers', err);
+            }
+        });
+    }
+
     loadMaintenances(): void {
         this.maintenanceService.getMaintenances().subscribe({
             next: (data) => {
                 this.maintenances = data;
+                this.groupMaintenancesByVehicle();
             },
             error: (err) => {
                 console.error('Error loading maintenances', err);
@@ -66,16 +89,45 @@ export class MaintenanceComponent implements OnInit {
         });
     }
 
+    groupMaintenancesByVehicle(): void {
+        this.groupedMaintenances = this.vehicles
+            .map(vehicle => ({
+                vehicle,
+                maintenances: this.maintenances
+                    .filter(m => m.vehicle_id === vehicle.id)
+                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+            }))
+            .filter(group => group.maintenances.length > 0);
+    }
+
     getVehicleName(vehicleId?: number): string {
         if (!vehicleId) return '-';
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
         return vehicle ? `${vehicle.brand} ${vehicle.model} (${vehicle.license_plate})` : 'Unknown Vehicle';
     }
 
+    getDaysSince(dateStr: string): number {
+        const date = new Date(dateStr);
+        const today = new Date();
+        const diffTime = today.getTime() - date.getTime();
+        return Math.floor(diffTime / (1000 * 3600 * 24));
+    }
+
+    getDateBadgeClass(dateStr: string): string {
+        const days = this.getDaysSince(dateStr);
+        if (days <= 30) return 'recent';
+        if (days <= 90) return 'moderate';
+        return 'old';
+    }
+
     openMaintenanceDialog(maintenance?: Maintenance): void {
         const dialogRef = this.dialog.open(MaintenanceDialogComponent, {
             width: '500px',
-            data: { maintenance: maintenance || {}, vehicles: this.vehicles }
+            data: {
+                maintenance: maintenance || {},
+                vehicles: this.vehicles,
+                suppliers: this.suppliers
+            }
         });
 
         dialogRef.afterClosed().subscribe(result => {
@@ -132,7 +184,7 @@ export class MaintenanceComponent implements OnInit {
 
     private showSnackBar(message: string): void {
         this.snackBar.open(message, 'Close', {
-            duration: 3000
+            duration: 3000,
         });
     }
 }

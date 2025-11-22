@@ -13,3 +13,4 @@ class SupplierBase(SQLModel):
 class Supplier(SupplierBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     maintenances: List["Maintenance"] = Relationship(back_populates="supplier")
+    parts: List["Part"] = Relationship(back_populates="supplier")

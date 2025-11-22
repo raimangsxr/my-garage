@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from datetime import date
 from sqlmodel import Field, SQLModel, Relationship
 
@@ -14,4 +14,5 @@ class InvoiceBase(SQLModel):
 
 class Invoice(InvoiceBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    maintenance: Optional["Maintenance"] = Relationship(back_populates="invoice")
+    maintenance: Optional["Maintenance"] = Relationship(back_populates="invoices")
+    parts: List["Part"] = Relationship(back_populates="invoice")

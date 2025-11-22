@@ -5,7 +5,19 @@ import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/materia
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
+import { MatSelectModule } from '@angular/material/select';
 import { Part } from '../../../core/services/part.service';
+import { Supplier } from '../../../core/services/supplier.service';
+import { Invoice } from '../../../core/services/invoice.service';
+import { Maintenance } from '../../../core/services/maintenance.service';
+
+export interface PartDialogData {
+    part: Part;
+    suppliers: Supplier[];
+    invoices: Invoice[];
+    maintenances: Maintenance[];
+    readOnly?: boolean;
+}
 
 @Component({
     selector: 'app-part-dialog',
@@ -16,7 +28,8 @@ import { Part } from '../../../core/services/part.service';
         MatDialogModule,
         MatFormFieldModule,
         MatInputModule,
-        MatButtonModule
+        MatButtonModule,
+        MatSelectModule
     ],
     templateUrl: './part-dialog.component.html',
     styleUrls: ['./part-dialog.component.scss']
@@ -24,18 +37,30 @@ import { Part } from '../../../core/services/part.service';
 export class PartDialogComponent {
     form: FormGroup;
     isEditMode: boolean;
+    suppliers: Supplier[] = [];
+    invoices: Invoice[] = [];
+    maintenances: Maintenance[] = [];
+    readOnly: boolean = false;
 
     constructor(
         private fb: FormBuilder,
         public dialogRef: MatDialogRef<PartDialogComponent>,
-        @Inject(MAT_DIALOG_DATA) public data: Part
+        @Inject(MAT_DIALOG_DATA) public data: PartDialogData
     ) {
-        this.isEditMode = !!data.id;
+        this.isEditMode = !!data.part.id;
+        this.suppliers = data.suppliers || [];
+        this.invoices = data.invoices || [];
+        this.maintenances = data.maintenances || [];
+        this.readOnly = data.readOnly || false;
+
         this.form = this.fb.group({
-            name: [data.name || '', Validators.required],
-            reference: [data.reference || ''],
-            price: [data.price || 0, [Validators.required, Validators.min(0)]],
-            quantity: [data.quantity || 1, [Validators.required, Validators.min(0)]]
+            name: [{ value: data.part.name || '', disabled: this.readOnly }, Validators.required],
+            reference: [{ value: data.part.reference || '', disabled: this.readOnly }],
+            price: [{ value: data.part.price || 0, disabled: this.readOnly }, [Validators.required, Validators.min(0)]],
+            quantity: [{ value: data.part.quantity || 1, disabled: this.readOnly }, [Validators.required, Validators.min(0)]],
+            supplier_id: [{ value: data.part.supplier_id, disabled: this.readOnly }],
+            invoice_id: [{ value: data.part.invoice_id, disabled: this.readOnly }],
+            maintenance_id: [{ value: data.part.maintenance_id, disabled: this.readOnly }]
         });
     }
 

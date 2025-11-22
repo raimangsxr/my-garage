@@ -10,6 +10,10 @@ export interface Part {
     price: number;
     quantity: number;
     maintenance_id?: number;
+    supplier_id?: number;
+    invoice_id?: number;
+    supplier?: any;
+    invoice?: any;
 }
 
 import { environment } from '../../../environments/environment';

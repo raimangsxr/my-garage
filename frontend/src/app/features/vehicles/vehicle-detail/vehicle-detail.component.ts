@@ -4,7 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { VehicleService } from '../../../core/services/vehicle.service';
+import { Supplier, SupplierService } from '../../../core/services/supplier.service';
+import { Invoice, InvoiceService } from '../../../core/services/invoice.service';
+import { Maintenance, MaintenanceService } from '../../../core/services/maintenance.service';
+import { MaintenanceDialogComponent } from '../../maintenance/maintenance-dialog/maintenance-dialog.component';
+import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
+import { InvoiceDialogComponent } from '../../invoices/invoice-dialog/invoice-dialog.component';
 
 @Component({
     selector: 'app-vehicle-detail',
@@ -13,7 +20,8 @@ import { VehicleService } from '../../../core/services/vehicle.service';
         CommonModule,
         MatCardModule,
         MatButtonModule,
-        MatIconModule
+        MatIconModule,
+        MatDialogModule
     ],
     templateUrl: './vehicle-detail.component.html',
     styleUrls: ['./vehicle-detail.component.scss']
@@ -22,14 +30,22 @@ export class VehicleDetailComponent implements OnInit {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private vehicleService = inject(VehicleService);
+    private supplierService = inject(SupplierService);
+    private invoiceService = inject(InvoiceService);
+    private maintenanceService = inject(MaintenanceService);
+    private dialog = inject(MatDialog);
 
     vehicleDetails: any = null;
     loading = true;
+    suppliers: Supplier[] = [];
+    invoices: Invoice[] = [];
+    maintenances: Maintenance[] = [];
 
     ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
             this.loadVehicleDetails(parseInt(id));
+            this.loadRelatedData();
         }
     }
 
@@ -37,6 +53,11 @@ export class VehicleDetailComponent implements OnInit {
         this.vehicleService.getVehicleDetails(id).subscribe({
             next: (data) => {
                 this.vehicleDetails = data;
+                if (this.vehicleDetails.maintenances) {
+                    this.vehicleDetails.maintenances.sort((a: any, b: any) =>
+                        new Date(b.date).getTime() - new Date(a.date).getTime()
+                    );
+                }
                 this.loading = false;
             },
             error: (err) => {
@@ -44,6 +65,12 @@ export class VehicleDetailComponent implements OnInit {
                 this.loading = false;
             }
         });
+    }
+
+    loadRelatedData() {
+        this.supplierService.getSuppliers().subscribe(data => this.suppliers = data);
+        this.invoiceService.getInvoices().subscribe(data => this.invoices = data);
+        this.maintenanceService.getMaintenances().subscribe(data => this.maintenances = data);
     }
 
     goBack() {
@@ -64,18 +91,55 @@ export class VehicleDetailComponent implements OnInit {
     }
 
     getAllParts(): any[] {
-        if (!this.vehicleDetails?.maintenances) return [];
-        return this.vehicleDetails.maintenances.flatMap((m: any) => m.parts || []);
+        return this.vehicleDetails?.parts || [];
     }
 
     getAllInvoices(): any[] {
-        if (!this.vehicleDetails?.maintenances) return [];
-        return this.vehicleDetails.maintenances
-            .map((m: any) => m.invoice)
-            .filter((inv: any) => inv !== null);
+        return this.vehicleDetails?.invoices || [];
     }
 
     hasPartsOrInvoices(): boolean {
         return this.getAllParts().length > 0 || this.getAllInvoices().length > 0;
+    }
+
+    openMaintenanceDialog(maintenance: any) {
+        const dialogRef = this.dialog.open(MaintenanceDialogComponent, {
+            width: '600px',
+            data: {
+                maintenance: maintenance,
+                vehicles: [this.vehicleDetails.vehicle],
+                suppliers: this.suppliers
+            }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.loadVehicleDetails(this.vehicleDetails.vehicle.id);
+            }
+        });
+    }
+
+    openPartDialog(part: any) {
+        this.dialog.open(PartDialogComponent, {
+            width: '500px',
+            data: {
+                part: part,
+                readOnly: true,
+                suppliers: this.suppliers,
+                invoices: this.invoices,
+                maintenances: this.maintenances
+            }
+        });
+    }
+
+    openInvoiceDialog(invoice: any) {
+        this.dialog.open(InvoiceDialogComponent, {
+            width: '500px',
+            data: {
+                invoice: invoice,
+                readOnly: true,
+                maintenances: this.maintenances
+            }
+        });
     }
 }

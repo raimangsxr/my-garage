@@ -11,9 +11,12 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { Maintenance } from '../../../core/services/maintenance.service';
 import { Vehicle } from '../../../core/services/vehicle.service';
 
+import { Supplier } from '../../../core/services/supplier.service';
+
 export interface MaintenanceDialogData {
     maintenance: Maintenance;
     vehicles: Vehicle[];
+    suppliers: Supplier[];
 }
 
 @Component({
@@ -37,6 +40,7 @@ export class MaintenanceDialogComponent {
     form: FormGroup;
     isEditMode: boolean;
     vehicles: Vehicle[];
+    suppliers: Supplier[];
 
     constructor(
         private fb: FormBuilder,
@@ -45,13 +49,15 @@ export class MaintenanceDialogComponent {
     ) {
         this.isEditMode = !!data.maintenance.id;
         this.vehicles = data.vehicles;
+        this.suppliers = data.suppliers || [];
 
         this.form = this.fb.group({
             vehicle_id: [data.maintenance.vehicle_id, Validators.required],
             date: [data.maintenance.date || new Date(), Validators.required],
             description: [data.maintenance.description || '', Validators.required],
             mileage: [data.maintenance.mileage || 0, [Validators.required, Validators.min(0)]],
-            cost: [data.maintenance.cost || 0, [Validators.required, Validators.min(0)]]
+            cost: [data.maintenance.cost || 0, [Validators.required, Validators.min(0)]],
+            supplier_id: [data.maintenance.supplier_id]
         });
     }
 

@@ -47,140 +47,80 @@
         </div>
     </div>
 
-    <!-- Main Content Grid -->
-    <div class="content-grid">
-        <!-- Left Column: Technical Specs -->
-        <mat-card class="specs-card" *ngIf="vehicleDetails.specs">
-            <mat-card-header>
-                <mat-card-title>Especificaciones Técnicas</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="spec-section" *ngIf="vehicleDetails.specs.vin || vehicleDetails.specs.color">
-                    <h3>Identificación</h3>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.vin">
-                        <span class="label">VIN</span>
-                        <span class="value">{{ vehicleDetails.specs.vin }}</span>
-                    </div>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.color">
-                        <span class="label">Color</span>
-                        <span class="value">{{ vehicleDetails.specs.color }} <span class="color-code"
-                                *ngIf="vehicleDetails.specs.color_code">({{ vehicleDetails.specs.color_code
-                                }})</span></span>
-                    </div>
-                </div>
-
-                <div class="spec-section" *ngIf="vehicleDetails.specs.engine_type || vehicleDetails.specs.transmission">
-                    <h3>Motor y Transmisión</h3>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.engine_type">
-                        <span class="label">Motor</span>
-                        <span class="value">{{ vehicleDetails.specs.engine_type }}</span>
-                    </div>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.transmission">
-                        <span class="label">Transmisión</span>
-                        <span class="value">{{ vehicleDetails.specs.transmission }}</span>
-                    </div>
-                </div>
-
-                <div class="spec-section">
-                    <h3>Mantenimiento</h3>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.engine_oil_type">
-                        <span class="label">Aceite</span>
-                        <span class="value">{{ vehicleDetails.specs.engine_oil_type }}</span>
-                    </div>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.coolant_type">
-                        <span class="label">Anticongelante</span>
-                        <span class="value">{{ vehicleDetails.specs.coolant_type }}</span>
-                    </div>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.battery_type">
-                        <span class="label">Batería</span>
-                        <span class="value">{{ vehicleDetails.specs.battery_type }}</span>
-                    </div>
-                    <div class="spec-item" *ngIf="vehicleDetails.specs.tire_size">
-                        <span class="label">Neumáticos</span>
-                        <span class="value">{{ vehicleDetails.specs.tire_size }}</span>
-                    </div>
-                </div>
-
-                <div class="spec-section" *ngIf="vehicleDetails.specs.torque_specs">
-                    <h3>Pares de Apriete</h3>
-                    <div class="spec-item" *ngFor="let item of vehicleDetails.specs.torque_specs | keyvalue">
-                        <span class="label">{{ item.key }}</span>
-                        <span class="value">{{ item.value }}</span>
-                    </div>
-                </div>
-            </mat-card-content>
-        </mat-card>
-
-        <!-- Right Column: Maintenance Timeline -->
-        <mat-card class="timeline-card">
-            <mat-card-header>
-                <mat-card-title>Historial de Mantenimientos</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="timeline" *ngIf="vehicleDetails.maintenances.length > 0; else noMaintenances">
-                    <div class="timeline-item" *ngFor="let maintenance of vehicleDetails.maintenances; let last = last">
-                        <div class="timeline-marker"></div>
-                        <div class="timeline-content">
-                            <div class="timeline-date">{{ maintenance.date | date:'dd MMM yyyy' }}</div>
-                            <h4>{{ maintenance.description }}</h4>
-                            <div class="timeline-details">
-                                <span><mat-icon>speed</mat-icon>{{ maintenance.mileage | number }} km</span>
-                                <span><mat-icon>euro</mat-icon>{{ maintenance.cost | number:'1.2-2' }}€</span>
-                            </div>
-                            <div class="timeline-supplier" *ngIf="maintenance.supplier">
-                                <mat-icon>store</mat-icon>{{ maintenance.supplier.name }}
-                            </div>
-                            <div class="timeline-parts" *ngIf="maintenance.parts.length > 0">
-                                <div class="part-chip" *ngFor="let part of maintenance.parts">
-                                    {{ part.name }}
-                                </div>
+    <!-- Related Entities Block -->
+    <div class="entities-grid">
+        <!-- Column 1: Maintenances -->
+        <div class="entity-column">
+            <div class="column-header">
+                <mat-icon>build</mat-icon>
+                <h2>Mantenimientos</h2>
+                <span class="count-badge">{{ vehicleDetails.maintenances.length }}</span>
+            </div>
+            <div class="timeline">
+                <div class="timeline-item" *ngFor="let maintenance of vehicleDetails.maintenances; let last = last"
+                    (click)="openMaintenanceDialog(maintenance)">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-line" *ngIf="!last"></div>
+                    <div class="timeline-content">
+                        <div class="entity-card maintenance-card">
+                            <div class="card-date">{{ maintenance.date | date:'dd MMM yyyy' }}</div>
+                            <div class="card-title">{{ maintenance.description }}</div>
+                            <div class="card-meta">
+                                <span><mat-icon>speed</mat-icon> {{ maintenance.mileage | number }} km</span>
+                                <span><mat-icon>euro</mat-icon> {{ maintenance.cost | number:'1.2-2' }}€</span>
                             </div>
                         </div>
                     </div>
                 </div>
-                <ng-template #noMaintenances>
-                    <div class="empty-state">
-                        <mat-icon>build</mat-icon>
-                        <p>No hay mantenimientos registrados</p>
-                    </div>
-                </ng-template>
-            </mat-card-content>
-        </mat-card>
-    </div>
+                <div class="empty-state" *ngIf="vehicleDetails.maintenances.length === 0">
+                    <p>No hay mantenimientos</p>
+                </div>
+            </div>
+        </div>
 
-    <!-- Bottom Section: Parts & Invoices -->
-    <div class="bottom-section" *ngIf="hasPartsOrInvoices()">
-        <mat-card class="compact-card" *ngIf="getAllParts().length > 0">
-            <mat-card-header>
-                <mat-card-title>Piezas Reemplazadas</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="parts-grid">
-                    <div class="part-item" *ngFor="let part of getAllParts()">
-                        <div class="part-name">{{ part.name }}</div>
-                        <div class="part-details">
-                            <span *ngIf="part.part_number">Nº {{ part.part_number }}</span>
-                            <span>{{ part.price | currency:'EUR' }}</span>
-                        </div>
+        <!-- Column 2: Parts -->
+        <div class="entity-column">
+            <div class="column-header">
+                <mat-icon>extension</mat-icon>
+                <h2>Piezas</h2>
+                <span class="count-badge">{{ getAllParts().length }}</span>
+            </div>
+            <div class="entity-list">
+                <div class="entity-card part-card" *ngFor="let part of getAllParts()" (click)="openPartDialog(part)">
+                    <div class="card-title">{{ part.name }}</div>
+                    <div class="card-subtitle" *ngIf="part.reference">Ref: {{ part.reference }}</div>
+                    <div class="card-meta">
+                        <span><mat-icon>euro</mat-icon> {{ part.price | number:'1.2-2' }}€</span>
+                        <span *ngIf="part.supplier"><mat-icon>store</mat-icon> {{ part.supplier.name }}</span>
                     </div>
                 </div>
-            </mat-card-content>
-        </mat-card>
+                <div class="empty-state" *ngIf="getAllParts().length === 0">
+                    <p>No hay piezas registradas</p>
+                </div>
+            </div>
+        </div>
 
-        <mat-card class="compact-card" *ngIf="getAllInvoices().length > 0">
-            <mat-card-header>
-                <mat-card-title>Facturas</mat-card-title>
-            </mat-card-header>
-            <mat-card-content>
-                <div class="invoices-list">
-                    <div class="invoice-item" *ngFor="let invoice of getAllInvoices()">
-                        <div class="invoice-number">#{{ invoice.invoice_number }}</div>
-                        <div class="invoice-date">{{ invoice.date | date:'dd/MM/yyyy' }}</div>
-                        <div class="invoice-amount">{{ invoice.amount | currency:'EUR' }}</div>
+        <!-- Column 3: Invoices -->
+        <div class="entity-column">
+            <div class="column-header">
+                <mat-icon>receipt</mat-icon>
+                <h2>Facturas</h2>
+                <span class="count-badge">{{ getAllInvoices().length }}</span>
+            </div>
+            <div class="entity-list">
+                <div class="entity-card invoice-card" *ngFor="let invoice of getAllInvoices()"
+                    (click)="openInvoiceDialog(invoice)">
+                    <div class="card-date">{{ invoice.date | date:'dd MMM yyyy' }}</div>
+                    <div class="card-title">#{{ invoice.number }}</div>
+                    <div class="card-meta">
+                        <span><mat-icon>euro</mat-icon> {{ invoice.amount | number:'1.2-2' }}€</span>
                     </div>
                 </div>
-            </mat-card-content>
-        </mat-card>
+                <div class="empty-state" *ngIf="getAllInvoices().length === 0">
+                    <p>No hay facturas</p>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

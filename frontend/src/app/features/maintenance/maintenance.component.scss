@@ -1,23 +1,236 @@
-.container {
-    padding: 20px;
+.maintenance-container {
+    padding: 24px;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
+// Header
 .header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 32px;
+
+    h1 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 300;
+    }
+
+    .fab-button {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+// Vehicle Groups
+.vehicle-groups {
+    mat-accordion {
+        display: block;
+    }
+
+    mat-expansion-panel {
+        margin-bottom: 24px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+
+        &::before {
+            display: none; // Remove default Material divider
+        }
+    }
+}
+
+// Vehicle Header
+.vehicle-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    width: 100%;
+
+    .vehicle-thumb {
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .vehicle-info {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+
+        .vehicle-name {
+            font-size: 1.125rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .vehicle-plate {
+            font-size: 0.875rem;
+            color: #666;
+        }
+    }
+
+    .maintenance-count {
+        font-size: 0.875rem;
+        color: #999;
+        padding: 4px 12px;
+        background: #f5f5f5;
+        border-radius: 16px;
+    }
+}
+
+// Maintenance Cards
+.maintenance-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 16px;
+    padding: 16px 0;
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+    }
 }
 
 .maintenance-card {
-    overflow: hidden;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+
+    &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+    }
+
+    mat-card-content {
+        padding: 16px;
+    }
+
+    .card-layout {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+    }
+
+    // Date Badge
+    .date-badge {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 60px;
+        padding: 8px;
+        border-radius: 8px;
+        text-align: center;
+        font-weight: 500;
+
+        &.recent {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+        }
+
+        &.moderate {
+            background: linear-gradient(135deg, #ff9800 0%, #ffa726 100%);
+            color: white;
+        }
+
+        &.old {
+            background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 100%);
+            color: white;
+        }
+
+        .day {
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .month {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .year {
+            font-size: 0.625rem;
+            opacity: 0.8;
+        }
+    }
+
+    // Main Content
+    .card-content {
+        flex: 1;
+
+        .description {
+            margin: 0 0 12px 0;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .metrics {
+            display: flex;
+            gap: 24px;
+
+            .metric {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 0.875rem;
+                color: #666;
+
+                mat-icon {
+                    font-size: 18px;
+                    width: 18px;
+                    height: 18px;
+                    color: #999;
+                }
+            }
+        }
+    }
+
+    // Actions
+    .card-actions {
+        button {
+            color: #999;
+        }
+    }
 }
 
-.maintenance-table {
-    width: 100%;
+// Menu Actions
+.delete-action {
+    color: #f44336;
+
+    mat-icon {
+        color: #f44336;
+    }
 }
 
-.mat-column-actions {
-    width: 100px;
-    text-align: right;
+// Empty State
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 24px;
+    text-align: center;
+    color: #999;
+
+    mat-icon {
+        font-size: 80px;
+        width: 80px;
+        height: 80px;
+        margin-bottom: 24px;
+        opacity: 0.3;
+    }
+
+    h2 {
+        margin: 0 0 8px 0;
+        font-size: 1.5rem;
+        font-weight: 400;
+        color: #666;
+    }
+
+    p {
+        margin: 0 0 24px 0;
+        font-size: 1rem;
+    }
 }

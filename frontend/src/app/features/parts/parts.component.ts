@@ -8,6 +8,9 @@ import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { Part, PartService } from '../../core/services/part.service';
 import { PartDialogComponent } from './part-dialog/part-dialog.component';
+import { Supplier, SupplierService } from '../../core/services/supplier.service';
+import { Invoice, InvoiceService } from '../../core/services/invoice.service';
+import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
 
 @Component({
     selector: 'app-parts',
@@ -26,16 +29,23 @@ import { PartDialogComponent } from './part-dialog/part-dialog.component';
 })
 export class PartsComponent implements OnInit {
     parts: Part[] = [];
+    suppliers: Supplier[] = [];
+    invoices: Invoice[] = [];
+    maintenances: Maintenance[] = [];
     displayedColumns: string[] = ['name', 'reference', 'price', 'quantity', 'actions'];
 
     constructor(
         private partService: PartService,
+        private supplierService: SupplierService,
+        private invoiceService: InvoiceService,
+        private maintenanceService: MaintenanceService,
         private dialog: MatDialog,
         private snackBar: MatSnackBar
     ) { }
 
     ngOnInit(): void {
         this.loadParts();
+        this.loadRelatedData();
     }
 
     loadParts(): void {
@@ -50,10 +60,21 @@ export class PartsComponent implements OnInit {
         });
     }
 
+    loadRelatedData(): void {
+        this.supplierService.getSuppliers().subscribe(data => this.suppliers = data);
+        this.invoiceService.getInvoices().subscribe(data => this.invoices = data);
+        this.maintenanceService.getMaintenances().subscribe(data => this.maintenances = data);
+    }
+
     openPartDialog(part?: Part): void {
         const dialogRef = this.dialog.open(PartDialogComponent, {
             width: '400px',
-            data: part || {}
+            data: {
+                part: part || {},
+                suppliers: this.suppliers,
+                invoices: this.invoices,
+                maintenances: this.maintenances
+            }
         });
 
         dialogRef.afterClosed().subscribe(result => {

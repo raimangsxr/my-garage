@@ -9,6 +9,8 @@ from app.core import security
 from app.models import User
 from app.database import get_session
 
+from app.core.config import settings
+
 router = APIRouter()
 
 @router.post("/login/access-token")
@@ -30,7 +32,7 @@ def login_access_token(
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
         
-    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": security.create_access_token(
             user.email, expires_delta=access_token_expires
