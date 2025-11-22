@@ -1,93 +1,97 @@
 <div class="maintenance-container">
-    <!-- Header -->
-    <div class="header">
-        <h1>Mantenimientos</h1>
-        <button mat-fab color="primary" (click)="openMaintenanceDialog()" class="fab-button">
+    <div class="header-actions">
+        <h1>Maintenance Records</h1>
+        <button mat-raised-button color="primary" (click)="openMaintenanceDialog()">
             <mat-icon>add</mat-icon>
+            New Maintenance
         </button>
     </div>
 
-    <!-- Vehicle Groups -->
-    <div class="vehicle-groups" *ngIf="groupedMaintenances.length > 0; else noMaintenances">
-        <mat-accordion multi>
-            <mat-expansion-panel *ngFor="let group of groupedMaintenances" [expanded]="true">
-                <!-- Vehicle Header -->
-                <mat-expansion-panel-header>
-                    <mat-panel-title>
-                        <div class="vehicle-header">
-                            <img [src]="group.vehicle.image_url || 'assets/images/default-car.png'" alt="Vehicle"
-                                class="vehicle-thumb">
-                            <div class="vehicle-info">
-                                <span class="vehicle-name">{{ group.vehicle.brand }} {{ group.vehicle.model }}</span>
-                                <span class="vehicle-plate">{{ group.vehicle.license_plate }}</span>
-                            </div>
-                            <span class="maintenance-count">{{ group.maintenances.length }} mantenimientos</span>
-                        </div>
-                    </mat-panel-title>
-                </mat-expansion-panel-header>
+    <div class="maintenance-list">
+        <table mat-table [dataSource]="maintenances" class="full-width-table">
+            <!-- Date Column -->
+            <ng-container matColumnDef="date">
+                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="date-badge" [ngClass]="getDateBadgeClass(element.date)">
+                        {{element.date | date:'dd MMM yyyy'}}
+                    </span>
+                </td>
+            </ng-container>
 
-                <!-- Maintenance Cards -->
-                <div class="maintenance-cards">
-                    <mat-card *ngFor="let maintenance of group.maintenances" class="maintenance-card">
-                        <mat-card-content>
-                            <div class="card-layout">
-                                <!-- Date Badge -->
-                                <div class="date-badge" [ngClass]="getDateBadgeClass(maintenance.date)">
-                                    <div class="day">{{ maintenance.date | date:'dd' }}</div>
-                                    <div class="month">{{ maintenance.date | date:'MMM' }}</div>
-                                    <div class="year">{{ maintenance.date | date:'yyyy' }}</div>
-                                </div>
+            <!-- Vehicle Column -->
+            <ng-container matColumnDef="vehicle">
+                <th mat-header-cell *matHeaderCellDef> Vehicle </th>
+                <td mat-cell *matCellDef="let element">
+                    <div class="vehicle-info">
+                        <span class="vehicle-name">{{ getVehicleName(element.vehicle_id) }}</span>
+                        <span class="license-plate" *ngIf="element.vehicle">{{ element.vehicle.license_plate }}</span>
+                    </div>
+                </td>
+            </ng-container>
 
-                                <!-- Main Content -->
-                                <div class="card-content">
-                                    <h3 class="description">{{ maintenance.description }}</h3>
-                                    <div class="metrics">
-                                        <div class="metric">
-                                            <mat-icon>speed</mat-icon>
-                                            <span>{{ maintenance.mileage | number }} km</span>
-                                        </div>
-                                        <div class="metric">
-                                            <mat-icon>euro</mat-icon>
-                                            <span>{{ maintenance.cost | number:'1.2-2' }}€</span>
-                                        </div>
-                                    </div>
-                                </div>
+            <!-- Description Column -->
+            <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef> Description </th>
+                <td mat-cell *matCellDef="let element"> {{element.description}} </td>
+            </ng-container>
 
-                                <!-- Actions Menu -->
-                                <div class="card-actions">
-                                    <button mat-icon-button [matMenuTriggerFor]="menu">
-                                        <mat-icon>more_vert</mat-icon>
-                                    </button>
-                                    <mat-menu #menu="matMenu">
-                                        <button mat-menu-item (click)="openMaintenanceDialog(maintenance)">
-                                            <mat-icon>edit</mat-icon>
-                                            <span>Editar</span>
-                                        </button>
-                                        <button mat-menu-item (click)="deleteMaintenance(maintenance.id!)"
-                                            class="delete-action">
-                                            <mat-icon>delete</mat-icon>
-                                            <span>Eliminar</span>
-                                        </button>
-                                    </mat-menu>
-                                </div>
-                            </div>
-                        </mat-card-content>
-                    </mat-card>
-                </div>
-            </mat-expansion-panel>
-        </mat-accordion>
-    </div>
+            <!-- Supplier Column -->
+            <ng-container matColumnDef="supplier">
+                <th mat-header-cell *matHeaderCellDef> Supplier </th>
+                <td mat-cell *matCellDef="let element"> {{ getSupplierName(element.supplier_id) }} </td>
+            </ng-container>
 
-    <!-- Empty State -->
-    <ng-template #noMaintenances>
-        <div class="empty-state">
+            <!-- Parts Column -->
+            <ng-container matColumnDef="parts">
+                <th mat-header-cell *matHeaderCellDef> Parts </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="count-badge" *ngIf="element.parts?.length > 0">
+                        {{ element.parts.length }} parts
+                    </span>
+                    <span class="empty-text" *ngIf="!element.parts?.length">-</span>
+                </td>
+            </ng-container>
+
+            <!-- Invoices Column -->
+            <ng-container matColumnDef="invoices">
+                <th mat-header-cell *matHeaderCellDef> Invoices </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="count-badge invoice" *ngIf="element.invoices?.length > 0">
+                        {{ element.invoices.length }} invoices
+                    </span>
+                    <span class="empty-text" *ngIf="!element.invoices?.length">-</span>
+                </td>
+            </ng-container>
+
+            <!-- Cost Column -->
+            <ng-container matColumnDef="cost">
+                <th mat-header-cell *matHeaderCellDef> Cost </th>
+                <td mat-cell *matCellDef="let element">
+                    <span class="cost">{{ element.cost | number:'1.2-2' }}€</span>
+                </td>
+            </ng-container>
+
+            <!-- Actions Column -->
+            <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <td mat-cell *matCellDef="let element">
+                    <button mat-icon-button color="primary" (click)="openMaintenanceDialog(element)">
+                        <mat-icon>edit</mat-icon>
+                    </button>
+                    <button mat-icon-button color="warn" (click)="deleteMaintenance(element.id)">
+                        <mat-icon>delete</mat-icon>
+                    </button>
+                </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+
+        <div class="empty-state" *ngIf="maintenances.length === 0">
             <mat-icon>build</mat-icon>
-            <h2>No hay mantenimientos registrados</h2>
-            <p>Añade tu primer mantenimiento para empezar a llevar un registro</p>
-            <button mat-raised-button color="primary" (click)="openMaintenanceDialog()">
-                <mat-icon>add</mat-icon>
-                Añadir Mantenimiento
-            </button>
+            <p>No maintenance records found</p>
         </div>
-    </ng-template>
+    </div>
 </div>

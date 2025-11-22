@@ -60,7 +60,7 @@ export class PartDialogComponent {
             quantity: [{ value: data.part.quantity || 1, disabled: this.readOnly }, [Validators.required, Validators.min(0)]],
             supplier_id: [{ value: data.part.supplier_id, disabled: this.readOnly }],
             invoice_id: [{ value: data.part.invoice_id, disabled: this.readOnly }],
-            maintenance_id: [{ value: data.part.maintenance_id, disabled: this.readOnly }]
+            maintenance_id: [{ value: data.part.maintenance_id, disabled: this.readOnly || !!data.part.maintenance_id }]
         });
     }
 
@@ -70,7 +70,8 @@ export class PartDialogComponent {
 
     onSave(): void {
         if (this.form.valid) {
-            this.dialogRef.close(this.form.value);
+            // Use getRawValue to include disabled fields
+            this.dialogRef.close(this.form.getRawValue());
         }
     }
 }

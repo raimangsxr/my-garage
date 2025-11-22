@@ -104,7 +104,8 @@ export class VehicleDetailComponent implements OnInit {
 
     openMaintenanceDialog(maintenance: any) {
         const dialogRef = this.dialog.open(MaintenanceDialogComponent, {
-            width: '600px',
+            width: '1000px',
+            maxWidth: '95vw',
             data: {
                 maintenance: maintenance,
                 vehicles: [this.vehicleDetails.vehicle],

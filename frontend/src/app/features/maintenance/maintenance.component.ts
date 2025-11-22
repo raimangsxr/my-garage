@@ -7,16 +7,10 @@ import { MatTableModule } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatMenuModule } from '@angular/material/menu';
 import { MaintenanceService, Maintenance } from '../../core/services/maintenance.service';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
-
-interface VehicleMaintenanceGroup {
-    vehicle: Vehicle;
-    maintenances: Maintenance[];
-}
 
 @Component({
     selector: 'app-maintenance',
@@ -29,8 +23,7 @@ interface VehicleMaintenanceGroup {
         MatTableModule,
         MatDialogModule,
         MatSnackBarModule,
-        MatExpansionModule,
-        MatMenuModule
+        MatExpansionModule
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
@@ -45,7 +38,7 @@ export class MaintenanceComponent implements OnInit {
     maintenances: Maintenance[] = [];
     vehicles: Vehicle[] = [];
     suppliers: Supplier[] = [];
-    groupedMaintenances: VehicleMaintenanceGroup[] = [];
+    displayedColumns: string[] = ['date', 'vehicle', 'description', 'supplier', 'parts', 'invoices', 'cost', 'actions'];
 
     ngOnInit(): void {
         this.loadData();
@@ -80,7 +73,6 @@ export class MaintenanceComponent implements OnInit {
         this.maintenanceService.getMaintenances().subscribe({
             next: (data) => {
                 this.maintenances = data;
-                this.groupMaintenancesByVehicle();
             },
             error: (err) => {
                 console.error('Error loading maintenances', err);
@@ -89,21 +81,16 @@ export class MaintenanceComponent implements OnInit {
         });
     }
 
-    groupMaintenancesByVehicle(): void {
-        this.groupedMaintenances = this.vehicles
-            .map(vehicle => ({
-                vehicle,
-                maintenances: this.maintenances
-                    .filter(m => m.vehicle_id === vehicle.id)
-                    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            }))
-            .filter(group => group.maintenances.length > 0);
-    }
-
     getVehicleName(vehicleId?: number): string {
         if (!vehicleId) return '-';
         const vehicle = this.vehicles.find(v => v.id === vehicleId);
-        return vehicle ? `${vehicle.brand} ${vehicle.model} (${vehicle.license_plate})` : 'Unknown Vehicle';
+        return vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Unknown Vehicle';
+    }
+
+    getSupplierName(supplierId?: number): string {
+        if (!supplierId) return '-';
+        const supplier = this.suppliers.find(s => s.id === supplierId);
+        return supplier ? supplier.name : '-';
     }
 
     getDaysSince(dateStr: string): number {
@@ -122,7 +109,8 @@ export class MaintenanceComponent implements OnInit {
 
     openMaintenanceDialog(maintenance?: Maintenance): void {
         const dialogRef = this.dialog.open(MaintenanceDialogComponent, {
-            width: '500px',
+            width: '1000px',
+            maxWidth: '95vw',
             data: {
                 maintenance: maintenance || {},
                 vehicles: this.vehicles,

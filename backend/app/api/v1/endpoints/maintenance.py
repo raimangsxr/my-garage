@@ -2,13 +2,15 @@ from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
+from sqlalchemy.orm import selectinload
 from app.api import deps
 from app.models.maintenance import Maintenance, MaintenanceBase
+from app.models.part import Part
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Maintenance])
+@router.get("/")
 def read_maintenances(
     skip: int = 0,
     limit: int = 100,
@@ -18,9 +20,54 @@ def read_maintenances(
     """
     Retrieve maintenance records.
     """
-    statement = select(Maintenance).offset(skip).limit(limit)
+    statement = select(Maintenance).options(
+        selectinload(Maintenance.vehicle),
+        selectinload(Maintenance.parts).options(selectinload(Part.supplier)),
+        selectinload(Maintenance.supplier),
+        selectinload(Maintenance.invoices)
+    ).offset(skip).limit(limit).order_by(Maintenance.date.desc())
     maintenances = session.exec(statement).all()
-    return maintenances
+    
+    # Manually serialize to include relationships
+    result = []
+    for m in maintenances:
+        maintenance_dict = m.model_dump()
+        maintenance_dict['vehicle'] = m.vehicle.model_dump(exclude={'image_binary'}) if m.vehicle else None
+        maintenance_dict['supplier'] = m.supplier.model_dump() if m.supplier else None
+        maintenance_dict['parts'] = [p.model_dump() for p in m.parts]
+        maintenance_dict['invoices'] = [i.model_dump() for i in m.invoices]
+        result.append(maintenance_dict)
+    
+    return result
+
+@router.get("/{id}")
+def read_maintenance(
+    *,
+    session: Session = Depends(deps.get_session),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get maintenance record by ID.
+    """
+    statement = select(Maintenance).where(Maintenance.id == id).options(
+        selectinload(Maintenance.vehicle),
+        selectinload(Maintenance.parts).options(selectinload(Part.supplier)),
+        selectinload(Maintenance.supplier),
+        selectinload(Maintenance.invoices)
+    )
+    maintenance = session.exec(statement).first()
+    if not maintenance:
+        raise HTTPException(status_code=404, detail="Maintenance record not found")
+    
+    # Manually serialize to include relationships
+    result = maintenance.model_dump()
+    result['vehicle'] = maintenance.vehicle.model_dump(exclude={'image_binary'}) if maintenance.vehicle else None
+    result['supplier'] = maintenance.supplier.model_dump() if maintenance.supplier else None
+    result['parts'] = [p.model_dump() for p in maintenance.parts]
+    result['invoices'] = [i.model_dump() for i in maintenance.invoices]
+    
+    return result
 
 @router.post("/", response_model=Maintenance)
 def create_maintenance(
