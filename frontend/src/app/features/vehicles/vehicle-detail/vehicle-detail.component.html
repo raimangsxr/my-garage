@@ -18,21 +18,21 @@
         <div class="stat-card">
             <mat-icon>calendar_today</mat-icon>
             <div class="stat-info">
-                <span class="stat-label">Año</span>
+                <span class="stat-label">Year</span>
                 <span class="stat-value">{{ vehicleDetails.vehicle.year }}</span>
             </div>
         </div>
         <div class="stat-card" *ngIf="vehicleDetails.vehicle.kilometers">
             <mat-icon>speed</mat-icon>
             <div class="stat-info">
-                <span class="stat-label">Kilometraje</span>
+                <span class="stat-label">Mileage</span>
                 <span class="stat-value">{{ vehicleDetails.vehicle.kilometers | number }} km</span>
             </div>
         </div>
         <div class="stat-card" *ngIf="vehicleDetails.specs?.fuel_type">
             <mat-icon>local_gas_station</mat-icon>
             <div class="stat-info">
-                <span class="stat-label">Combustible</span>
+                <span class="stat-label">Fuel</span>
                 <span class="stat-value">{{ vehicleDetails.specs.fuel_type }}</span>
             </div>
         </div>
@@ -41,7 +41,7 @@
             [class.danger]="isDateExpired(vehicleDetails.vehicle.next_itv_date)">
             <mat-icon>assignment</mat-icon>
             <div class="stat-info">
-                <span class="stat-label">Próxima ITV</span>
+                <span class="stat-label">Next ITV</span>
                 <span class="stat-value">{{ vehicleDetails.vehicle.next_itv_date | date:'dd/MM/yyyy' }}</span>
             </div>
         </div>
@@ -53,7 +53,7 @@
         <div class="entity-column">
             <div class="column-header">
                 <mat-icon>build</mat-icon>
-                <h2>Mantenimientos</h2>
+                <h2>Maintenance</h2>
                 <span class="count-badge">{{ vehicleDetails.maintenances.length }}</span>
             </div>
             <div class="timeline">
@@ -73,7 +73,8 @@
                     </div>
                 </div>
                 <div class="empty-state" *ngIf="vehicleDetails.maintenances.length === 0">
-                    <p>No hay mantenimientos</p>
+                    <mat-icon>history</mat-icon>
+                    <p>No maintenance records</p>
                 </div>
             </div>
         </div>
@@ -82,7 +83,7 @@
         <div class="entity-column">
             <div class="column-header">
                 <mat-icon>extension</mat-icon>
-                <h2>Piezas</h2>
+                <h2>Parts</h2>
                 <span class="count-badge">{{ getAllParts().length }}</span>
             </div>
             <div class="entity-list">
@@ -95,7 +96,7 @@
                     </div>
                 </div>
                 <div class="empty-state" *ngIf="getAllParts().length === 0">
-                    <p>No hay piezas registradas</p>
+                    <p>No parts registered</p>
                 </div>
             </div>
         </div>
@@ -104,7 +105,7 @@
         <div class="entity-column">
             <div class="column-header">
                 <mat-icon>receipt</mat-icon>
-                <h2>Facturas</h2>
+                <h2>Invoices</h2>
                 <span class="count-badge">{{ getAllInvoices().length }}</span>
             </div>
             <div class="entity-list">
@@ -117,7 +118,7 @@
                     </div>
                 </div>
                 <div class="empty-state" *ngIf="getAllInvoices().length === 0">
-                    <p>No hay facturas</p>
+                    <p>No invoices</p>
                 </div>
             </div>
         </div>
@@ -126,5 +127,5 @@
 
 <div *ngIf="loading" class="loading-container">
     <mat-icon>directions_car</mat-icon>
-    <p>Cargando detalles del vehículo...</p>
+    <p>Loading vehicle details...</p>
 </div>
