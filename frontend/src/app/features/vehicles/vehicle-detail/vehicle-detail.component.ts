@@ -17,6 +17,7 @@ import { VehicleHeroComponent } from '../components/vehicle-hero/vehicle-hero.co
 import { VehicleStatsBarComponent } from '../components/vehicle-stats-bar/vehicle-stats-bar.component';
 import { MaintenanceTimelineComponent } from '../components/maintenance-timeline/maintenance-timeline.component';
 import { TorqueSpecsComponent } from '../components/torque-specs/torque-specs.component';
+import { VehiclePartsListComponent } from '../components/vehicle-parts-list/vehicle-parts-list.component';
 import { EntityColumnComponent } from '../../../shared/components/entity-column/entity-column.component';
 import { EntityCardComponent } from '../../../shared/components/entity-card/entity-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -34,9 +35,8 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
         VehicleStatsBarComponent,
         MaintenanceTimelineComponent,
         TorqueSpecsComponent,
-        EntityColumnComponent,
-        EntityCardComponent,
-        EmptyStateComponent
+        VehiclePartsListComponent,
+        EntityColumnComponent
     ],
     templateUrl: './vehicle-detail.component.html',
     styleUrls: ['./vehicle-detail.component.scss']
@@ -107,6 +107,10 @@ export class VehicleDetailComponent implements OnInit {
 
     getAllParts(): any[] {
         return this.vehicleDetails?.parts || [];
+    }
+
+    get parts(): any[] {
+        return this.getAllParts();
     }
 
     getAllInvoices(): any[] {

@@ -1,15 +1,29 @@
-<div class="timeline">
-    <div class="timeline-item" *ngFor="let maintenance of maintenances; let last = last" [class.last]="last"
-        (click)="onMaintenanceClick(maintenance)">
-        <div class="timeline-marker"></div>
-        <div class="timeline-content">
-            <div class="maintenance-date">{{ formatDate(maintenance.date) }}</div>
-            <div class="maintenance-description">{{ maintenance.description }}</div>
-            <div class="maintenance-meta">
-                <span><mat-icon>euro</mat-icon> {{ maintenance.cost | number:'1.2-2' }}€</span>
+<div class="timeline-container">
+    <!-- Search Bar -->
+    <div class="search-bar" *ngIf="isSearchMode">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput #searchInput [(ngModel)]="searchQuery" placeholder="Search maintenance...">
+            <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
+                <mat-icon>close</mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+
+    <div class="timeline">
+        <div class="timeline-item" *ngFor="let maintenance of displayMaintenances; let last = last" [class.last]="last"
+            (click)="onMaintenanceClick(maintenance)">
+            <div class="timeline-marker"></div>
+            <div class="timeline-content">
+                <div class="maintenance-date">{{ formatDate(maintenance.date) }}</div>
+                <div class="maintenance-description">{{ maintenance.description }}</div>
+                <div class="maintenance-meta">
+                    <span><mat-icon>euro</mat-icon> {{ maintenance.cost | number:'1.2-2' }}€</span>
+                </div>
             </div>
         </div>
     </div>
+    <app-empty-state *ngIf="displayMaintenances.length === 0" icon="history"
+        [message]="searchQuery ? 'No maintenance matches' : 'No maintenance records'">
+    </app-empty-state>
 </div>
-<app-empty-state *ngIf="maintenances.length === 0" icon="history" message="No maintenance records">
-</app-empty-state>

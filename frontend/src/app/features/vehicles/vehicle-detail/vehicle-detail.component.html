@@ -18,27 +18,29 @@
 
     <!-- Related Entities Grid -->
     <div class="entities-grid">
-        <!-- Maintenance Column -->
-        <app-entity-column title="Maintenance" icon="build" [count]="vehicleDetails.maintenances.length">
-            <app-maintenance-timeline [maintenances]="vehicleDetails.maintenances"
+        <!-- Maintenances Column -->
+        <app-entity-column title="Mantenimientos" icon="history" [count]="vehicleDetails.maintenances.length">
+            <div header-actions class="torque-actions">
+                <button mat-icon-button (click)="maintenanceTimeline.toggleSearchMode()"
+                    [color]="maintenanceTimeline.isSearchMode ? 'accent' : ''" title="Search maintenance">
+                    <mat-icon>search</mat-icon>
+                </button>
+            </div>
+            <app-maintenance-timeline #maintenanceTimeline [maintenances]="vehicleDetails.maintenances"
                 (maintenanceClick)="openMaintenanceDialog($event)">
             </app-maintenance-timeline>
         </app-entity-column>
 
         <!-- Parts Column -->
-        <app-entity-column title="Parts" icon="extension" [count]="getAllParts().length">
-            <div class="entity-list">
-                <app-entity-card *ngFor="let part of getAllParts()" (cardClick)="openPartDialog(part)">
-                    <div class="card-title">{{ part.name }}</div>
-                    <div class="card-subtitle" *ngIf="part.reference">Ref: {{ part.reference }}</div>
-                    <div class="card-meta">
-                        <span><mat-icon>euro</mat-icon> {{ part.price | number:'1.2-2' }}€</span>
-                        <span *ngIf="part.supplier"><mat-icon>store</mat-icon> {{ part.supplier.name }}</span>
-                    </div>
-                </app-entity-card>
-                <app-empty-state *ngIf="getAllParts().length === 0" icon="build_circle" message="No parts registered">
-                </app-empty-state>
+        <app-entity-column title="Recambios" icon="extension" [count]="parts.length">
+            <div header-actions class="torque-actions">
+                <button mat-icon-button (click)="partsList.toggleSearchMode()"
+                    [color]="partsList.isSearchMode ? 'accent' : ''" title="Search parts">
+                    <mat-icon>search</mat-icon>
+                </button>
             </div>
+            <app-vehicle-parts-list #partsList [parts]="parts" (partClick)="openPartDialog($event)">
+            </app-vehicle-parts-list>
         </app-entity-column>
 
         <!-- Torque Specifications Column -->

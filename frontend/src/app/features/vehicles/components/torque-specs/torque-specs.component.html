@@ -3,7 +3,7 @@
     <div class="search-bar" *ngIf="isSearchMode && !isEditMode">
         <mat-form-field appearance="outline" class="search-field">
             <mat-icon matPrefix>search</mat-icon>
-            <input matInput [(ngModel)]="searchQuery" placeholder="Search specs...">
+            <input matInput #searchInput [(ngModel)]="searchQuery" placeholder="Search specs...">
             <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
                 <mat-icon>close</mat-icon>
             </button>
@@ -26,6 +26,9 @@
                 <span>{{ spec.notes }}</span>
             </div>
         </div>
+        <app-empty-state *ngIf="displaySpecs.length === 0" icon="build_circle"
+            [message]="searchQuery ? 'No specs match your search' : 'No specs available'">
+        </app-empty-state>
     </div>
 
     <!-- Edit Mode -->

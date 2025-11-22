@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
@@ -31,6 +31,7 @@ export interface TorqueSpec {
 export class TorqueSpecsComponent {
     @Input() specs: TorqueSpec[] = [];
     @Output() saveSpecs = new EventEmitter<TorqueSpec[]>();
+    @ViewChild('searchInput') searchInput?: ElementRef;
 
     isEditMode = false;
     isSearchMode = false;
@@ -63,7 +64,11 @@ export class TorqueSpecsComponent {
 
     toggleSearchMode() {
         this.isSearchMode = !this.isSearchMode;
-        if (!this.isSearchMode) {
+        if (this.isSearchMode) {
+            setTimeout(() => {
+                this.searchInput?.nativeElement.focus();
+            });
+        } else {
             this.searchQuery = '';
         }
     }

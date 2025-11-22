@@ -5,11 +5,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { EntityCardComponent } from '../../../../shared/components/entity-card/entity-card.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
-import { Maintenance } from '../../../../core/services/maintenance.service';
 
 @Component({
-    selector: 'app-maintenance-timeline',
+    selector: 'app-vehicle-parts-list',
     standalone: true,
     imports: [
         CommonModule,
@@ -18,26 +18,29 @@ import { Maintenance } from '../../../../core/services/maintenance.service';
         MatButtonModule,
         MatInputModule,
         MatFormFieldModule,
+        EntityCardComponent,
         EmptyStateComponent
     ],
-    templateUrl: './maintenance-timeline.component.html',
-    styleUrls: ['./maintenance-timeline.component.scss']
+    templateUrl: './vehicle-parts-list.component.html',
+    styleUrls: ['./vehicle-parts-list.component.scss']
 })
-export class MaintenanceTimelineComponent {
-    @Input() maintenances: Maintenance[] = [];
-    @Output() maintenanceClick = new EventEmitter<Maintenance>();
+export class VehiclePartsListComponent {
+    @Input() parts: any[] = [];
+    @Output() partClick = new EventEmitter<any>();
     @ViewChild('searchInput') searchInput?: ElementRef;
 
     isSearchMode = false;
     searchQuery = '';
 
-    get displayMaintenances(): Maintenance[] {
+    get displayParts(): any[] {
         if (!this.searchQuery.trim()) {
-            return this.maintenances;
+            return this.parts;
         }
         const query = this.searchQuery.toLowerCase();
-        return this.maintenances.filter(m =>
-            m.description.toLowerCase().includes(query)
+        return this.parts.filter(part =>
+            part.name.toLowerCase().includes(query) ||
+            part.reference?.toLowerCase().includes(query) ||
+            part.supplier?.name?.toLowerCase().includes(query)
         );
     }
 
@@ -52,12 +55,7 @@ export class MaintenanceTimelineComponent {
         }
     }
 
-    onMaintenanceClick(maintenance: Maintenance): void {
-        this.maintenanceClick.emit(maintenance);
-    }
-
-    formatDate(dateString: string): string {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    onPartClick(part: any) {
+        this.partClick.emit(part);
     }
 }

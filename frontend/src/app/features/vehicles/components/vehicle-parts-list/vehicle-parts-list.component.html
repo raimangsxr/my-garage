@@ -1,0 +1,26 @@
+<div class="parts-list-container">
+    <!-- Search Bar -->
+    <div class="search-bar" *ngIf="isSearchMode">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput #searchInput [(ngModel)]="searchQuery" placeholder="Search parts...">
+            <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
+                <mat-icon>close</mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+
+    <div class="entity-list">
+        <app-entity-card *ngFor="let part of displayParts" (cardClick)="onPartClick(part)">
+            <div class="card-title">{{ part.name }}</div>
+            <div class="card-subtitle" *ngIf="part.reference">Ref: {{ part.reference }}</div>
+            <div class="card-meta">
+                <span><mat-icon>euro</mat-icon> {{ part.price | number:'1.2-2' }}€</span>
+                <span *ngIf="part.supplier"><mat-icon>store</mat-icon> {{ part.supplier.name }}</span>
+            </div>
+        </app-entity-card>
+        <app-empty-state *ngIf="displayParts.length === 0" icon="build_circle"
+            [message]="searchQuery ? 'No parts match your search' : 'No parts registered'">
+        </app-empty-state>
+    </div>
+</div>
