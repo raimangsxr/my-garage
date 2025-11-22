@@ -5,12 +5,16 @@ from sqlalchemy import Column, LargeBinary
 
 if TYPE_CHECKING:
     from .maintenance import Maintenance
+    from .vehicle_specs import VehicleSpecs
 
 class VehicleBase(SQLModel):
+    # Basic info (frequently accessed)
     brand: str
     model: str
     year: int
     license_plate: str = Field(unique=True, index=True)
+    kilometers: Optional[int] = None
+    # Important dates (frequently checked)
     next_itv_date: Optional[date] = None
     next_insurance_date: Optional[date] = None
     last_insurance_amount: Optional[float] = None
@@ -20,7 +24,10 @@ class VehicleBase(SQLModel):
 class Vehicle(VehicleBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     image_binary: Optional[bytes] = Field(default=None, sa_column=Column(LargeBinary))
+    
+    # Relationships
     maintenances: List["Maintenance"] = Relationship(back_populates="vehicle")
+    specs: Optional["VehicleSpecs"] = Relationship(back_populates="vehicle", sa_relationship_kwargs={"uselist": False})
 
 class VehicleRead(VehicleBase):
     id: int

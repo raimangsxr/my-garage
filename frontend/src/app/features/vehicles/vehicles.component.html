@@ -4,7 +4,7 @@
     </div>
 
     <div class="vehicles-grid">
-        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card">
+        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card" (click)="viewVehicleDetails(vehicle.id!)">
             <div class="vehicle-image"
                 [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
                 <div class="license-plate">{{ vehicle.license_plate }}</div>
@@ -37,7 +37,7 @@
                 </div>
             </mat-card-content>
 
-            <div class="card-actions">
+            <div class="card-actions" (click)="$event.stopPropagation()">
                 <button mat-icon-button [matMenuTriggerFor]="menu">
                     <mat-icon>more_vert</mat-icon>
                 </button>

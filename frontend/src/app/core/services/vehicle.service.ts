@@ -46,4 +46,8 @@ export class VehicleService {
         formData.append('file', file);
         return this.http.post(`${this.apiUrl}${id}/image`, formData);
     }
+
+    getVehicleDetails(id: number): Observable<any> {
+        return this.http.get(`${this.apiUrl}${id}/details`);
+    }
 }

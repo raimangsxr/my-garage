@@ -157,3 +157,72 @@ def proxy_image(url: str) -> Any:
         return Response(content=response.content, media_type=response.headers.get('content-type', 'image/jpeg'))
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch image: {str(e)}")
+
+@router.get("/{id}/details")
+def get_vehicle_details(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Get complete vehicle details with all related data.
+    """
+    from app.models.maintenance import Maintenance
+    from app.models.part import Part
+    from app.models.invoice import Invoice
+    from app.models.supplier import Supplier
+    from app.models.vehicle_specs import VehicleSpecs
+    from sqlalchemy.orm import selectinload
+    
+    # Get vehicle with all relationships loaded
+    statement = select(Vehicle).where(Vehicle.id == id).options(
+        selectinload(Vehicle.maintenances),
+        selectinload(Vehicle.specs)
+    )
+    vehicle = db.exec(statement).first()
+    
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    # Build response with vehicle data
+    vehicle_dict = vehicle.model_dump()
+    if vehicle.image_binary:
+        vehicle_dict["image_url"] = f"/api/v1/vehicles/{vehicle.id}/image"
+    else:
+        vehicle_dict["image_url"] = None
+    
+    # Get specs if available
+    specs_dict = None
+    if vehicle.specs:
+        specs_dict = vehicle.specs.model_dump()
+    
+    # Get maintenance records with related data
+    maintenances_data = []
+    for maintenance in vehicle.maintenances:
+        maint_dict = maintenance.model_dump()
+        
+        # Get parts for this maintenance
+        parts_stmt = select(Part).where(Part.maintenance_id == maintenance.id)
+        parts = db.exec(parts_stmt).all()
+        maint_dict["parts"] = [p.model_dump() for p in parts]
+        
+        # Get invoice if exists
+        invoice_stmt = select(Invoice).where(Invoice.maintenance_id == maintenance.id)
+        invoice = db.exec(invoice_stmt).first()
+        maint_dict["invoice"] = invoice.model_dump() if invoice else None
+        
+        # Get supplier if exists
+        if maintenance.supplier_id:
+            supplier = db.get(Supplier, maintenance.supplier_id)
+            maint_dict["supplier"] = supplier.model_dump() if supplier else None
+        else:
+            maint_dict["supplier"] = None
+            
+        maintenances_data.append(maint_dict)
+    
+    return {
+        "vehicle": VehicleRead(**vehicle_dict),
+        "specs": specs_dict,
+        "maintenances": maintenances_data
+    }

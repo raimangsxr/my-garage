@@ -61,7 +61,12 @@ export class MaintenanceDialogComponent {
 
     onSave(): void {
         if (this.form.valid) {
-            this.dialogRef.close(this.form.value);
+            const formValue = this.form.value;
+            // Convert date to ISO string format (YYYY-MM-DD)
+            if (formValue.date instanceof Date) {
+                formValue.date = formValue.date.toISOString().split('T')[0];
+            }
+            this.dialogRef.close(formValue);
         }
     }
 }

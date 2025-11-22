@@ -1,5 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -25,6 +26,7 @@ import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.componen
 export class VehiclesComponent implements OnInit {
     private vehicleService = inject(VehicleService);
     private dialog = inject(MatDialog);
+    private router = inject(Router);
 
     vehicles: Vehicle[] = [];
 
@@ -36,6 +38,10 @@ export class VehiclesComponent implements OnInit {
         this.vehicleService.getVehicles().subscribe(vehicles => {
             this.vehicles = vehicles;
         });
+    }
+
+    viewVehicleDetails(id: number) {
+        this.router.navigate(['/vehicles', id]);
     }
 
     openVehicleDialog(vehicle?: Vehicle) {

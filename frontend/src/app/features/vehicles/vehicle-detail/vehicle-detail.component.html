@@ -1,0 +1,190 @@
+<div class="vehicle-detail-container" *ngIf="!loading && vehicleDetails">
+    <!-- Hero Section -->
+    <div class="hero-section"
+        [style.backgroundImage]="'url(' + (vehicleDetails.vehicle.image_url || 'assets/images/default-car.png') + ')'">
+        <div class="hero-overlay">
+            <button mat-icon-button (click)="goBack()" class="back-button">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <div class="hero-content">
+                <h1>{{ vehicleDetails.vehicle.brand }} {{ vehicleDetails.vehicle.model }}</h1>
+                <p class="license-plate">{{ vehicleDetails.vehicle.license_plate }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-card">
+            <mat-icon>calendar_today</mat-icon>
+            <div class="stat-info">
+                <span class="stat-label">Año</span>
+                <span class="stat-value">{{ vehicleDetails.vehicle.year }}</span>
+            </div>
+        </div>
+        <div class="stat-card" *ngIf="vehicleDetails.vehicle.kilometers">
+            <mat-icon>speed</mat-icon>
+            <div class="stat-info">
+                <span class="stat-label">Kilometraje</span>
+                <span class="stat-value">{{ vehicleDetails.vehicle.kilometers | number }} km</span>
+            </div>
+        </div>
+        <div class="stat-card" *ngIf="vehicleDetails.specs?.fuel_type">
+            <mat-icon>local_gas_station</mat-icon>
+            <div class="stat-info">
+                <span class="stat-label">Combustible</span>
+                <span class="stat-value">{{ vehicleDetails.specs.fuel_type }}</span>
+            </div>
+        </div>
+        <div class="stat-card" *ngIf="vehicleDetails.vehicle.next_itv_date"
+            [class.warning]="isDateSoon(vehicleDetails.vehicle.next_itv_date)"
+            [class.danger]="isDateExpired(vehicleDetails.vehicle.next_itv_date)">
+            <mat-icon>assignment</mat-icon>
+            <div class="stat-info">
+                <span class="stat-label">Próxima ITV</span>
+                <span class="stat-value">{{ vehicleDetails.vehicle.next_itv_date | date:'dd/MM/yyyy' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Left Column: Technical Specs -->
+        <mat-card class="specs-card" *ngIf="vehicleDetails.specs">
+            <mat-card-header>
+                <mat-card-title>Especificaciones Técnicas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="spec-section" *ngIf="vehicleDetails.specs.vin || vehicleDetails.specs.color">
+                    <h3>Identificación</h3>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.vin">
+                        <span class="label">VIN</span>
+                        <span class="value">{{ vehicleDetails.specs.vin }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.color">
+                        <span class="label">Color</span>
+                        <span class="value">{{ vehicleDetails.specs.color }} <span class="color-code"
+                                *ngIf="vehicleDetails.specs.color_code">({{ vehicleDetails.specs.color_code
+                                }})</span></span>
+                    </div>
+                </div>
+
+                <div class="spec-section" *ngIf="vehicleDetails.specs.engine_type || vehicleDetails.specs.transmission">
+                    <h3>Motor y Transmisión</h3>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.engine_type">
+                        <span class="label">Motor</span>
+                        <span class="value">{{ vehicleDetails.specs.engine_type }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.transmission">
+                        <span class="label">Transmisión</span>
+                        <span class="value">{{ vehicleDetails.specs.transmission }}</span>
+                    </div>
+                </div>
+
+                <div class="spec-section">
+                    <h3>Mantenimiento</h3>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.engine_oil_type">
+                        <span class="label">Aceite</span>
+                        <span class="value">{{ vehicleDetails.specs.engine_oil_type }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.coolant_type">
+                        <span class="label">Anticongelante</span>
+                        <span class="value">{{ vehicleDetails.specs.coolant_type }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.battery_type">
+                        <span class="label">Batería</span>
+                        <span class="value">{{ vehicleDetails.specs.battery_type }}</span>
+                    </div>
+                    <div class="spec-item" *ngIf="vehicleDetails.specs.tire_size">
+                        <span class="label">Neumáticos</span>
+                        <span class="value">{{ vehicleDetails.specs.tire_size }}</span>
+                    </div>
+                </div>
+
+                <div class="spec-section" *ngIf="vehicleDetails.specs.torque_specs">
+                    <h3>Pares de Apriete</h3>
+                    <div class="spec-item" *ngFor="let item of vehicleDetails.specs.torque_specs | keyvalue">
+                        <span class="label">{{ item.key }}</span>
+                        <span class="value">{{ item.value }}</span>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <!-- Right Column: Maintenance Timeline -->
+        <mat-card class="timeline-card">
+            <mat-card-header>
+                <mat-card-title>Historial de Mantenimientos</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="timeline" *ngIf="vehicleDetails.maintenances.length > 0; else noMaintenances">
+                    <div class="timeline-item" *ngFor="let maintenance of vehicleDetails.maintenances; let last = last">
+                        <div class="timeline-marker"></div>
+                        <div class="timeline-content">
+                            <div class="timeline-date">{{ maintenance.date | date:'dd MMM yyyy' }}</div>
+                            <h4>{{ maintenance.description }}</h4>
+                            <div class="timeline-details">
+                                <span><mat-icon>speed</mat-icon>{{ maintenance.mileage | number }} km</span>
+                                <span><mat-icon>euro</mat-icon>{{ maintenance.cost | number:'1.2-2' }}€</span>
+                            </div>
+                            <div class="timeline-supplier" *ngIf="maintenance.supplier">
+                                <mat-icon>store</mat-icon>{{ maintenance.supplier.name }}
+                            </div>
+                            <div class="timeline-parts" *ngIf="maintenance.parts.length > 0">
+                                <div class="part-chip" *ngFor="let part of maintenance.parts">
+                                    {{ part.name }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <ng-template #noMaintenances>
+                    <div class="empty-state">
+                        <mat-icon>build</mat-icon>
+                        <p>No hay mantenimientos registrados</p>
+                    </div>
+                </ng-template>
+            </mat-card-content>
+        </mat-card>
+    </div>
+
+    <!-- Bottom Section: Parts & Invoices -->
+    <div class="bottom-section" *ngIf="hasPartsOrInvoices()">
+        <mat-card class="compact-card" *ngIf="getAllParts().length > 0">
+            <mat-card-header>
+                <mat-card-title>Piezas Reemplazadas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="parts-grid">
+                    <div class="part-item" *ngFor="let part of getAllParts()">
+                        <div class="part-name">{{ part.name }}</div>
+                        <div class="part-details">
+                            <span *ngIf="part.part_number">Nº {{ part.part_number }}</span>
+                            <span>{{ part.price | currency:'EUR' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
+        <mat-card class="compact-card" *ngIf="getAllInvoices().length > 0">
+            <mat-card-header>
+                <mat-card-title>Facturas</mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="invoices-list">
+                    <div class="invoice-item" *ngFor="let invoice of getAllInvoices()">
+                        <div class="invoice-number">#{{ invoice.invoice_number }}</div>
+                        <div class="invoice-date">{{ invoice.date | date:'dd/MM/yyyy' }}</div>
+                        <div class="invoice-amount">{{ invoice.amount | currency:'EUR' }}</div>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+    </div>
+</div>
+
+<div *ngIf="loading" class="loading-container">
+    <mat-icon>directions_car</mat-icon>
+    <p>Cargando detalles del vehículo...</p>
+</div>
