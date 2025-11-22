@@ -42,8 +42,31 @@
         </app-entity-column>
 
         <!-- Torque Specifications Column -->
-        <app-entity-column title="Torque Specs" icon="build_circle" [count]="6">
-            <app-torque-specs></app-torque-specs>
+        <app-entity-column title="Torque Specs" icon="build_circle"
+            [count]="vehicleDetails.specs?.torque_specs?.length || 6">
+
+            <div header-actions class="torque-actions">
+                <button mat-icon-button (click)="torqueSpecs.toggleSearchMode()" *ngIf="!torqueSpecs.isEditMode"
+                    [color]="torqueSpecs.isSearchMode ? 'accent' : ''" title="Search specs">
+                    <mat-icon>search</mat-icon>
+                </button>
+                <button mat-icon-button (click)="torqueSpecs.toggleEditMode()" *ngIf="!torqueSpecs.isEditMode"
+                    title="Edit specs">
+                    <mat-icon>edit</mat-icon>
+                </button>
+                <div class="edit-actions" *ngIf="torqueSpecs.isEditMode">
+                    <button mat-icon-button (click)="torqueSpecs.toggleEditMode()" title="Cancel">
+                        <mat-icon>close</mat-icon>
+                    </button>
+                    <button mat-icon-button (click)="torqueSpecs.save()" title="Save">
+                        <mat-icon>check</mat-icon>
+                    </button>
+                </div>
+            </div>
+
+            <app-torque-specs #torqueSpecs [specs]="vehicleDetails.specs?.torque_specs"
+                (saveSpecs)="onSaveTorqueSpecs($event)">
+            </app-torque-specs>
         </app-entity-column>
     </div>
 </div>

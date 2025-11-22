@@ -50,4 +50,8 @@ export class VehicleService {
     getVehicleDetails(id: number): Observable<any> {
         return this.http.get(`${this.apiUrl}${id}/details`);
     }
+
+    updateTorqueSpecs(id: number, specs: any[]): Observable<any> {
+        return this.http.put(`${this.apiUrl}${id}/specs/torque`, specs);
+    }
 }

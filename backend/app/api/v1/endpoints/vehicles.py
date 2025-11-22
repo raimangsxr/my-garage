@@ -250,3 +250,33 @@ def get_vehicle_details(
         "parts": all_parts,
         "invoices": all_invoices
     }
+
+@router.put("/{id}/specs/torque")
+def update_torque_specs(
+    *,
+    db: Session = Depends(deps.get_db),
+    id: int,
+    specs: List[dict],
+    current_user: User = Depends(deps.get_current_active_user),
+) -> Any:
+    """
+    Update vehicle torque specifications.
+    """
+    from app.models.vehicle_specs import VehicleSpecs
+    
+    vehicle = db.get(Vehicle, id)
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    # Find or create specs
+    if not vehicle.specs:
+        vehicle_specs = VehicleSpecs(vehicle_id=id, torque_specs=specs)
+        db.add(vehicle_specs)
+    else:
+        vehicle.specs.torque_specs = specs
+        db.add(vehicle.specs)
+        
+    db.commit()
+    db.refresh(vehicle)
+    
+    return {"message": "Torque specs updated successfully", "specs": specs}

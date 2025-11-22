@@ -3,6 +3,9 @@
         <mat-icon>{{ icon }}</mat-icon>
         <h2>{{ title }}</h2>
         <span class="count-badge">{{ count }}</span>
+        <div class="header-actions-container">
+            <ng-content select="[header-actions]"></ng-content>
+        </div>
     </div>
     <div class="column-body">
         <ng-content></ng-content>

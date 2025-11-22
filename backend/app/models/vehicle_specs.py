@@ -1,4 +1,4 @@
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, List
 from sqlmodel import Field, SQLModel, Relationship
 from sqlalchemy import Column, JSON
 
@@ -23,11 +23,11 @@ class VehicleSpecsBase(SQLModel):
 class VehicleSpecs(VehicleSpecsBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     vehicle_id: int = Field(foreign_key="vehicle.id", unique=True)
-    torque_specs: Optional[dict] = Field(default=None, sa_column=Column(JSON))
+    torque_specs: Optional[List[dict]] = Field(default=None, sa_column=Column(JSON))
     
     vehicle: Optional["Vehicle"] = Relationship(back_populates="specs")
 
 class VehicleSpecsRead(VehicleSpecsBase):
     id: int
     vehicle_id: int
-    torque_specs: Optional[dict] = None
+    torque_specs: Optional[List[dict]] = None

@@ -148,13 +148,35 @@ export class VehicleDetailComponent implements OnInit {
         });
     }
 
-    openInvoiceDialog(invoice: any) {
-        this.dialog.open(InvoiceDialogComponent, {
+    openInvoiceDialog(invoice: Invoice) {
+        const dialogRef = this.dialog.open(InvoiceDialogComponent, {
             width: '500px',
-            data: {
-                invoice: invoice,
-                readOnly: true,
-                maintenances: this.maintenances
+            data: { invoice, vehicleId: this.vehicleDetails.vehicle.id }
+        });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if (result) {
+                this.loadRelatedData();
+            }
+        });
+    }
+
+    onSaveTorqueSpecs(specs: any[]) {
+        if (!this.vehicleDetails?.vehicle?.id) return;
+
+        this.vehicleService.updateTorqueSpecs(this.vehicleDetails.vehicle.id, specs).subscribe({
+            next: (response) => {
+                // Update local state
+                if (!this.vehicleDetails.specs) {
+                    this.vehicleDetails.specs = {};
+                }
+                this.vehicleDetails.specs.torque_specs = response.specs;
+
+                // Optional: Show success message (snackbar would be nice, but console for now)
+                console.log('Torque specs updated');
+            },
+            error: (error) => {
+                console.error('Error updating torque specs:', error);
             }
         });
     }

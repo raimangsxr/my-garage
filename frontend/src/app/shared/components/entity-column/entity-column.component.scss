@@ -32,6 +32,13 @@
             font-size: 14px;
             font-weight: 600;
         }
+
+        .header-actions-container {
+            margin-left: auto;
+            /* Push to right */
+            display: flex;
+            align-items: center;
+        }
     }
 
     .column-body {

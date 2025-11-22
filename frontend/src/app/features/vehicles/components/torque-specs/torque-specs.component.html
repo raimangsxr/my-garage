@@ -1,16 +1,60 @@
-<div class="torque-specs-list">
-    <div class="spec-item" *ngFor="let spec of displaySpecs">
-        <div class="spec-header">
-            <mat-icon>settings</mat-icon>
-            <span class="component-name">{{ spec.component }}</span>
+<div class="torque-specs-container">
+    <!-- Search Bar -->
+    <div class="search-bar" *ngIf="isSearchMode && !isEditMode">
+        <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="searchQuery" placeholder="Search specs...">
+            <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
+                <mat-icon>close</mat-icon>
+            </button>
+        </mat-form-field>
+    </div>
+
+    <!-- Read Mode -->
+    <div class="torque-specs-list" *ngIf="!isEditMode">
+        <div class="spec-item" *ngFor="let spec of displaySpecs">
+            <div class="spec-header">
+                <mat-icon>settings</mat-icon>
+                <span class="component-name">{{ spec.component }}</span>
+            </div>
+            <div class="spec-value">
+                <span class="torque">{{ spec.torque_nm }}</span>
+                <span class="unit">Nm</span>
+            </div>
+            <div class="spec-notes" *ngIf="spec.notes">
+                <mat-icon>info</mat-icon>
+                <span>{{ spec.notes }}</span>
+            </div>
         </div>
-        <div class="spec-value">
-            <span class="torque">{{ spec.torque_nm }}</span>
-            <span class="unit">Nm</span>
+    </div>
+
+    <!-- Edit Mode -->
+    <div class="torque-specs-edit" *ngIf="isEditMode">
+        <div class="edit-item" *ngFor="let spec of editedSpecs; let i = index">
+            <div class="edit-controls">
+                <mat-form-field appearance="outline" class="component-input">
+                    <mat-label>Component</mat-label>
+                    <input matInput [(ngModel)]="spec.component" placeholder="e.g. Wheel Nuts">
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="torque-input">
+                    <mat-label>Nm</mat-label>
+                    <input matInput type="number" [(ngModel)]="spec.torque_nm">
+                </mat-form-field>
+
+                <button mat-icon-button color="warn" (click)="removeSpec(i)" class="delete-btn">
+                    <mat-icon>remove_circle_outline</mat-icon>
+                </button>
+            </div>
+
+            <mat-form-field appearance="outline" class="notes-input">
+                <mat-label>Notes (optional)</mat-label>
+                <input matInput [(ngModel)]="spec.notes" placeholder="e.g. Tighten in star pattern">
+            </mat-form-field>
         </div>
-        <div class="spec-notes" *ngIf="spec.notes">
-            <mat-icon>info</mat-icon>
-            <span>{{ spec.notes }}</span>
-        </div>
+
+        <button mat-stroked-button color="primary" class="add-btn" (click)="addSpec()">
+            <mat-icon>add</mat-icon> Add Specification
+        </button>
     </div>
 </div>

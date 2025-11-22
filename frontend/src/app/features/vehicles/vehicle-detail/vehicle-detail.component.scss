@@ -298,6 +298,32 @@
 }
 
 // Loading
+.torque-actions {
+    display: flex;
+    gap: 4px;
+
+    button {
+        color: white;
+        width: 24px !important;
+        height: 24px !important;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+        }
+    }
+
+    .edit-actions {
+        display: flex;
+        gap: 4px;
+    }
+}
+
 .loading-container {
     display: flex;
     flex-direction: column;
