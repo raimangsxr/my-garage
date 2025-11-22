@@ -1,0 +1,11 @@
+<div class="hero-section" [style.backgroundImage]="'url(' + backgroundImage + ')'">
+    <div class="hero-overlay">
+        <button mat-icon-button (click)="onBackClick()" class="back-button">
+            <mat-icon>arrow_back</mat-icon>
+        </button>
+        <div class="hero-content">
+            <h1>{{ vehicle.brand }} {{ vehicle.model }}</h1>
+            <p class="license-plate">{{ vehicle.license_plate }}</p>
+        </div>
+    </div>
+</div>

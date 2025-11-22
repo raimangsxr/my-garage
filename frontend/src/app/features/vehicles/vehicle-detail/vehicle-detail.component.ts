@@ -13,6 +13,14 @@ import { MaintenanceDialogComponent } from '../../maintenance/maintenance-dialog
 import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
 import { InvoiceDialogComponent } from '../../invoices/invoice-dialog/invoice-dialog.component';
 
+import { VehicleHeroComponent } from '../components/vehicle-hero/vehicle-hero.component';
+import { VehicleStatsBarComponent } from '../components/vehicle-stats-bar/vehicle-stats-bar.component';
+import { MaintenanceTimelineComponent } from '../components/maintenance-timeline/maintenance-timeline.component';
+import { TorqueSpecsComponent } from '../components/torque-specs/torque-specs.component';
+import { EntityColumnComponent } from '../../../shared/components/entity-column/entity-column.component';
+import { EntityCardComponent } from '../../../shared/components/entity-card/entity-card.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+
 @Component({
     selector: 'app-vehicle-detail',
     standalone: true,
@@ -21,7 +29,14 @@ import { InvoiceDialogComponent } from '../../invoices/invoice-dialog/invoice-di
         MatCardModule,
         MatButtonModule,
         MatIconModule,
-        MatDialogModule
+        MatDialogModule,
+        VehicleHeroComponent,
+        VehicleStatsBarComponent,
+        MaintenanceTimelineComponent,
+        TorqueSpecsComponent,
+        EntityColumnComponent,
+        EntityCardComponent,
+        EmptyStateComponent
     ],
     templateUrl: './vehicle-detail.component.html',
     styleUrls: ['./vehicle-detail.component.scss']

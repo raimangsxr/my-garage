@@ -1,0 +1,16 @@
+<div class="stats-bar">
+    <app-stat-card icon="calendar_today" label="Year" [value]="vehicle.year">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="vehicle.kilometers" icon="speed" label="Mileage"
+        [value]="(vehicle.kilometers | number) + ' km'">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.fuel_type" icon="local_gas_station" label="Fuel" [value]="specs?.fuel_type || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="vehicle.next_itv_date" icon="assignment" label="Next ITV"
+        [value]="formatDate(vehicle.next_itv_date)" [warning]="isDateSoon(vehicle.next_itv_date)"
+        [danger]="isDateExpired(vehicle.next_itv_date)">
+    </app-stat-card>
+</div>

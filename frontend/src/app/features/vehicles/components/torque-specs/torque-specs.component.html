@@ -1,0 +1,16 @@
+<div class="torque-specs-list">
+    <div class="spec-item" *ngFor="let spec of displaySpecs">
+        <div class="spec-header">
+            <mat-icon>settings</mat-icon>
+            <span class="component-name">{{ spec.component }}</span>
+        </div>
+        <div class="spec-value">
+            <span class="torque">{{ spec.torque_nm }}</span>
+            <span class="unit">Nm</span>
+        </div>
+        <div class="spec-notes" *ngIf="spec.notes">
+            <mat-icon>info</mat-icon>
+            <span>{{ spec.notes }}</span>
+        </div>
+    </div>
+</div>

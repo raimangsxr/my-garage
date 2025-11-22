@@ -1,127 +1,50 @@
 <div class="vehicle-detail-container" *ngIf="!loading && vehicleDetails">
     <!-- Hero Section -->
-    <div class="hero-section"
-        [style.backgroundImage]="'url(' + (vehicleDetails.vehicle.image_url || 'assets/images/default-car.png') + ')'">
-        <div class="hero-overlay">
-            <button mat-icon-button (click)="goBack()" class="back-button">
-                <mat-icon>arrow_back</mat-icon>
-            </button>
-            <div class="hero-content">
-                <h1>{{ vehicleDetails.vehicle.brand }} {{ vehicleDetails.vehicle.model }}</h1>
-                <p class="license-plate">{{ vehicleDetails.vehicle.license_plate }}</p>
-            </div>
-        </div>
-    </div>
+    <app-vehicle-hero [vehicle]="{
+            brand: vehicleDetails.vehicle.brand,
+            model: vehicleDetails.vehicle.model,
+            license_plate: vehicleDetails.vehicle.license_plate,
+            image_url: vehicleDetails.vehicle.image_url
+        }" (backClick)="goBack()">
+    </app-vehicle-hero>
 
-    <!-- Quick Stats Bar -->
-    <div class="stats-bar">
-        <div class="stat-card">
-            <mat-icon>calendar_today</mat-icon>
-            <div class="stat-info">
-                <span class="stat-label">Year</span>
-                <span class="stat-value">{{ vehicleDetails.vehicle.year }}</span>
-            </div>
-        </div>
-        <div class="stat-card" *ngIf="vehicleDetails.vehicle.kilometers">
-            <mat-icon>speed</mat-icon>
-            <div class="stat-info">
-                <span class="stat-label">Mileage</span>
-                <span class="stat-value">{{ vehicleDetails.vehicle.kilometers | number }} km</span>
-            </div>
-        </div>
-        <div class="stat-card" *ngIf="vehicleDetails.specs?.fuel_type">
-            <mat-icon>local_gas_station</mat-icon>
-            <div class="stat-info">
-                <span class="stat-label">Fuel</span>
-                <span class="stat-value">{{ vehicleDetails.specs.fuel_type }}</span>
-            </div>
-        </div>
-        <div class="stat-card" *ngIf="vehicleDetails.vehicle.next_itv_date"
-            [class.warning]="isDateSoon(vehicleDetails.vehicle.next_itv_date)"
-            [class.danger]="isDateExpired(vehicleDetails.vehicle.next_itv_date)">
-            <mat-icon>assignment</mat-icon>
-            <div class="stat-info">
-                <span class="stat-label">Next ITV</span>
-                <span class="stat-value">{{ vehicleDetails.vehicle.next_itv_date | date:'dd/MM/yyyy' }}</span>
-            </div>
-        </div>
-    </div>
+    <!-- Stats Bar -->
+    <app-vehicle-stats-bar [vehicle]="{
+            year: vehicleDetails.vehicle.year,
+            kilometers: vehicleDetails.vehicle.kilometers,
+            next_itv_date: vehicleDetails.vehicle.next_itv_date
+        }" [specs]="vehicleDetails.specs">
+    </app-vehicle-stats-bar>
 
-    <!-- Related Entities Block -->
+    <!-- Related Entities Grid -->
     <div class="entities-grid">
-        <!-- Column 1: Maintenances -->
-        <div class="entity-column">
-            <div class="column-header">
-                <mat-icon>build</mat-icon>
-                <h2>Maintenance</h2>
-                <span class="count-badge">{{ vehicleDetails.maintenances.length }}</span>
-            </div>
-            <div class="timeline">
-                <div class="timeline-item" *ngFor="let maintenance of vehicleDetails.maintenances; let last = last"
-                    (click)="openMaintenanceDialog(maintenance)">
-                    <div class="timeline-marker"></div>
-                    <div class="timeline-line" *ngIf="!last"></div>
-                    <div class="timeline-content">
-                        <div class="entity-card maintenance-card">
-                            <div class="card-date">{{ maintenance.date | date:'dd MMM yyyy' }}</div>
-                            <div class="card-title">{{ maintenance.description }}</div>
-                            <div class="card-meta">
-                                <span><mat-icon>speed</mat-icon> {{ maintenance.mileage | number }} km</span>
-                                <span><mat-icon>euro</mat-icon> {{ maintenance.cost | number:'1.2-2' }}€</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="empty-state" *ngIf="vehicleDetails.maintenances.length === 0">
-                    <mat-icon>history</mat-icon>
-                    <p>No maintenance records</p>
-                </div>
-            </div>
-        </div>
+        <!-- Maintenance Column -->
+        <app-entity-column title="Maintenance" icon="build" [count]="vehicleDetails.maintenances.length">
+            <app-maintenance-timeline [maintenances]="vehicleDetails.maintenances"
+                (maintenanceClick)="openMaintenanceDialog($event)">
+            </app-maintenance-timeline>
+        </app-entity-column>
 
-        <!-- Column 2: Parts -->
-        <div class="entity-column">
-            <div class="column-header">
-                <mat-icon>extension</mat-icon>
-                <h2>Parts</h2>
-                <span class="count-badge">{{ getAllParts().length }}</span>
-            </div>
+        <!-- Parts Column -->
+        <app-entity-column title="Parts" icon="extension" [count]="getAllParts().length">
             <div class="entity-list">
-                <div class="entity-card part-card" *ngFor="let part of getAllParts()" (click)="openPartDialog(part)">
+                <app-entity-card *ngFor="let part of getAllParts()" (cardClick)="openPartDialog(part)">
                     <div class="card-title">{{ part.name }}</div>
                     <div class="card-subtitle" *ngIf="part.reference">Ref: {{ part.reference }}</div>
                     <div class="card-meta">
                         <span><mat-icon>euro</mat-icon> {{ part.price | number:'1.2-2' }}€</span>
                         <span *ngIf="part.supplier"><mat-icon>store</mat-icon> {{ part.supplier.name }}</span>
                     </div>
-                </div>
-                <div class="empty-state" *ngIf="getAllParts().length === 0">
-                    <p>No parts registered</p>
-                </div>
+                </app-entity-card>
+                <app-empty-state *ngIf="getAllParts().length === 0" icon="build_circle" message="No parts registered">
+                </app-empty-state>
             </div>
-        </div>
+        </app-entity-column>
 
-        <!-- Column 3: Invoices -->
-        <div class="entity-column">
-            <div class="column-header">
-                <mat-icon>receipt</mat-icon>
-                <h2>Invoices</h2>
-                <span class="count-badge">{{ getAllInvoices().length }}</span>
-            </div>
-            <div class="entity-list">
-                <div class="entity-card invoice-card" *ngFor="let invoice of getAllInvoices()"
-                    (click)="openInvoiceDialog(invoice)">
-                    <div class="card-date">{{ invoice.date | date:'dd MMM yyyy' }}</div>
-                    <div class="card-title">#{{ invoice.number }}</div>
-                    <div class="card-meta">
-                        <span><mat-icon>euro</mat-icon> {{ invoice.amount | number:'1.2-2' }}€</span>
-                    </div>
-                </div>
-                <div class="empty-state" *ngIf="getAllInvoices().length === 0">
-                    <p>No invoices</p>
-                </div>
-            </div>
-        </div>
+        <!-- Torque Specifications Column -->
+        <app-entity-column title="Torque Specs" icon="build_circle" [count]="6">
+            <app-torque-specs></app-torque-specs>
+        </app-entity-column>
     </div>
 </div>
 

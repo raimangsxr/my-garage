@@ -1,0 +1,76 @@
+.torque-specs-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.spec-item {
+    background: white;
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        transform: translateX(4px);
+    }
+}
+
+.spec-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #6366f1;
+    }
+
+    .component-name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #111827;
+        flex: 1;
+    }
+}
+
+.spec-value {
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin-bottom: 6px;
+
+    .torque {
+        font-size: 24px;
+        font-weight: 700;
+        color: #6366f1;
+    }
+
+    .unit {
+        font-size: 14px;
+        font-weight: 500;
+        color: #6b7280;
+    }
+}
+
+.spec-notes {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 8px;
+    background: #f3f4f6;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #4b5563;
+
+    mat-icon {
+        font-size: 16px;
+        width: 16px;
+        height: 16px;
+        color: #9ca3af;
+    }
+}
