@@ -17,44 +17,56 @@
 
 .timeline {
     position: relative;
-
-    &::before {
-        content: '';
-        position: absolute;
-        left: 8px;
-        top: 12px;
-        bottom: 12px;
-        width: 2px;
-        background: #e5e7eb;
-    }
 }
 
 .timeline-item {
     position: relative;
-    padding: 0 0 24px 32px;
+    padding: 12px 0 12px 40px;
     cursor: pointer;
     transition: all 0.2s ease;
+
+    /* The connecting line */
+    &::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        /* Center of 20px marker is 10px. Line width 2px. 9px + 1px = 10px center. */
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #e5e7eb;
+        z-index: 0;
+    }
+
+    /* First item: Line starts from center (top: 50%) */
+    &:first-child::before {
+        top: 50%;
+    }
+
+    /* Last item: Line ends at center (bottom: 50%) */
+    &:last-child::before {
+        bottom: 50%;
+    }
 
     &:hover .timeline-content {
         transform: translateX(4px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    &.last {
-        padding-bottom: 0;
     }
 }
 
 .timeline-marker {
     position: absolute;
     left: 0;
-    top: 8px;
-    width: 18px;
-    height: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 20px;
+    height: 20px;
+    box-sizing: border-box;
     border-radius: 50%;
     background: white;
     border: 3px solid #6366f1;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 1;
 }
 
 .timeline-content {
