@@ -9,6 +9,26 @@
     <app-stat-card *ngIf="specs?.fuel_type" icon="local_gas_station" label="Fuel" [value]="specs?.fuel_type || ''">
     </app-stat-card>
 
+    <app-stat-card *ngIf="specs?.engine_type" icon="engineering" label="Engine" [value]="specs?.engine_type || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.transmission" icon="settings_input_component" label="Transmission"
+        [value]="specs?.transmission || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.engine_oil_type" icon="opacity" label="Oil" [value]="specs?.engine_oil_type || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.coolant_type" icon="ac_unit" label="Coolant" [value]="specs?.coolant_type || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.battery_type" icon="battery_charging_full" label="Battery"
+        [value]="specs?.battery_type || ''">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="specs?.tire_size" icon="radio_button_checked" label="Tires" [value]="specs?.tire_size || ''">
+    </app-stat-card>
+
     <app-stat-card *ngIf="vehicle.next_itv_date" icon="assignment" label="Next ITV"
         [value]="formatDate(vehicle.next_itv_date)" [warning]="isDateSoon(vehicle.next_itv_date)"
         [danger]="isDateExpired(vehicle.next_itv_date)">

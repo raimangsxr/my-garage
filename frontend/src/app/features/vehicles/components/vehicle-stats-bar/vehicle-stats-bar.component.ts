@@ -10,6 +10,12 @@ export interface VehicleData {
 
 export interface VehicleSpecs {
     fuel_type?: string;
+    engine_type?: string;
+    transmission?: string;
+    engine_oil_type?: string;
+    coolant_type?: string;
+    battery_type?: string;
+    tire_size?: string;
 }
 
 @Component({
