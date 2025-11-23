@@ -104,18 +104,30 @@ export class VehicleDialogComponent {
         });
     }
 
+    private formatDate(date: Date | string | null): string | null {
+        if (!date) return null;
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return null;
+        // Use local time components to preserve the selected date
+        const year = d.getFullYear();
+        const month = ('0' + (d.getMonth() + 1)).slice(-2);
+        const day = ('0' + d.getDate()).slice(-2);
+        return `${year}-${month}-${day}`;
+    }
+
     onSubmit() {
         if (this.form.valid) {
             const formValue = this.form.value;
 
-            // Convert empty strings to null for optional fields
+            // Convert empty strings to null for optional fields and format dates
             const vehicleData = {
                 ...formValue,
-                next_itv_date: formValue.next_itv_date || null,
-                next_insurance_date: formValue.next_insurance_date || null,
-                last_insurance_amount: formValue.last_insurance_amount || null,
-                next_road_tax_date: formValue.next_road_tax_date || null,
-                last_road_tax_amount: formValue.last_road_tax_amount || null
+                year: Number(formValue.year),
+                next_itv_date: this.formatDate(formValue.next_itv_date),
+                next_insurance_date: this.formatDate(formValue.next_insurance_date),
+                last_insurance_amount: formValue.last_insurance_amount ? Number(formValue.last_insurance_amount) : null,
+                next_road_tax_date: this.formatDate(formValue.next_road_tax_date),
+                last_road_tax_amount: formValue.last_road_tax_amount ? Number(formValue.last_road_tax_amount) : null
             };
 
             const handleVehicleResponse = (result: Vehicle) => {
