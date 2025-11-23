@@ -94,6 +94,93 @@
                 <input matInput type="number" formControlName="last_road_tax_amount">
             </mat-form-field>
         </div>
+
+        <div class="specs-section" formGroupName="specs">
+            <h3>Specifications</h3>
+            <mat-accordion multi>
+                <!-- General Info -->
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>General Information</mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <div class="form-row">
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>VIN (Vehicle Identification Number)</mat-label>
+                            <input matInput formControlName="vin" placeholder="17-character code">
+                        </mat-form-field>
+                    </div>
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Color</mat-label>
+                            <input matInput formControlName="color" placeholder="e.g. Pearl White">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Color Code</mat-label>
+                            <input matInput formControlName="color_code" placeholder="e.g. 070">
+                        </mat-form-field>
+                    </div>
+                </mat-expansion-panel>
+
+                <!-- Engine & Transmission -->
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>Engine & Transmission</mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Engine Type</mat-label>
+                            <input matInput formControlName="engine_type" placeholder="e.g. V6 3.5L">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Fuel Type</mat-label>
+                            <mat-select formControlName="fuel_type">
+                                <mat-option value="Petrol">Petrol</mat-option>
+                                <mat-option value="Diesel">Diesel</mat-option>
+                                <mat-option value="Hybrid">Hybrid</mat-option>
+                                <mat-option value="Electric">Electric</mat-option>
+                                <mat-option value="LPG">LPG</mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                    </div>
+                    <div class="form-row">
+                        <mat-form-field appearance="outline" class="full-width">
+                            <mat-label>Transmission</mat-label>
+                            <input matInput formControlName="transmission" placeholder="e.g. Automatic 6-speed">
+                        </mat-form-field>
+                    </div>
+                </mat-expansion-panel>
+
+                <!-- Fluids & Consumables -->
+                <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                        <mat-panel-title>Fluids & Consumables</mat-panel-title>
+                    </mat-expansion-panel-header>
+
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Engine Oil Type</mat-label>
+                            <input matInput formControlName="engine_oil_type" placeholder="e.g. 5W-30">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Coolant Type</mat-label>
+                            <input matInput formControlName="coolant_type" placeholder="e.g. G12+">
+                        </mat-form-field>
+                    </div>
+                    <div class="form-row">
+                        <mat-form-field appearance="outline">
+                            <mat-label>Battery Type</mat-label>
+                            <input matInput formControlName="battery_type" placeholder="e.g. 12V 70Ah">
+                        </mat-form-field>
+                        <mat-form-field appearance="outline">
+                            <mat-label>Tire Size</mat-label>
+                            <input matInput formControlName="tire_size" placeholder="e.g. 225/45 R17">
+                        </mat-form-field>
+                    </div>
+                </mat-expansion-panel>
+            </mat-accordion>
+        </div>
     </form>
 </mat-dialog-content>
 <mat-dialog-actions align="end">

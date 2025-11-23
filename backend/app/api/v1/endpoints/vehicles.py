@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import Response
 from sqlmodel import Session, select
 from app.api import deps
-from app.models.vehicle import Vehicle, VehicleRead, VehicleBase
+from app.models.vehicle import Vehicle, VehicleRead, VehicleBase, VehicleCreate, VehicleUpdate
 from app.models.user import User
 import base64
 
@@ -19,10 +19,12 @@ def read_vehicles(
     """
     Retrieve vehicles.
     """
-    statement = select(Vehicle).offset(skip).limit(limit)
+    from sqlalchemy.orm import selectinload
+    
+    statement = select(Vehicle).options(selectinload(Vehicle.specs)).offset(skip).limit(limit)
     vehicles = db.exec(statement).all()
     
-    # Convert to VehicleRead with image_url
+    # Convert to VehicleRead with image_url and specs
     result = []
     for vehicle in vehicles:
         vehicle_dict = vehicle.model_dump()
@@ -30,6 +32,10 @@ def read_vehicles(
             vehicle_dict["image_url"] = f"/api/v1/vehicles/{vehicle.id}/image"
         else:
             vehicle_dict["image_url"] = None
+            
+        if vehicle.specs:
+            vehicle_dict["specs"] = vehicle.specs.model_dump()
+            
         result.append(VehicleRead(**vehicle_dict))
     
     return result
@@ -38,16 +44,30 @@ def read_vehicles(
 def create_vehicle(
     *,
     db: Session = Depends(deps.get_db),
-    vehicle_in: VehicleBase,
+    vehicle_in: VehicleCreate,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Create new vehicle.
     """
+    from app.models.vehicle_specs import VehicleSpecs
+    
+    # Extract specs data
+    specs_data = None
+    if vehicle_in.specs:
+        specs_data = vehicle_in.specs
+        del vehicle_in.specs
+        
     vehicle = Vehicle.model_validate(vehicle_in)
     db.add(vehicle)
     db.commit()
     db.refresh(vehicle)
+    
+    # Create specs if provided
+    if specs_data:
+        vehicle_specs = VehicleSpecs(vehicle_id=vehicle.id, **specs_data.model_dump(exclude_unset=True))
+        db.add(vehicle_specs)
+        db.commit()
     
     vehicle_dict = vehicle.model_dump()
     vehicle_dict["image_url"] = None
@@ -58,21 +78,41 @@ def update_vehicle(
     *,
     db: Session = Depends(deps.get_db),
     id: int,
-    vehicle_in: VehicleBase,
+    vehicle_in: VehicleUpdate,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Update a vehicle.
     """
+    from app.models.vehicle_specs import VehicleSpecs
+    
     vehicle = db.get(Vehicle, id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
+    
+    # Extract specs data
+    specs_data = None
+    if vehicle_in.specs:
+        specs_data = vehicle_in.specs
+        del vehicle_in.specs
     
     vehicle_data = vehicle_in.model_dump(exclude_unset=True)
     for key, value in vehicle_data.items():
         setattr(vehicle, key, value)
         
     db.add(vehicle)
+    
+    # Update or create specs
+    if specs_data:
+        if vehicle.specs:
+            specs_update_data = specs_data.model_dump(exclude_unset=True)
+            for key, value in specs_update_data.items():
+                setattr(vehicle.specs, key, value)
+            db.add(vehicle.specs)
+        else:
+            vehicle_specs = VehicleSpecs(vehicle_id=vehicle.id, **specs_data.model_dump(exclude_unset=True))
+            db.add(vehicle_specs)
+            
     db.commit()
     db.refresh(vehicle)
     

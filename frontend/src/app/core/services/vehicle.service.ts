@@ -14,6 +14,18 @@ export interface Vehicle {
     last_insurance_amount?: number;
     next_road_tax_date?: string;
     last_road_tax_amount?: number;
+    specs?: {
+        vin?: string;
+        color?: string;
+        color_code?: string;
+        engine_type?: string;
+        fuel_type?: string;
+        transmission?: string;
+        engine_oil_type?: string;
+        coolant_type?: string;
+        battery_type?: string;
+        tire_size?: string;
+    };
 }
 
 import { environment } from '../../../environments/environment';

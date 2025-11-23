@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { VehicleService, Vehicle } from '../../../core/services/vehicle.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -24,7 +25,9 @@ import { HttpClient } from '@angular/common/http';
         MatInputModule,
         MatDatepickerModule,
         MatNativeDateModule,
-        MatSelectModule
+        MatNativeDateModule,
+        MatSelectModule,
+        MatExpansionModule
     ],
     templateUrl: './vehicle-dialog.component.html',
     styleUrls: ['./vehicle-dialog.component.scss']
@@ -54,7 +57,19 @@ export class VehicleDialogComponent {
             next_insurance_date: [this.data?.next_insurance_date || ''],
             last_insurance_amount: [this.data?.last_insurance_amount || ''],
             next_road_tax_date: [this.data?.next_road_tax_date || ''],
-            last_road_tax_amount: [this.data?.last_road_tax_amount || '']
+            last_road_tax_amount: [this.data?.last_road_tax_amount || ''],
+            specs: this.fb.group({
+                vin: [this.data?.specs?.vin || ''],
+                color: [this.data?.specs?.color || ''],
+                color_code: [this.data?.specs?.color_code || ''],
+                engine_type: [this.data?.specs?.engine_type || ''],
+                fuel_type: [this.data?.specs?.fuel_type || ''],
+                transmission: [this.data?.specs?.transmission || ''],
+                engine_oil_type: [this.data?.specs?.engine_oil_type || ''],
+                coolant_type: [this.data?.specs?.coolant_type || ''],
+                battery_type: [this.data?.specs?.battery_type || ''],
+                tire_size: [this.data?.specs?.tire_size || '']
+            })
         });
 
         if (this.data?.image_url) {
@@ -127,7 +142,9 @@ export class VehicleDialogComponent {
                 next_insurance_date: this.formatDate(formValue.next_insurance_date),
                 last_insurance_amount: formValue.last_insurance_amount ? Number(formValue.last_insurance_amount) : null,
                 next_road_tax_date: this.formatDate(formValue.next_road_tax_date),
-                last_road_tax_amount: formValue.last_road_tax_amount ? Number(formValue.last_road_tax_amount) : null
+                last_road_tax_amount: formValue.last_road_tax_amount ? Number(formValue.last_road_tax_amount) : null,
+                // Specs are already in formValue.specs, but we should clean empty strings to null if needed
+                // For now, sending as is (empty strings) is usually fine, or we can clean them up
             };
 
             const handleVehicleResponse = (result: Vehicle) => {

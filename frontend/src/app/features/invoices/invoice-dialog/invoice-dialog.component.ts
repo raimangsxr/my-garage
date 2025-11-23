@@ -59,9 +59,26 @@ export class InvoiceDialogComponent {
         this.dialogRef.close();
     }
 
+    private formatDate(date: Date | string | null): string | null {
+        if (!date) return null;
+        const d = new Date(date);
+        if (isNaN(d.getTime())) return null;
+        const year = d.getFullYear();
+        const month = ('0' + (d.getMonth() + 1)).slice(-2);
+        const day = ('0' + d.getDate()).slice(-2);
+        return `${year}-${month}-${day}`;
+    }
+
     onSave(): void {
         if (this.form.valid) {
-            this.dialogRef.close(this.form.value);
+            const formValue = this.form.value;
+            const invoiceData = {
+                ...formValue,
+                date: this.formatDate(formValue.date),
+                amount: Number(formValue.amount),
+                maintenance_id: formValue.maintenance_id || null
+            };
+            this.dialogRef.close(invoiceData);
         }
     }
 }

@@ -7,6 +7,8 @@ if TYPE_CHECKING:
     from .maintenance import Maintenance
     from .vehicle_specs import VehicleSpecs
 
+from .vehicle_specs import VehicleSpecsBase
+
 class VehicleBase(SQLModel):
     # Basic info (frequently accessed)
     brand: str
@@ -32,3 +34,14 @@ class Vehicle(VehicleBase, table=True):
 class VehicleRead(VehicleBase):
     id: int
     image_url: Optional[str] = None
+    specs: Optional["VehicleSpecsBase"] = None
+
+class VehicleCreate(VehicleBase):
+    specs: Optional["VehicleSpecsBase"] = None
+
+class VehicleUpdate(VehicleBase):
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    year: Optional[int] = None
+    license_plate: Optional[str] = None
+    specs: Optional["VehicleSpecsBase"] = None
