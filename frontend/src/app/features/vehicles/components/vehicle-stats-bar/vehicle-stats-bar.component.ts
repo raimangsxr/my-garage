@@ -18,6 +18,11 @@ export interface VehicleSpecs {
     tire_size?: string;
 }
 
+export interface TrackStats {
+    total_track_days?: number;
+    favorite_circuit?: string;
+}
+
 @Component({
     selector: 'app-vehicle-stats-bar',
     standalone: true,
@@ -28,6 +33,7 @@ export interface VehicleSpecs {
 export class VehicleStatsBarComponent {
     @Input() vehicle!: VehicleData;
     @Input() specs?: VehicleSpecs;
+    @Input() trackStats?: TrackStats;
 
     isDateSoon(dateString: string): boolean {
         const date = new Date(dateString);

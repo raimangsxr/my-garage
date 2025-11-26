@@ -112,14 +112,161 @@
     }
 }
 
+// Hero Wrapper
+.hero-wrapper {
+    position: relative;
+}
+
+// View Mode Toggle
+.view-mode-toggle {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    z-index: 10;
+
+    // Remove padding/margin that might have been there for block layout
+    padding: 0;
+    margin: 0;
+
+    mat-button-toggle-group {
+        background: white; // Solid white for better contrast
+        border-radius: 8px; // Match license plate
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); // Slightly reduced shadow
+        overflow: hidden;
+        border: none;
+        height: 36px; // Fixed smaller height
+        align-items: center;
+
+        mat-button-toggle {
+            border: none;
+            padding: 0 12px; // Compact padding
+            font-size: 0.8rem; // Smaller font
+            line-height: 36px;
+            height: 100%;
+
+            ::ng-deep .mat-button-toggle-label-content {
+                line-height: 36px;
+                padding: 0;
+                display: flex;
+                align-items: center;
+            }
+
+            mat-icon {
+                margin-right: 6px;
+                font-size: 16px; // Smaller icon
+                width: 16px;
+                height: 16px;
+            }
+
+            span {
+                font-weight: 500;
+                letter-spacing: 0.3px;
+            }
+
+            &.mat-button-toggle-checked {
+                background-color: #111827; // Dark elegant background like license plate text
+                color: white !important;
+
+                // Aggressively target all possible elements to ensure white color
+                ::ng-deep {
+
+                    .mat-button-toggle-label-content,
+                    mat-icon,
+                    .mat-icon,
+                    svg,
+                    path,
+                    span,
+                    .mat-pseudo-checkbox,
+                    .mat-pseudo-checkbox-checked,
+                    .mat-pseudo-checkbox::after {
+                        color: white !important;
+                        fill: white !important;
+                        stroke: white !important;
+                        border-color: white !important;
+                        background-color: transparent !important; // Or white if needed, but usually it's the checkmark that needs color
+                    }
+
+                    // Specific fix for the pseudo checkbox checkmark
+                    .mat-pseudo-checkbox-checked::after {
+                        color: white !important;
+                        border-color: white !important;
+                    }
+                }
+            }
+
+            &:not(.mat-button-toggle-checked) {
+                color: #666;
+
+                &:hover {
+                    background-color: #f5f5f5;
+                }
+            }
+        }
+    }
+}
+
+// Track View
+.track-view {
+    padding: 0 24px 40px;
+}
+
+.track-stats-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 32px;
+
+    .stat-item {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        color: white;
+
+        mat-icon {
+            font-size: 40px;
+            width: 40px;
+            height: 40px;
+            opacity: 0.9;
+        }
+
+        .stat-content {
+            display: flex;
+            flex-direction: column;
+
+            .stat-label {
+                font-size: 0.85rem;
+                opacity: 0.9;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 4px;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+                font-weight: 700;
+                font-family: 'Courier New', monospace;
+            }
+        }
+    }
+}
+
 // Entities Grid
 .entities-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 24px;
     padding: 0 24px 40px;
+    align-items: start; // Align all cards to start at the same height
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1400px) {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    @media (max-width: 768px) {
         grid-template-columns: 1fr;
     }
 }
@@ -129,8 +276,10 @@
     border-radius: 16px;
     padding: 24px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    height: fit-content;
-    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    height: 100%; // Make all columns same height
+    min-height: 500px; // Ensure minimum height for consistency
 
     .column-header {
         display: flex;
@@ -354,5 +503,51 @@
 
     50% {
         opacity: 1;
+    }
+}
+
+.invoice-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .invoice-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #fff3e0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        mat-icon {
+            color: #ff9800;
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+        }
+    }
+
+    .invoice-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+
+        .invoice-number {
+            font-weight: 500;
+            color: #333;
+            font-size: 0.9rem;
+        }
+
+        .invoice-date {
+            font-size: 0.75rem;
+            color: #999;
+        }
+    }
+
+    .invoice-amount {
+        font-weight: 600;
+        color: #333;
+        font-size: 0.9rem;
     }
 }

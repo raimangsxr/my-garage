@@ -1,0 +1,84 @@
+<h2 mat-dialog-title>{{ isEditMode ? 'Edit Track Record' : 'New Track Record' }}</h2>
+<mat-dialog-content>
+    <form [formGroup]="form" class="track-record-form">
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Circuit Name</mat-label>
+            <input matInput formControlName="circuit_name" [matAutocomplete]="auto"
+                placeholder="e.g. Circuit de Barcelona-Catalunya">
+            <mat-autocomplete #auto="matAutocomplete">
+                <mat-option *ngFor="let circuit of filteredCircuits" [value]="circuit">
+                    {{ circuit }}
+                </mat-option>
+            </mat-autocomplete>
+            <mat-error *ngIf="form.get('circuit_name')?.hasError('required')">
+                Circuit name is required
+            </mat-error>
+        </mat-form-field>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Best Lap Time</mat-label>
+                <input matInput formControlName="best_lap_time" placeholder="MM:SS.mmm (e.g. 1:45.234)">
+                <mat-hint>Format: MM:SS.mmm</mat-hint>
+                <mat-error *ngIf="form.get('best_lap_time')?.hasError('required')">
+                    Lap time is required
+                </mat-error>
+                <mat-error *ngIf="form.get('best_lap_time')?.hasError('pattern')">
+                    Invalid format. Use MM:SS.mmm (e.g. 1:45.234)
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Date Achieved</mat-label>
+                <input matInput [matDatepicker]="datePicker" formControlName="date_achieved">
+                <mat-datepicker-toggle matIconSuffix [for]="datePicker"></mat-datepicker-toggle>
+                <mat-datepicker #datePicker></mat-datepicker>
+                <mat-error *ngIf="form.get('date_achieved')?.hasError('required')">
+                    Date is required
+                </mat-error>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Weather Conditions</mat-label>
+                <mat-select formControlName="weather_conditions">
+                    <mat-option *ngFor="let opt of ['Soleado', 'Nuboso', 'Húmedo', 'Lluvioso']" [value]="opt">{{ opt
+                        }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Tire Compound</mat-label>
+                <input matInput formControlName="tire_compound" placeholder="e.g. Soft, Medium">
+            </mat-form-field>
+        </div>
+
+        <div class="form-row">
+            <mat-form-field appearance="outline">
+                <mat-label>Group</mat-label>
+                <mat-select formControlName="group">
+                    <mat-option
+                        *ngFor="let opt of ['Rápidos', 'Intermedios rápidos', 'Intermedios', 'Intermedios lentos', 'Lentos']"
+                        [value]="opt">{{ opt }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+                <mat-label>Organizer</mat-label>
+                <mat-select formControlName="organizer">
+                    <mat-option *ngFor="let org of organizers" [value]="org">{{ org }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Notes</mat-label>
+            <textarea matInput formControlName="notes" rows="3" placeholder="Additional notes..."></textarea>
+        </mat-form-field>
+    </form>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-button mat-dialog-close>Cancel</button>
+    <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="form.invalid">Save</button>
+</mat-dialog-actions>

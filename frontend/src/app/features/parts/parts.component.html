@@ -6,43 +6,51 @@
         </button>
     </div>
 
+    <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil filter, brake pads..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
     <mat-card class="parts-card">
         <mat-card-content>
-            <table mat-table [dataSource]="parts" class="parts-table">
+            <table mat-table [dataSource]="dataSource" matSort class="parts-table">
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef> Name </th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
                     <td mat-cell *matCellDef="let part"> {{part.name}} </td>
                 </ng-container>
 
                 <!-- Reference Column -->
                 <ng-container matColumnDef="reference">
-                    <th mat-header-cell *matHeaderCellDef> Reference </th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Reference </th>
                     <td mat-cell *matCellDef="let part"> {{part.reference || '-'}} </td>
                 </ng-container>
 
                 <!-- Price Column -->
                 <ng-container matColumnDef="price">
-                    <th mat-header-cell *matHeaderCellDef> Price </th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Price </th>
                     <td mat-cell *matCellDef="let part"> {{part.price | currency:'EUR'}} </td>
                 </ng-container>
 
                 <!-- Quantity Column -->
                 <ng-container matColumnDef="quantity">
-                    <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantity </th>
                     <td mat-cell *matCellDef="let part"> {{part.quantity}} </td>
                 </ng-container>
 
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef> Actions </th>
+                    <th mat-header-cell *matHeaderCellDef class="align-left"> Actions </th>
                     <td mat-cell *matCellDef="let part">
-                        <button mat-icon-button color="primary" (click)="openPartDialog(part)">
-                            <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deletePart(part.id!)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        <div class="action-buttons">
+                            <button mat-icon-button color="primary" (click)="openPartDialog(part)" matTooltip="Edit">
+                                <mat-icon>edit</mat-icon>
+                            </button>
+                            <button mat-icon-button color="warn" (click)="deletePart(part.id!)" matTooltip="Delete">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
                     </td>
                 </ng-container>
 
@@ -50,9 +58,10 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="5">No parts found</td>
+                    <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
                 </tr>
             </table>
+            <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of parts"></mat-paginator>
         </mat-card-content>
     </mat-card>
 </div>

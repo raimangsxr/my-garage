@@ -9,6 +9,8 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatSelectModule } from '@angular/material/select';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatIconModule } from '@angular/material/icon';
 import { VehicleService, Vehicle } from '../../../core/services/vehicle.service';
 import { HttpClient } from '@angular/common/http';
 
@@ -27,7 +29,9 @@ import { HttpClient } from '@angular/common/http';
         MatNativeDateModule,
         MatNativeDateModule,
         MatSelectModule,
-        MatExpansionModule
+        MatExpansionModule,
+        MatButtonToggleModule,
+        MatIconModule
     ],
     templateUrl: './vehicle-dialog.component.html',
     styleUrls: ['./vehicle-dialog.component.scss']
@@ -53,6 +57,7 @@ export class VehicleDialogComponent {
             model: [this.data?.model || '', Validators.required],
             year: [this.data?.year || new Date().getFullYear(), [Validators.required, Validators.min(1900)]],
             license_plate: [this.data?.license_plate || '', Validators.required],
+            usage_type: [this.data?.usage_type || 'street'],
             next_itv_date: [this.data?.next_itv_date || ''],
             next_insurance_date: [this.data?.next_insurance_date || ''],
             last_insurance_amount: [this.data?.last_insurance_amount || ''],

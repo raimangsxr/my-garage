@@ -23,8 +23,7 @@ def read_maintenances(
     statement = select(Maintenance).options(
         selectinload(Maintenance.vehicle),
         selectinload(Maintenance.parts).options(selectinload(Part.supplier)),
-        selectinload(Maintenance.supplier),
-        selectinload(Maintenance.invoices)
+        selectinload(Maintenance.supplier)
     ).offset(skip).limit(limit).order_by(Maintenance.date.desc())
     maintenances = session.exec(statement).all()
     
@@ -35,7 +34,6 @@ def read_maintenances(
         maintenance_dict['vehicle'] = m.vehicle.model_dump(exclude={'image_binary'}) if m.vehicle else None
         maintenance_dict['supplier'] = m.supplier.model_dump() if m.supplier else None
         maintenance_dict['parts'] = [p.model_dump() for p in m.parts]
-        maintenance_dict['invoices'] = [i.model_dump() for i in m.invoices]
         result.append(maintenance_dict)
     
     return result
@@ -53,8 +51,7 @@ def read_maintenance(
     statement = select(Maintenance).where(Maintenance.id == id).options(
         selectinload(Maintenance.vehicle),
         selectinload(Maintenance.parts).options(selectinload(Part.supplier)),
-        selectinload(Maintenance.supplier),
-        selectinload(Maintenance.invoices)
+        selectinload(Maintenance.supplier)
     )
     maintenance = session.exec(statement).first()
     if not maintenance:
@@ -65,7 +62,6 @@ def read_maintenance(
     result['vehicle'] = maintenance.vehicle.model_dump(exclude={'image_binary'}) if maintenance.vehicle else None
     result['supplier'] = maintenance.supplier.model_dump() if maintenance.supplier else None
     result['parts'] = [p.model_dump() for p in maintenance.parts]
-    result['invoices'] = [i.model_dump() for i in maintenance.invoices]
     
     return result
 

@@ -8,17 +8,19 @@ const targetPathProd = path.join(envDir, 'environment.prod.ts');
 
 // Ensure the environments directory exists
 if (!fs.existsSync(envDir)) {
-    fs.mkdirSync(envDir, { recursive: true });
+  fs.mkdirSync(envDir, { recursive: true });
 }
 
 // Get environment variables
 const apiUrl = process.env.API_URL || '/api/v1';
+const googleClientId = process.env.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID';
 const production = process.env.NODE_ENV === 'production';
 
 // Define the content for the environment file
 const envConfigFile = `export const environment = {
   production: ${production},
-  apiUrl: '${apiUrl}'
+  apiUrl: '${apiUrl}',
+  googleClientId: '${googleClientId}'
 };
 `;
 
@@ -34,7 +36,8 @@ fs.writeFileSync(targetPath, envConfigFile);
 console.log(`Generating environment.prod.ts with API_URL=${apiUrl}`);
 const envProdConfigFile = `export const environment = {
   production: true,
-  apiUrl: '${apiUrl}'
+  apiUrl: '${apiUrl}',
+  googleClientId: '${googleClientId}'
 };
 `;
 fs.writeFileSync(targetPathProd, envProdConfigFile);

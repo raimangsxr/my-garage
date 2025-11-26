@@ -29,6 +29,14 @@
     <app-stat-card *ngIf="specs?.tire_size" icon="radio_button_checked" label="Tires" [value]="specs?.tire_size || ''">
     </app-stat-card>
 
+    <app-stat-card *ngIf="trackStats?.total_track_days !== undefined" icon="calendar_today" label="Track Days"
+        [value]="trackStats?.total_track_days || 0">
+    </app-stat-card>
+
+    <app-stat-card *ngIf="trackStats?.favorite_circuit" icon="emoji_events" label="Favorite Circuit"
+        [value]="trackStats?.favorite_circuit || ''">
+    </app-stat-card>
+
     <app-stat-card *ngIf="vehicle.next_itv_date" icon="assignment" label="Next ITV"
         [value]="formatDate(vehicle.next_itv_date)" [warning]="isDateSoon(vehicle.next_itv_date)"
         [danger]="isDateExpired(vehicle.next_itv_date)">

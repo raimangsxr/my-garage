@@ -1,0 +1,222 @@
+<div class="container" *ngIf="!loading; else loadingTpl">
+    <div class="header">
+        <div class="title-group">
+            <button mat-icon-button routerLink="/invoices">
+                <mat-icon>arrow_back</mat-icon>
+            </button>
+            <h2>Invoice Details</h2>
+            <mat-chip-set>
+                <mat-chip [color]="getStatusColor(invoice?.status || '')" selected>
+                    {{invoice?.status | uppercase}}
+                </mat-chip>
+            </mat-chip-set>
+        </div>
+    </div>
+
+    <div class="content-grid">
+        <!-- Left Column: Details -->
+        <div class="details-column">
+            <!-- Basic Info -->
+            <mat-card>
+                <mat-card-header>
+                    <mat-card-title>General Information</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="info-row">
+                        <span class="label">Number:</span>
+                        <span class="value">{{invoice?.number || '-'}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Date:</span>
+                        <span class="value">{{invoice?.date ? (invoice?.date | date) : '-'}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Subtotal:</span>
+                        <span class="value price">{{extractedData?.subtotal | currency:'EUR'}}</span>
+                    </div>
+                    <div class="info-row" *ngIf="extractedData?.tax_amount">
+                        <span class="label">Tax (IVA):</span>
+                        <span class="value price">{{extractedData?.tax_amount | currency:'EUR'}}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Total Amount:</span>
+                        <span class="value price">{{invoice?.amount | currency:'EUR'}}</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Supplier -->
+            <mat-card *ngIf="extractedData?.supplier_name">
+                <mat-card-header>
+                    <mat-card-title>Supplier</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="info-row">
+                        <span class="label">Name:</span>
+                        <span class="value">{{extractedData?.supplier_name}}</span>
+                    </div>
+                    <div class="info-row" *ngIf="extractedData?.supplier_address">
+                        <span class="label">Address:</span>
+                        <span class="value">{{extractedData?.supplier_address}}</span>
+                    </div>
+                    <div class="info-row" *ngIf="extractedData?.supplier_tax_id">
+                        <span class="label">Tax ID:</span>
+                        <span class="value">{{extractedData?.supplier_tax_id}}</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Vehicle -->
+            <mat-card *ngIf="extractedData?.vehicle_plate || extractedData?.vehicle_vin || extractedData?.mileage">
+                <mat-card-header>
+                    <mat-card-title>Vehicle Information</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="info-row" *ngIf="extractedData?.vehicle_plate">
+                        <span class="label">License Plate:</span>
+                        <span class="value">{{extractedData?.vehicle_plate}}</span>
+                    </div>
+                    <div class="info-row" *ngIf="extractedData?.vehicle_vin">
+                        <span class="label">VIN:</span>
+                        <span class="value">{{extractedData?.vehicle_vin}}</span>
+                    </div>
+                    <div class="info-row" *ngIf="extractedData?.mileage">
+                        <span class="label">Mileage:</span>
+                        <span class="value">{{extractedData?.mileage}} km</span>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Maintenances (from database for approved invoices, from extracted data for review) -->
+            <ng-container *ngIf="invoice?.status === 'approved'">
+                <mat-card *ngFor="let maintenance of maintenances">
+                    <mat-card-header>
+                        <mat-card-title>Maintenance: {{maintenance.description}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="info-row" *ngIf="maintenance.cost">
+                            <span class="label">Total Cost:</span>
+                            <span class="value price">{{maintenance.cost | currency:'EUR'}}</span>
+                        </div>
+
+                        <div class="parts-list" *ngIf="getPartsByMaintenance(maintenance.id!).length > 0">
+                            <h4>Parts</h4>
+                            <div class="part-item" *ngFor="let part of getPartsByMaintenance(maintenance.id!)">
+                                <div class="part-info">
+                                    <span class="part-name">{{part.name}}</span>
+                                    <span class="part-ref" *ngIf="part.reference">({{part.reference}})</span>
+                                </div>
+                                <div class="part-pricing">
+                                    {{part.quantity}} x {{part.price | currency:'EUR'}} =
+                                    <strong>{{part.quantity * part.price | currency:'EUR'}}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </ng-container>
+
+            <ng-container *ngIf="invoice?.status === 'review'">
+                <mat-card *ngFor="let maintenance of extractedData?.maintenances">
+                    <mat-card-header>
+                        <mat-card-title>Maintenance: {{maintenance.description}}</mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="info-row" *ngIf="maintenance.labor_cost">
+                            <span class="label">Labor Cost:</span>
+                            <span class="value"
+                                [matTooltip]="'With Tax: ' + (getAmountAfterTax(maintenance.labor_cost) | currency:'EUR')">
+                                {{maintenance.labor_cost | currency:'EUR'}}
+                            </span>
+                        </div>
+
+                        <div class="parts-list" *ngIf="maintenance.parts && maintenance.parts.length > 0">
+                            <h4>Parts</h4>
+                            <div class="part-item" *ngFor="let part of maintenance.parts">
+                                <div class="part-info">
+                                    <span class="part-name">{{part.name}}</span>
+                                    <span class="part-ref" *ngIf="part.reference">({{part.reference}})</span>
+                                </div>
+                                <div class="part-pricing">
+                                    {{part.quantity}} x {{part.unit_price | currency:'EUR'}} =
+                                    <strong>{{part.total_price | currency:'EUR'}}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </ng-container>
+
+            <!-- Parts Only (from database for approved invoices, from extracted data for review) -->
+            <mat-card *ngIf="invoice?.status === 'approved' && getPartsOnly().length > 0">
+                <mat-card-header>
+                    <mat-card-title>Parts Purchase</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="parts-list">
+                        <div class="part-item" *ngFor="let part of getPartsOnly()">
+                            <div class="part-info">
+                                <span class="part-name">{{part.name}}</span>
+                                <span class="part-ref" *ngIf="part.reference">({{part.reference}})</span>
+                            </div>
+                            <div class="part-pricing">
+                                {{part.quantity}} x {{part.price | currency:'EUR'}} =
+                                <strong>{{part.quantity * part.price | currency:'EUR'}}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <mat-card *ngIf="invoice?.status === 'review' && extractedData?.parts_only?.length">
+                <mat-card-header>
+                    <mat-card-title>Parts Purchase</mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="parts-list">
+                        <div class="part-item" *ngFor="let part of extractedData?.parts_only">
+                            <div class="part-info">
+                                <span class="part-name">{{part.name}}</span>
+                                <span class="part-ref" *ngIf="part.reference">({{part.reference}})</span>
+                            </div>
+                            <div class="part-pricing">
+                                {{part.quantity}} x {{part.unit_price | currency:'EUR'}} =
+                                <strong>{{part.total_price | currency:'EUR'}}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Right Column: Preview -->
+        <div class="preview-column">
+            <mat-card class="preview-card">
+                <mat-card-header>
+                    <mat-card-title>Invoice Image</mat-card-title>
+                    <mat-card-subtitle>Click to enlarge</mat-card-subtitle>
+                </mat-card-header>
+                <mat-card-content class="preview-content" (click)="openImagePreview()">
+                    <div class="image-container" *ngIf="invoice?.file_url; else noImage">
+                        <img [src]="invoice?.file_url" alt="Invoice Preview">
+                        <div class="overlay">
+                            <mat-icon>zoom_in</mat-icon>
+                        </div>
+                    </div>
+                    <ng-template #noImage>
+                        <div class="no-image">
+                            <mat-icon>image_not_supported</mat-icon>
+                            <p>No preview available</p>
+                        </div>
+                    </ng-template>
+                </mat-card-content>
+            </mat-card>
+        </div>
+    </div>
+</div>
+
+<ng-template #loadingTpl>
+    <div class="loading-container">
+        <p>Loading invoice details...</p>
+    </div>
+</ng-template>

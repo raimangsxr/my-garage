@@ -8,10 +8,22 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.logo-link {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  text-decoration: none;
+}
+
 .app-logo {
-  height: 40px;
+  height: 28px;
   margin-left: 8px;
   object-fit: contain;
+  transition: opacity 0.2s;
+
+  &:hover {
+    opacity: 0.8;
+  }
 }
 
 .spacer {

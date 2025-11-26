@@ -1,9 +1,12 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, vehicles, users, parts, maintenance, invoices, suppliers, notifications
+from app.api.v1.endpoints import auth, vehicles, users, parts, maintenance, invoices, suppliers, notifications, dashboard, track_records, organizers
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
+api_router.include_router(organizers.router, prefix="/organizers", tags=["organizers"])
+api_router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
 api_router.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])
+api_router.include_router(track_records.router, prefix="/vehicles", tags=["track-records"])
 api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(parts.router, prefix="/parts", tags=["parts"])
 api_router.include_router(maintenance.router, prefix="/maintenance", tags=["maintenance"])

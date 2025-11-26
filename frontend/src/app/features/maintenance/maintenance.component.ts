@@ -1,12 +1,17 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
+import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatInputModule } from '@angular/material/input';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MaintenanceService, Maintenance } from '../../core/services/maintenance.service';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
@@ -23,7 +28,12 @@ import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dia
         MatTableModule,
         MatDialogModule,
         MatSnackBarModule,
-        MatExpansionModule
+        MatExpansionModule,
+        MatSortModule,
+        MatPaginatorModule,
+        MatInputModule,
+        MatFormFieldModule,
+        MatTooltipModule
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
@@ -35,21 +45,65 @@ export class MaintenanceComponent implements OnInit {
     private dialog = inject(MatDialog);
     private snackBar = inject(MatSnackBar);
 
-    maintenances: Maintenance[] = [];
+    dataSource: MatTableDataSource<Maintenance> = new MatTableDataSource<Maintenance>([]);
     vehicles: Vehicle[] = [];
     suppliers: Supplier[] = [];
     displayedColumns: string[] = ['date', 'vehicle', 'description', 'supplier', 'parts', 'invoices', 'cost', 'actions'];
 
+    @ViewChild(MatSort) sort!: MatSort;
+    @ViewChild(MatPaginator) paginator!: MatPaginator;
+
     ngOnInit(): void {
         this.loadData();
+    }
+
+    ngAfterViewInit() {
+        this.dataSource.sort = this.sort;
+        this.dataSource.paginator = this.paginator;
+
+        // Custom sorting for nested properties
+        this.dataSource.sortingDataAccessor = (item, property) => {
+            switch (property) {
+                case 'vehicle':
+                    return this.getVehicleName(item.vehicle_id).toLowerCase();
+                case 'supplier':
+                    return this.getSupplierName(item.supplier_id).toLowerCase();
+                case 'date':
+                    return item.date ? new Date(item.date).getTime() : 0;
+                default:
+                    return (item as any)[property];
+            }
+        };
+
+        // Custom filter predicate to search across multiple fields including related data
+        this.dataSource.filterPredicate = (data: Maintenance, filter: string) => {
+            const searchStr = filter.toLowerCase();
+            const vehicleName = this.getVehicleName(data.vehicle_id).toLowerCase();
+            const supplierName = this.getSupplierName(data.supplier_id).toLowerCase();
+            const description = (data.description || '').toLowerCase();
+            const date = (data.date || '').toLowerCase();
+
+            return vehicleName.includes(searchStr) ||
+                supplierName.includes(searchStr) ||
+                description.includes(searchStr) ||
+                date.includes(searchStr);
+        };
+    }
+
+    applyFilter(event: Event) {
+        const filterValue = (event.target as HTMLInputElement).value;
+        this.dataSource.filter = filterValue.trim().toLowerCase();
+
+        if (this.dataSource.paginator) {
+            this.dataSource.paginator.firstPage();
+        }
     }
 
     loadData(): void {
         this.vehicleService.getVehicles().subscribe({
             next: (vehicles) => {
                 this.vehicles = vehicles;
-                this.loadMaintenances();
-                this.loadSuppliers();
+                this.loadSuppliers(); // Load suppliers before maintenances to ensure names are available for sorting/filtering
             },
             error: (err) => {
                 console.error('Error loading vehicles', err);
@@ -62,9 +116,11 @@ export class MaintenanceComponent implements OnInit {
         this.supplierService.getSuppliers().subscribe({
             next: (suppliers) => {
                 this.suppliers = suppliers;
+                this.loadMaintenances();
             },
             error: (err) => {
                 console.error('Error loading suppliers', err);
+                this.loadMaintenances(); // Load maintenances anyway
             }
         });
     }
@@ -72,7 +128,7 @@ export class MaintenanceComponent implements OnInit {
     loadMaintenances(): void {
         this.maintenanceService.getMaintenances().subscribe({
             next: (data) => {
-                this.maintenances = data;
+                this.dataSource.data = data;
             },
             error: (err) => {
                 console.error('Error loading maintenances', err);

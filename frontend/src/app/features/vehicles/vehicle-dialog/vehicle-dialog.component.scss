@@ -25,6 +25,43 @@ h3 {
     color: #374151;
 }
 
+.usage-type-section {
+    background: #f9fafb;
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+
+    h3 {
+        margin-top: 0;
+    }
+
+    .usage-type-toggle {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+
+        mat-button-toggle {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 12px;
+
+            mat-icon {
+                font-size: 32px;
+                width: 32px;
+                height: 32px;
+                margin-bottom: 4px;
+            }
+
+            span {
+                font-size: 13px;
+                font-weight: 500;
+            }
+        }
+    }
+}
+
 .image-upload-section {
     background: #f9fafb;
     padding: 16px;

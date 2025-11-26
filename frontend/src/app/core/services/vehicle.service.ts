@@ -9,6 +9,7 @@ export interface Vehicle {
     year: number;
     license_plate: string;
     image_url?: string;
+    usage_type?: 'street' | 'track' | 'both';
     next_itv_date?: string;
     next_insurance_date?: string;
     last_insurance_amount?: number;
@@ -26,6 +27,19 @@ export interface Vehicle {
         battery_type?: string;
         tire_size?: string;
     };
+}
+
+export interface TrackRecord {
+    id?: number;
+    vehicle_id?: number;
+    circuit_name: string;
+    best_lap_time: string;  // Format: MM:SS.mmm
+    date_achieved: string;
+    weather_conditions?: string;
+    tire_compound?: string;
+    group?: string;
+    organizer?: string;
+    notes?: string;
 }
 
 import { environment } from '../../../environments/environment';
@@ -65,5 +79,22 @@ export class VehicleService {
 
     updateTorqueSpecs(id: number, specs: any[]): Observable<any> {
         return this.http.put(`${this.apiUrl}${id}/specs/torque`, specs);
+    }
+
+    // Track Records
+    getTrackRecords(vehicleId: number): Observable<TrackRecord[]> {
+        return this.http.get<TrackRecord[]>(`${this.apiUrl}${vehicleId}/track-records`);
+    }
+
+    createTrackRecord(vehicleId: number, record: TrackRecord): Observable<TrackRecord> {
+        return this.http.post<TrackRecord>(`${this.apiUrl}${vehicleId}/track-records`, record);
+    }
+
+    updateTrackRecord(recordId: number, record: TrackRecord): Observable<TrackRecord> {
+        return this.http.put<TrackRecord>(`${this.apiUrl}track-records/${recordId}`, record);
+    }
+
+    deleteTrackRecord(recordId: number): Observable<TrackRecord> {
+        return this.http.delete<TrackRecord>(`${this.apiUrl}track-records/${recordId}`);
     }
 }

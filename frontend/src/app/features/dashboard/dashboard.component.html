@@ -1,26 +1,166 @@
 <div class="dashboard-container">
-    <h1>Dashboard</h1>
+    <div class="dashboard-header">
+        <h1>
+            <mat-icon class="header-icon">dashboard</mat-icon>
+            Dashboard
+        </h1>
+        <p class="subtitle">Vista general de tu garaje</p>
+    </div>
 
-    <div class="stats-grid">
-        <mat-card *ngFor="let stat of stats" class="stat-card clickable-card" [routerLink]="stat.link">
-            <mat-card-content>
-                <div class="stat-icon" [ngClass]="stat.color">
-                    <mat-icon>{{ stat.icon }}</mat-icon>
+    <div *ngIf="loading" class="loading-container">
+        <mat-spinner></mat-spinner>
+    </div>
+
+    <div *ngIf="error" class="error-container">
+        <mat-icon>error_outline</mat-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadStats()">Reintentar</button>
+    </div>
+
+    <div *ngIf="!loading && !error && stats" class="dashboard-content">
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+            <mat-card class="stat-card" [routerLink]="['/vehicles']">
+                <div class="stat-card-inner">
+                    <div class="stat-icon-container primary">
+                        <mat-icon>directions_car</mat-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.total_vehicles }}</div>
+                        <div class="stat-label">Vehículos</div>
+                    </div>
                 </div>
-                <div class="stat-info">
-                    <div class="stat-value">{{ stat.value }}</div>
-                    <div class="stat-title">{{ stat.title }}</div>
+            </mat-card>
+
+            <mat-card class="stat-card" [routerLink]="['/maintenance']">
+                <div class="stat-card-inner">
+                    <div class="stat-icon-container accent">
+                        <mat-icon>build_circle</mat-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.scheduled_maintenance }}</div>
+                        <div class="stat-label">Mantenimientos Programados</div>
+                    </div>
+                </div>
+            </mat-card>
+
+            <mat-card class="stat-card">
+                <div class="stat-card-inner">
+                    <div class="stat-icon-container warn">
+                        <mat-icon>euro</mat-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.total_spent | number:'1.0-0' }}€</div>
+                        <div class="stat-label">Gasto Total</div>
+                    </div>
+                </div>
+            </mat-card>
+
+            <mat-card class="stat-card" [routerLink]="['/suppliers']">
+                <div class="stat-card-inner">
+                    <div class="stat-icon-container primary">
+                        <mat-icon>store</mat-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.total_suppliers }}</div>
+                        <div class="stat-label">Proveedores</div>
+                    </div>
+                </div>
+            </mat-card>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="content-grid">
+            <!-- Monthly Costs Chart -->
+            <mat-card class="chart-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>bar_chart</mat-icon>
+                        Gastos Mensuales
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div class="chart-container">
+                        <div class="bar-chart">
+                            <div *ngFor="let monthData of stats.monthly_costs" class="bar-column">
+                                <div class="bar-wrapper">
+                                    <div class="bar" [style.height.%]="getBarHeight(monthData.cost)">
+                                        <span class="bar-label">{{ monthData.cost | number:'1.0-0' }}€</span>
+                                    </div>
+                                </div>
+                                <div class="bar-month">{{ monthData.month }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+
+            <!-- Recent Activity -->
+            <mat-card class="activity-card">
+                <mat-card-header>
+                    <mat-card-title>
+                        <mat-icon>history</mat-icon>
+                        Actividad Reciente
+                    </mat-card-title>
+                </mat-card-header>
+                <mat-card-content>
+                    <div *ngIf="stats.recent_activity.length === 0" class="empty-state">
+                        <mat-icon>event_busy</mat-icon>
+                        <p>No hay actividad reciente</p>
+                    </div>
+                    <div class="activity-list" *ngIf="stats.recent_activity.length > 0">
+                        <div *ngFor="let activity of stats.recent_activity" class="activity-item">
+                            <div class="activity-icon">
+                                <mat-icon>build</mat-icon>
+                            </div>
+                            <div class="activity-details">
+                                <div class="activity-header">
+                                    <span class="activity-vehicle">{{ activity.vehicle_name }}</span>
+                                    <span class="activity-date">{{ activity.date | date:'dd/MM/yyyy' }}</span>
+                                </div>
+                                <div class="activity-description">{{ activity.description }}</div>
+                                <div class="activity-meta">
+                                    <span class="activity-mileage">
+                                        <mat-icon>speed</mat-icon>
+                                        {{ activity.mileage | number }} km
+                                    </span>
+                                    <span class="activity-cost">{{ activity.cost | number:'1.2-2' }}€</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </div>
+
+        <!-- Quick Actions -->
+        <mat-card class="quick-actions-card">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>bolt</mat-icon>
+                    Acciones Rápidas
+                </mat-card-title>
+            </mat-card-header>
+            <mat-card-content>
+                <div class="quick-actions">
+                    <button mat-raised-button color="primary" [routerLink]="['/vehicles']">
+                        <mat-icon>add</mat-icon>
+                        Añadir Vehículo
+                    </button>
+                    <button mat-raised-button color="accent" [routerLink]="['/maintenance']">
+                        <mat-icon>build</mat-icon>
+                        Nuevo Mantenimiento
+                    </button>
+                    <button mat-raised-button [routerLink]="['/invoices']">
+                        <mat-icon>receipt</mat-icon>
+                        Ver Facturas
+                    </button>
+                    <button mat-raised-button [routerLink]="['/suppliers']">
+                        <mat-icon>store</mat-icon>
+                        Gestionar Proveedores
+                    </button>
                 </div>
             </mat-card-content>
         </mat-card>
     </div>
-
-    <mat-card class="welcome-card">
-        <mat-card-header>
-            <mat-card-title>Welcome to My Garage</mat-card-title>
-        </mat-card-header>
-        <mat-card-content>
-            <p>Select a module from the sidebar to get started.</p>
-        </mat-card-content>
-    </mat-card>
 </div>

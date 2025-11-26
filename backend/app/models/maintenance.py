@@ -6,7 +6,6 @@ if TYPE_CHECKING:
     from .vehicle import Vehicle
     from .supplier import Supplier
     from .part import Part
-    from .invoice import Invoice
 
 class MaintenanceBase(SQLModel):
     date: date
@@ -22,4 +21,3 @@ class Maintenance(MaintenanceBase, table=True):
     vehicle: Optional["Vehicle"] = Relationship(back_populates="maintenances")
     supplier: Optional["Supplier"] = Relationship(back_populates="maintenances")
     parts: List["Part"] = Relationship(back_populates="maintenance")
-    invoices: List["Invoice"] = Relationship(back_populates="maintenance")

@@ -1,14 +1,12 @@
 .maintenance-container {
-    padding: 24px;
-    max-width: 1400px;
-    margin: 0 auto;
+    padding: 20px;
 }
 
 .header-actions {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 
     h1 {
         margin: 0;
@@ -16,6 +14,11 @@
         font-weight: 500;
         color: #333;
     }
+}
+
+.filter-field {
+    width: 100%;
+    margin-bottom: 20px;
 }
 
 .maintenance-list {
@@ -53,6 +56,22 @@
     tr.mat-row:hover {
         background: #f9fafb;
     }
+
+    .mat-column-actions {
+        white-space: nowrap;
+        width: 150px;
+        text-align: right;
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+    }
+}
+
+.align-left {
+    text-align: left !important;
 }
 
 .date-badge {

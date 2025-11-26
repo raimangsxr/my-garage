@@ -9,15 +9,53 @@
     margin-bottom: 20px;
 }
 
+.header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.filter-field {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
 .invoice-card {
     overflow: hidden;
 }
 
 .invoice-table {
     width: 100%;
+
+    .mat-column-actions {
+        white-space: nowrap;
+        width: 150px;
+        text-align: right;
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+    }
+}
+
+.status-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .processing-text {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+    }
 }
 
 .mat-column-actions {
     width: 100px;
     text-align: right;
+}
+
+.align-left {
+    text-align: left !important;
 }

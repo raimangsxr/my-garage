@@ -1,0 +1,71 @@
+<div class="upload-container">
+    <mat-card class="upload-card">
+        <mat-card-header>
+            <mat-card-title>Upload Invoice</mat-card-title>
+            <mat-card-subtitle>Upload your invoice (PDF or Image) to automatically extract data</mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content>
+            <!-- Google Sign In Section -->
+            <div *ngIf="!isAuthenticated" class="auth-section">
+                <p>Please sign in with Google to upload invoices and use Gemini AI processing.</p>
+                <app-google-sign-in></app-google-sign-in>
+            </div>
+
+            <!-- Upload Section -->
+            <div *ngIf="isAuthenticated" class="upload-section">
+                <div class="drop-zone" [class.dragging]="isDragging" (dragover)="onDragOver($event)"
+                    (dragleave)="onDragLeave($event)" (drop)="onDrop($event)" (click)="fileInput.click()">
+
+                    <input #fileInput type="file" hidden (change)="onFileSelected($event)" accept=".pdf,image/*">
+
+                    <div *ngIf="!selectedFile" class="placeholder">
+                        <mat-icon class="upload-icon">cloud_upload</mat-icon>
+                        <h3>Drag and drop file here</h3>
+                        <p>or click to browse</p>
+                        <span class="file-types">Supports PDF, JPG, PNG (Max 10MB)</span>
+                    </div>
+
+                    <div *ngIf="selectedFile" class="file-preview">
+                        <div class="preview-container" *ngIf="previewUrl">
+                            <div class="preview-wrapper">
+                                <ng-container *ngIf="selectedFile.type === 'application/pdf'; else imagePreview">
+                                    <object [data]="previewUrl | safeUrl" type="application/pdf" width="100%"
+                                        height="500px">
+                                        <p>PDF preview not available</p>
+                                    </object>
+                                </ng-container>
+                                <ng-template #imagePreview>
+                                    <img [src]="previewUrl" alt="Invoice Preview">
+                                </ng-template>
+                                <button mat-icon-button color="warn" class="remove-btn" (click)="clearFile()">
+                                    <mat-icon>close</mat-icon>
+                                </button>
+                            </div>
+                            <div class="file-info">
+                                <span class="filename">{{ selectedFile.name }}</span>
+                                <span class="filesize">{{ selectedFile.size | number }} bytes</span>
+                            </div>
+                        </div>
+
+                        <button mat-icon-button color="warn" (click)="clearFile(); $event.stopPropagation()">
+                            <mat-icon>close</mat-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="uploading" class="progress-section">
+                    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+                    <p>Uploading and processing with Gemini AI...</p>
+                </div>
+
+                <div class="actions">
+                    <button mat-raised-button color="primary" [disabled]="!selectedFile || uploading"
+                        (click)="uploadInvoice()">
+                        Upload & Process
+                    </button>
+                </div>
+            </div>
+        </mat-card-content>
+    </mat-card>
+</div>

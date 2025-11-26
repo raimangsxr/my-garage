@@ -23,6 +23,24 @@
     background: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(10px);
     color: white;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px; // Match selector/license plate radius
+    padding: 0; // Reset mat-icon-button padding
+    line-height: 1; // Reset line-height
+
+    mat-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        line-height: 20px; // Ensure icon height matches
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
     &:hover {
         background: rgba(255, 255, 255, 0.3);

@@ -23,6 +23,24 @@
             </mat-form-field>
         </div>
 
+        <div class="usage-type-section">
+            <h3>Vehicle Usage</h3>
+            <mat-button-toggle-group formControlName="usage_type" class="usage-type-toggle">
+                <mat-button-toggle value="street">
+                    <mat-icon>add_road</mat-icon>
+                    <span>Street</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="track">
+                    <mat-icon>sports_score</mat-icon>
+                    <span>Track</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="both">
+                    <mat-icon>swap_horiz</mat-icon>
+                    <span>Both</span>
+                </mat-button-toggle>
+            </mat-button-toggle-group>
+        </div>
+
         <div class="image-upload-section">
             <h3>Vehicle Image</h3>
 

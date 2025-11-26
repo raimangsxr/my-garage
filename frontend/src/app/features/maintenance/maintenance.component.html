@@ -7,11 +7,17 @@
         </button>
     </div>
 
+    <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil change, Audi, Amazon..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
     <div class="maintenance-list">
-        <table mat-table [dataSource]="maintenances" class="full-width-table">
+        <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
             <!-- Date Column -->
             <ng-container matColumnDef="date">
-                <th mat-header-cell *matHeaderCellDef> Date </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
                 <td mat-cell *matCellDef="let element">
                     <span class="date-badge" [ngClass]="getDateBadgeClass(element.date)">
                         {{element.date | date:'dd MMM yyyy'}}
@@ -21,7 +27,7 @@
 
             <!-- Vehicle Column -->
             <ng-container matColumnDef="vehicle">
-                <th mat-header-cell *matHeaderCellDef> Vehicle </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Vehicle </th>
                 <td mat-cell *matCellDef="let element">
                     <div class="vehicle-info">
                         <span class="vehicle-name">{{ getVehicleName(element.vehicle_id) }}</span>
@@ -32,13 +38,13 @@
 
             <!-- Description Column -->
             <ng-container matColumnDef="description">
-                <th mat-header-cell *matHeaderCellDef> Description </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Description </th>
                 <td mat-cell *matCellDef="let element"> {{element.description}} </td>
             </ng-container>
 
             <!-- Supplier Column -->
             <ng-container matColumnDef="supplier">
-                <th mat-header-cell *matHeaderCellDef> Supplier </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Supplier </th>
                 <td mat-cell *matCellDef="let element"> {{ getSupplierName(element.supplier_id) }} </td>
             </ng-container>
 
@@ -66,7 +72,7 @@
 
             <!-- Cost Column -->
             <ng-container matColumnDef="cost">
-                <th mat-header-cell *matHeaderCellDef> Cost </th>
+                <th mat-header-cell *matHeaderCellDef mat-sort-header> Cost </th>
                 <td mat-cell *matCellDef="let element">
                     <span class="cost">{{ element.cost | number:'1.2-2' }}€</span>
                 </td>
@@ -74,22 +80,32 @@
 
             <!-- Actions Column -->
             <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef> Actions </th>
+                <th mat-header-cell *matHeaderCellDef class="align-left"> Actions </th>
                 <td mat-cell *matCellDef="let element">
-                    <button mat-icon-button color="primary" (click)="openMaintenanceDialog(element)">
-                        <mat-icon>edit</mat-icon>
-                    </button>
-                    <button mat-icon-button color="warn" (click)="deleteMaintenance(element.id)">
-                        <mat-icon>delete</mat-icon>
-                    </button>
+                    <div class="action-buttons">
+                        <button mat-icon-button color="primary" (click)="openMaintenanceDialog(element)"
+                            matTooltip="Edit">
+                            <mat-icon>edit</mat-icon>
+                        </button>
+                        <button mat-icon-button color="warn" (click)="deleteMaintenance(element.id)"
+                            matTooltip="Delete">
+                            <mat-icon>delete</mat-icon>
+                        </button>
+                    </div>
                 </td>
             </ng-container>
 
             <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
 
-        <div class="empty-state" *ngIf="maintenances.length === 0">
+            <tr class="mat-row" *matNoDataRow>
+                <td class="mat-cell" colspan="8">No data matching the filter "{{input.value}}"</td>
+            </tr>
+        </table>
+        <mat-paginator [pageSizeOptions]="[10, 25, 100]"
+            aria-label="Select page of maintenance records"></mat-paginator>
+
+        <div class="empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
             <mat-icon>build</mat-icon>
             <p>No maintenance records found</p>
         </div>

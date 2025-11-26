@@ -20,3 +20,12 @@ typing_extensions==4.15.0
 uvicorn==0.38.0
 requests
 pydantic-settings
+python-dateutil
+google-generativeai
+python-multipart
+Pillow
+google-auth
+google-auth-oauthlib
+google-auth-httplib2
+pdf2image
+python-jose[cryptography]

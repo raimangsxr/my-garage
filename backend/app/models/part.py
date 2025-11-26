@@ -10,7 +10,7 @@ class PartBase(SQLModel):
     name: str
     reference: Optional[str] = None
     price: float
-    quantity: int = 1
+    quantity: float = 1.0
     maintenance_id: Optional[int] = Field(default=None, foreign_key="maintenance.id")
     supplier_id: Optional[int] = Field(default=None, foreign_key="supplier.id")
     invoice_id: Optional[int] = Field(default=None, foreign_key="invoice.id")

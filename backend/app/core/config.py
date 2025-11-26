@@ -20,6 +20,8 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str # override in .env
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
+    GOOGLE_CLIENT_ID: str = "" # override in .env
+    GEMINI_API_KEY: str = "" # override in .env
 
     class Config:
         case_sensitive = True

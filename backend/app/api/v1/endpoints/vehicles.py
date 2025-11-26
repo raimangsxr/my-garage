@@ -218,7 +218,8 @@ def get_vehicle_details(
     # Get vehicle with all relationships loaded
     statement = select(Vehicle).where(Vehicle.id == id).options(
         selectinload(Vehicle.maintenances),
-        selectinload(Vehicle.specs)
+        selectinload(Vehicle.specs),
+        selectinload(Vehicle.track_records)
     )
     vehicle = db.exec(statement).first()
     
@@ -240,7 +241,12 @@ def get_vehicle_details(
     # Get maintenance records with related data
     maintenances_data = []
     all_parts = []
-    all_invoices = []
+    all_parts = []
+    
+    # Get all invoices for the vehicle
+    invoices_stmt = select(Invoice).where(Invoice.vehicle_id == id)
+    vehicle_invoices = db.exec(invoices_stmt).all()
+    all_invoices = [i.model_dump() for i in vehicle_invoices]
     
     for maintenance in vehicle.maintenances:
         maint_dict = maintenance.model_dump()
@@ -263,16 +269,13 @@ def get_vehicle_details(
         
         maint_dict["parts"] = maint_parts
         
-        # Get invoices for this maintenance
-        invoices_stmt = select(Invoice).where(Invoice.maintenance_id == maintenance.id)
-        invoices = db.exec(invoices_stmt).all()
-        maint_invoices = []
-        for i in invoices:
-            i_dict = i.model_dump()
-            maint_invoices.append(i_dict)
-            all_invoices.append(i_dict)
-            
-        maint_dict["invoices"] = maint_invoices
+        # Get invoices for this maintenance (derived from parts)
+        maint_invoices_map = {}
+        for p in parts:
+            if p.invoice:
+                maint_invoices_map[p.invoice.id] = p.invoice.model_dump()
+        
+        maint_dict["invoices"] = list(maint_invoices_map.values())
         
         # Get supplier if exists (labor supplier)
         if maintenance.supplier_id:
@@ -283,12 +286,18 @@ def get_vehicle_details(
             
         maintenances_data.append(maint_dict)
     
+    # Get track records
+    track_records_data = []
+    if vehicle.track_records:
+        track_records_data = [record.model_dump() for record in vehicle.track_records]
+    
     return {
         "vehicle": VehicleRead(**vehicle_dict),
         "specs": specs_dict,
         "maintenances": maintenances_data,
         "parts": all_parts,
-        "invoices": all_invoices
+        "invoices": all_invoices,
+        "track_records": track_records_data
     }
 
 @router.put("/{id}/specs/torque")

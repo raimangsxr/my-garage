@@ -1,0 +1,69 @@
+<div class="track-records-container">
+    <div class="header">
+        <div class="header-left">
+            <h2>Track Records</h2>
+            <span class="record-count">{{ uniqueCircuits.length }} circuits</span>
+        </div>
+        <div class="header-actions">
+            <button mat-icon-button (click)="toggleSort()"
+                [matTooltip]="sortBy === 'circuit' ? 'Sorted by Circuit' : 'Sorted by Time'">
+                <mat-icon>{{ sortBy === 'circuit' ? 'place' : 'timer' }}</mat-icon>
+            </button>
+            <button mat-raised-button color="primary" (click)="openAddDialog()">
+                <mat-icon>add</mat-icon>
+                Add Record
+            </button>
+        </div>
+    </div>
+
+    <div class="records-table" *ngIf="uniqueCircuits.length > 0">
+        <div class="table-header">
+            <div class="col-rank">#</div>
+            <div class="col-circuit">Circuit</div>
+            <div class="col-time">Best Lap</div>
+            <div class="col-date">Date Achieved</div>
+            <div class="col-actions"></div>
+        </div>
+
+        <div class="table-body">
+            <div *ngFor="let record of uniqueCircuits; let i = index" class="table-row"
+                (click)="openCircuitHistory(record)" matTooltip="View circuit history">
+
+                <div class="col-rank">
+                    <span class="rank-number">{{ i + 1 }}</span>
+                </div>
+
+                <div class="col-circuit">
+                    <div class="circuit-info">
+                        <span class="circuit-name">{{ record.circuit_name }}</span>
+                        <span class="record-count-badge">
+                            {{ getCircuitSessionCount(record.circuit_name) }} sessions
+                        </span>
+                    </div>
+                </div>
+
+                <div class="col-time">
+                    <span class="lap-time">{{ record.best_lap_time }}</span>
+                </div>
+
+                <div class="col-date">
+                    <span class="date-text">{{ record.date_achieved | date:'MMM d, y' }}</span>
+                </div>
+
+                <div class="col-actions">
+                    <mat-icon class="chevron-icon">chevron_right</mat-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="empty-state" *ngIf="uniqueCircuits.length === 0">
+        <mat-icon>sports_score</mat-icon>
+        <h3>No Track Records</h3>
+        <p>Track your lap times and performance on different circuits</p>
+        <button mat-raised-button color="primary" (click)="openAddDialog()">
+            <mat-icon>add</mat-icon>
+            Add First Record
+        </button>
+    </div>
+</div>

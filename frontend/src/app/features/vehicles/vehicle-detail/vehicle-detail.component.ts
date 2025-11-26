@@ -5,22 +5,25 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { VehicleService } from '../../../core/services/vehicle.service';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { VehicleService, TrackRecord } from '../../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../../core/services/supplier.service';
 import { Invoice, InvoiceService } from '../../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../../core/services/maintenance.service';
 import { MaintenanceDialogComponent } from '../../maintenance/maintenance-dialog/maintenance-dialog.component';
 import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
-import { InvoiceDialogComponent } from '../../invoices/invoice-dialog/invoice-dialog.component';
 
 import { VehicleHeroComponent } from '../components/vehicle-hero/vehicle-hero.component';
-import { VehicleStatsBarComponent } from '../components/vehicle-stats-bar/vehicle-stats-bar.component';
+import { VehicleStatsBarComponent, TrackStats } from '../components/vehicle-stats-bar/vehicle-stats-bar.component';
 import { MaintenanceTimelineComponent } from '../components/maintenance-timeline/maintenance-timeline.component';
 import { TorqueSpecsComponent } from '../components/torque-specs/torque-specs.component';
 import { VehiclePartsListComponent } from '../components/vehicle-parts-list/vehicle-parts-list.component';
+import { TrackRecordsComponent } from '../components/track-records/track-records';
 import { EntityColumnComponent } from '../../../shared/components/entity-column/entity-column.component';
 import { EntityCardComponent } from '../../../shared/components/entity-card/entity-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+
+import { UniquePipe } from '../../../shared/pipes/unique.pipe';
 
 @Component({
     selector: 'app-vehicle-detail',
@@ -31,12 +34,17 @@ import { EmptyStateComponent } from '../../../shared/components/empty-state/empt
         MatButtonModule,
         MatIconModule,
         MatDialogModule,
+        MatButtonToggleModule,
         VehicleHeroComponent,
         VehicleStatsBarComponent,
         MaintenanceTimelineComponent,
         TorqueSpecsComponent,
         VehiclePartsListComponent,
-        EntityColumnComponent
+        TrackRecordsComponent,
+        EntityColumnComponent,
+        EntityCardComponent,
+        EmptyStateComponent,
+        UniquePipe
     ],
     templateUrl: './vehicle-detail.component.html',
     styleUrls: ['./vehicle-detail.component.scss']
@@ -56,6 +64,11 @@ export class VehicleDetailComponent implements OnInit {
     invoices: Invoice[] = [];
     maintenances: Maintenance[] = [];
 
+    // Track mode
+    viewMode: 'street' | 'track' = 'street';
+    trackRecords: TrackRecord[] = [];
+    trackStats: TrackStats = {};
+
     ngOnInit() {
         const id = this.route.snapshot.paramMap.get('id');
         if (id) {
@@ -73,6 +86,16 @@ export class VehicleDetailComponent implements OnInit {
                         new Date(b.date).getTime() - new Date(a.date).getTime()
                     );
                 }
+
+                // Load track records if available
+                if (this.vehicleDetails.track_records) {
+                    this.trackRecords = this.vehicleDetails.track_records;
+                    this.calculateTrackStats();
+                }
+
+                // Default to street mode as requested
+                this.viewMode = 'street';
+
                 this.loading = false;
             },
             error: (err) => {
@@ -152,17 +175,14 @@ export class VehicleDetailComponent implements OnInit {
         });
     }
 
-    openInvoiceDialog(invoice: Invoice) {
-        const dialogRef = this.dialog.open(InvoiceDialogComponent, {
-            width: '500px',
-            data: { invoice, vehicleId: this.vehicleDetails.vehicle.id }
+    openInvoiceUpload() {
+        this.router.navigate(['/invoices/upload'], {
+            queryParams: { vehicleId: this.vehicleDetails.vehicle.id }
         });
+    }
 
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.loadRelatedData();
-            }
-        });
+    openInvoiceDetails(invoiceId: number) {
+        this.router.navigate(['/invoices', invoiceId]);
     }
 
     onSaveTorqueSpecs(specs: any[]) {
@@ -181,6 +201,98 @@ export class VehicleDetailComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error updating torque specs:', error);
+            }
+        });
+    }
+
+    // Track mode methods
+    toggleViewMode() {
+        this.viewMode = this.viewMode === 'street' ? 'track' : 'street';
+    }
+
+    get showViewModeToggle(): boolean {
+        return this.vehicleDetails?.vehicle?.usage_type === 'both' ||
+            this.vehicleDetails?.vehicle?.usage_type === 'track';
+    }
+
+    calculateTrackStats() {
+        if (!this.trackRecords.length) {
+            this.trackStats = { total_track_days: 0, favorite_circuit: '-' };
+            return;
+        }
+
+        // Calculate unique track days - normalize dates to YYYY-MM-DD format
+        const uniqueDates = new Set(
+            this.trackRecords.map(r => {
+                const date = new Date(r.date_achieved);
+                return date.toISOString().split('T')[0];
+            })
+        );
+
+        // Calculate favorite circuit
+        const circuitCounts = new Map<string, number>();
+        this.trackRecords.forEach(r => {
+            circuitCounts.set(r.circuit_name, (circuitCounts.get(r.circuit_name) || 0) + 1);
+        });
+
+        let favoriteCircuit = '-';
+        let maxVisits = 0;
+
+        circuitCounts.forEach((count, circuit) => {
+            if (count > maxVisits) {
+                maxVisits = count;
+                favoriteCircuit = circuit;
+            }
+        });
+
+        this.trackStats = {
+            total_track_days: uniqueDates.size,
+            favorite_circuit: favoriteCircuit
+        };
+    }
+
+    onTrackRecordAdded(record: TrackRecord) {
+        if (!this.vehicleDetails?.vehicle?.id) return;
+
+        this.vehicleService.createTrackRecord(this.vehicleDetails.vehicle.id, record).subscribe({
+            next: (newRecord) => {
+                this.trackRecords.push(newRecord);
+                this.calculateTrackStats();
+                console.log('Track record added');
+            },
+            error: (error) => {
+                console.error('Error adding track record:', error);
+            }
+        });
+    }
+
+    onTrackRecordUpdated(record: TrackRecord) {
+        if (!record.id) return;
+
+        this.vehicleService.updateTrackRecord(record.id, record).subscribe({
+            next: (updatedRecord) => {
+                const index = this.trackRecords.findIndex(r => r.id === updatedRecord.id);
+                if (index !== -1) {
+                    this.trackRecords[index] = updatedRecord;
+                    this.calculateTrackStats();
+                }
+                console.log('Track record updated');
+            },
+            error: (error) => {
+                console.error('Error updating track record:', error);
+            }
+        });
+    }
+
+    onTrackRecordDeleted(recordId: number) {
+        this.vehicleService.deleteTrackRecord(recordId).subscribe({
+            next: () => {
+                this.trackRecords = this.trackRecords.filter(r => r.id !== recordId);
+                this.calculateTrackStats();
+                console.log('Track record deleted');
+            },
+            error: (error) => {
+                console.error('Error deleting track record:', error);
             }
         });
     }

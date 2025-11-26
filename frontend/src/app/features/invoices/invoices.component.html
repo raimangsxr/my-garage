@@ -1,48 +1,102 @@
 <div class="container">
     <div class="header">
         <h2>Invoices</h2>
-        <button mat-raised-button color="primary" (click)="openInvoiceDialog()">
-            <mat-icon>add</mat-icon> Add Invoice
+        <button mat-raised-button color="primary" (click)="uploadInvoice()">
+            <mat-icon>cloud_upload</mat-icon> Upload Invoice
         </button>
     </div>
 
+    <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Filter</mat-label>
+        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Amazon, 12345..." #input>
+        <mat-icon matSuffix>search</mat-icon>
+    </mat-form-field>
+
     <mat-card class="invoice-card">
         <mat-card-content>
-            <table mat-table [dataSource]="invoices" class="invoice-table">
+            <table mat-table [dataSource]="dataSource" matSort class="invoice-table">
+
+                <!-- Status Column -->
+                <ng-container matColumnDef="status">
+                    <th mat-header-cell *matHeaderCellDef> Status </th>
+                    <td mat-cell *matCellDef="let element">
+                        <div class="status-cell">
+                            <mat-spinner *ngIf="element.status === 'processing' || element.status === 'pending'"
+                                diameter="20" color="accent"></mat-spinner>
+
+                            <mat-chip-listbox *ngIf="element.status !== 'processing' && element.status !== 'pending'">
+                                <mat-chip-option [color]="getStatusColor(element.status)" selected
+                                    [matTooltip]="element.status === 'failed' ? (element.error_message || 'Unknown error') : ''"
+                                    [matTooltipDisabled]="element.status !== 'failed'">
+                                    {{ getStatusLabel(element.status) }}
+                                </mat-chip-option>
+                            </mat-chip-listbox>
+
+                            <span *ngIf="element.status === 'processing' || element.status === 'pending'"
+                                class="processing-text">
+                                Processing...
+                            </span>
+                        </div>
+                    </td>
+                </ng-container>
+
                 <!-- Number Column -->
                 <ng-container matColumnDef="number">
-                    <th mat-header-cell *matHeaderCellDef> Number </th>
-                    <td mat-cell *matCellDef="let element"> {{element.number}} </td>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Number </th>
+                    <td mat-cell *matCellDef="let element"> {{element.number || '-'}} </td>
                 </ng-container>
 
                 <!-- Date Column -->
                 <ng-container matColumnDef="date">
-                    <th mat-header-cell *matHeaderCellDef> Date </th>
-                    <td mat-cell *matCellDef="let element"> {{element.date | date}} </td>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
+                    <td mat-cell *matCellDef="let element"> {{element.date ? (element.date | date) : '-'}} </td>
+                </ng-container>
+
+                <!-- Vehicle Column -->
+                <ng-container matColumnDef="vehicle">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Vehicle </th>
+                    <td mat-cell *matCellDef="let element"> {{getVehicleName(element.vehicle_id)}} </td>
+                </ng-container>
+
+                <!-- Supplier Column -->
+                <ng-container matColumnDef="supplier">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Supplier </th>
+                    <td mat-cell *matCellDef="let element"> {{getSupplierName(element.supplier_id)}} </td>
                 </ng-container>
 
                 <!-- Amount Column -->
                 <ng-container matColumnDef="amount">
-                    <th mat-header-cell *matHeaderCellDef> Amount </th>
-                    <td mat-cell *matCellDef="let element"> {{element.amount | currency:'EUR'}} </td>
-                </ng-container>
-
-                <!-- Maintenance Column -->
-                <ng-container matColumnDef="maintenance">
-                    <th mat-header-cell *matHeaderCellDef> Maintenance </th>
-                    <td mat-cell *matCellDef="let element"> {{getMaintenanceDescription(element.maintenance_id)}} </td>
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Amount </th>
+                    <td mat-cell *matCellDef="let element">
+                        {{element.amount ? (element.amount | currency:'EUR') : '-'}}
+                    </td>
                 </ng-container>
 
                 <!-- Actions Column -->
                 <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef> Actions </th>
+                    <th mat-header-cell *matHeaderCellDef class="align-left"> Actions </th>
                     <td mat-cell *matCellDef="let element">
-                        <button mat-icon-button color="primary" (click)="openInvoiceDialog(element)">
-                            <mat-icon>edit</mat-icon>
-                        </button>
-                        <button mat-icon-button color="warn" (click)="deleteInvoice(element.id!)">
-                            <mat-icon>delete</mat-icon>
-                        </button>
+                        <div class="action-buttons">
+                            <button mat-icon-button color="primary" *ngIf="element.status === 'approved'"
+                                (click)="viewDetails(element.id)" matTooltip="View Details">
+                                <mat-icon>visibility</mat-icon>
+                            </button>
+
+                            <button mat-icon-button color="primary" *ngIf="element.status === 'failed'"
+                                (click)="retryInvoice(element)" matTooltip="Retry processing">
+                                <mat-icon>refresh</mat-icon>
+                            </button>
+
+                            <button mat-icon-button color="primary" *ngIf="element.status === 'review'"
+                                (click)="reviewInvoice(element)" matTooltip="Review Invoice">
+                                <mat-icon>rate_review</mat-icon>
+                            </button>
+
+                            <button mat-icon-button color="warn" (click)="deleteInvoice(element.id!)"
+                                matTooltip="Delete">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </div>
                     </td>
                 </ng-container>
 
@@ -50,9 +104,10 @@
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
                 <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="5">No invoices found</td>
+                    <td class="mat-cell" colspan="7">No data matching the filter "{{input.value}}"</td>
                 </tr>
             </table>
+            <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of invoices"></mat-paginator>
         </mat-card-content>
     </mat-card>
 </div>

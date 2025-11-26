@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from app.database import get_session
-from app.models import User
+from app.models import User, GoogleAuthToken
 from app.core.security import ALGORITHM, SECRET_KEY
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
@@ -43,6 +43,26 @@ def get_current_active_user(
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
+
+def get_google_auth_token(
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_active_user)
+) -> GoogleAuthToken:
+    """
+    Obtiene el token de Google del usuario actual.
+    Se requiere para usar la API de Gemini.
+    """
+    google_token = session.query(GoogleAuthToken).filter(
+        GoogleAuthToken.user_id == current_user.id
+    ).first()
+    
+    if not google_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Google authentication required. Please sign in with Google first."
+        )
+    
+    return google_token
 
 # Alias for get_session to match common naming convention
 get_db = get_session

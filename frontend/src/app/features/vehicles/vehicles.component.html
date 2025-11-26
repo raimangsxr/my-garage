@@ -7,6 +7,14 @@
         <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card" (click)="viewVehicleDetails(vehicle.id!)">
             <div class="vehicle-image"
                 [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
+                <div class="usage-type-badge" [attr.data-usage]="vehicle.usage_type || 'street'">
+                    <mat-icon *ngIf="vehicle.usage_type === 'street' || !vehicle.usage_type">add_road</mat-icon>
+                    <mat-icon *ngIf="vehicle.usage_type === 'track'">sports_score</mat-icon>
+                    <ng-container *ngIf="vehicle.usage_type === 'both'">
+                        <mat-icon>add_road</mat-icon>
+                        <mat-icon>sports_score</mat-icon>
+                    </ng-container>
+                </div>
                 <div class="license-plate">{{ vehicle.license_plate }}</div>
             </div>
 
