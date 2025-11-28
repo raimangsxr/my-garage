@@ -1,6 +1,7 @@
 from app.models.invoice import Invoice, InvoiceStatus
 from app.schemas.invoice_processing import InvoiceExtractedData
 from app.core.gemini_service import GeminiService
+from app.core.exceptions import InvoiceProcessingError, DatabaseError
 from sqlmodel import Session
 import logging
 
@@ -34,14 +35,18 @@ class InvoiceProcessor:
             InvoiceExtractedData: Datos extraídos
             
         Raises:
-            ValueError: Si hay error en el procesamiento
+            InvoiceProcessingError: Si hay error en el procesamiento
+            DatabaseError: Si hay error de base de datos
         """
         invoice = session.get(Invoice, invoice_id)
         if not invoice:
-            raise ValueError(f"Invoice {invoice_id} not found")
+            raise DatabaseError(f"Invoice {invoice_id} not found")
         
         try:
-            logger.info(f"Starting processing for invoice {invoice_id} (detailed={detailed_mode})")
+            logger.info(
+                f"Starting processing for invoice {invoice_id}",
+                extra={"invoice_id": invoice_id, "detailed_mode": detailed_mode}
+            )
             
             # 1. Configurar Gemini con el API key del usuario
             self.gemini_service.set_api_key(gemini_api_key)
@@ -54,7 +59,10 @@ class InvoiceProcessor:
             # 3. Procesar con Gemini (multimodal)
             extracted_data = await self.gemini_service.extract_invoice_data(file_path, detailed_mode)
             
-            logger.info(f"Extraction successful for invoice {invoice_id}")
+            logger.info(
+                f"Extraction successful for invoice {invoice_id}",
+                extra={"invoice_id": invoice_id}
+            )
             
             # 4. Actualizar invoice con datos extraídos
             invoice.extracted_data = extracted_data.model_dump_json()
@@ -70,9 +78,12 @@ class InvoiceProcessor:
             return extracted_data
             
         except Exception as e:
-            logger.error(f"Error processing invoice {invoice_id}: {e}")
+            logger.exception(
+                f"Error processing invoice {invoice_id}",
+                extra={"invoice_id": invoice_id, "error_type": type(e).__name__}
+            )
             invoice.status = InvoiceStatus.FAILED.value
             invoice.error_message = str(e)
             session.add(invoice)
             session.commit()
-            raise
+            raise InvoiceProcessingError(f"Failed to process invoice: {str(e)}", {"invoice_id": invoice_id})

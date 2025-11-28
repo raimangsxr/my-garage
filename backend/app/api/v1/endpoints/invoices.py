@@ -9,6 +9,7 @@ from app.schemas.invoice_processing import InvoiceExtractedData
 from app.core.storage import StorageService
 from app.core.gemini_service import GeminiService
 from app.core.invoice_processor import InvoiceProcessor
+from app.core.exceptions import InvoiceProcessingError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,38 +32,51 @@ async def process_invoice_background(
     """
     Tarea en background para procesar factura con Gemini
     """
-    from app.database import get_session
+    from app.database import get_db_context
     
-    # Crear nueva sesión para el background task
-    session = next(get_session())
+    # Usar context manager para sesión de base de datos
     try:
-        await invoice_processor.process_invoice(
-            invoice_id=invoice_id,
-            file_path=file_path,
-            session=session,
-            gemini_api_key=gemini_api_key,
-            detailed_mode=detailed_mode
+        with get_db_context() as session:
+            await invoice_processor.process_invoice(
+                invoice_id=invoice_id,
+                file_path=file_path,
+                session=session,
+                gemini_api_key=gemini_api_key,
+                detailed_mode=detailed_mode
+            )
+        logger.info(
+            "Background processing completed",
+            extra={"invoice_id": invoice_id}
         )
-        logger.info(f"Background processing completed for invoice {invoice_id}")
+    except InvoiceProcessingError as e:
+        logger.error(
+            "Invoice processing failed",
+            extra={"invoice_id": invoice_id, "error": str(e), "details": e.details}
+        )
+        # El estado ya fue actualizado en invoice_processor
     except Exception as e:
-        logger.error(f"Background processing failed for invoice {invoice_id}: {e}")
-        # Actualizar estado de la factura a FAILED y guardar mensaje de error
+        logger.exception(
+            "Unexpected error in background processing",
+            extra={"invoice_id": invoice_id, "error_type": type(e).__name__}
+        )
+        # Intentar actualizar estado de la factura a FAILED
         try:
-            invoice = session.get(Invoice, invoice_id)
-            if invoice:
-                invoice.status = InvoiceStatus.FAILED.value
-                # Limpiar mensaje de error para que sea más amigable si es posible
-                error_msg = str(e)
-                if "429" in error_msg and "quota" in error_msg.lower():
-                    invoice.error_message = "Quota exceeded. Please try again later."
-                else:
-                    invoice.error_message = error_msg
-                session.add(invoice)
-                session.commit()
+            with get_db_context() as session:
+                invoice = session.get(Invoice, invoice_id)
+                if invoice:
+                    invoice.status = InvoiceStatus.FAILED.value
+                    # Limpiar mensaje de error para que sea más amigable si es posible
+                    error_msg = str(e)
+                    if "429" in error_msg and "quota" in error_msg.lower():
+                        invoice.error_message = "Quota exceeded. Please try again later."
+                    else:
+                        invoice.error_message = error_msg
+                    session.add(invoice)
         except Exception as db_e:
-            logger.error(f"Failed to update invoice status to FAILED: {db_e}")
-    finally:
-        session.close()
+            logger.error(
+                "Failed to update invoice status to FAILED",
+                extra={"invoice_id": invoice_id, "error": str(db_e)}
+            )
 
 
 @router.get("/", response_model=List[Invoice])

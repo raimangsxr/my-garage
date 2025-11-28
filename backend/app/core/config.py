@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
     GOOGLE_CLIENT_ID: str = "" # override in .env
     GEMINI_API_KEY: str = "" # override in .env
+    
+    # Logging and Environment
+    LOG_LEVEL: str = "INFO"  # Can be DEBUG, INFO, WARNING, ERROR
+    ENVIRONMENT: str = "development"  # development, production, staging
 
     class Config:
         case_sensitive = True
@@ -33,8 +37,8 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
-# Logging Configuration
-LOG_LEVEL = "ERROR"
+# Logging Configuration - Now configurable via environment
+LOG_LEVEL = settings.LOG_LEVEL if hasattr(settings, 'LOG_LEVEL') else "INFO"
 
 def setup_logging():
     LOGGING_CONFIG = {
