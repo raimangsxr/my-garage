@@ -13,15 +13,6 @@ def get_session() -> Generator[Session, None, None]:
 
 @contextmanager
 def get_db_context():
-    """
-    Context manager for database sessions in background tasks.
-    Automatically commits on success and rolls back on error.
-    
-    Usage:
-        with get_db_context() as session:
-            # do database operations
-            pass
-    """
     session = Session(engine)
     try:
         yield session
