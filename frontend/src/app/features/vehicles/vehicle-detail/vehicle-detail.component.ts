@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -12,6 +12,8 @@ import { Invoice, InvoiceService } from '../../../core/services/invoice.service'
 import { Maintenance, MaintenanceService } from '../../../core/services/maintenance.service';
 import { MaintenanceDialogComponent } from '../../maintenance/maintenance-dialog/maintenance-dialog.component';
 import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
+import { LoggerService } from '../../../core/services/logger.service';
+import { Subscription } from 'rxjs';
 
 import { VehicleHeroComponent } from '../components/vehicle-hero/vehicle-hero.component';
 import { VehicleStatsBarComponent, TrackStats } from '../components/vehicle-stats-bar/vehicle-stats-bar.component';
@@ -49,7 +51,7 @@ import { UniquePipe } from '../../../shared/pipes/unique.pipe';
     templateUrl: './vehicle-detail.component.html',
     styleUrls: ['./vehicle-detail.component.scss']
 })
-export class VehicleDetailComponent implements OnInit {
+export class VehicleDetailComponent implements OnInit, OnDestroy {
     private route = inject(ActivatedRoute);
     private router = inject(Router);
     private vehicleService = inject(VehicleService);
@@ -57,6 +59,8 @@ export class VehicleDetailComponent implements OnInit {
     private invoiceService = inject(InvoiceService);
     private maintenanceService = inject(MaintenanceService);
     private dialog = inject(MatDialog);
+    private logger = inject(LoggerService);
+    private subscriptions = new Subscription();
 
     vehicleDetails: any = null;
     loading = true;
@@ -77,38 +81,44 @@ export class VehicleDetailComponent implements OnInit {
         }
     }
 
+    ngOnDestroy() {
+        this.subscriptions.unsubscribe();
+    }
+
     loadVehicleDetails(id: number) {
-        this.vehicleService.getVehicleDetails(id).subscribe({
-            next: (data) => {
-                this.vehicleDetails = data;
-                if (this.vehicleDetails.maintenances) {
-                    this.vehicleDetails.maintenances.sort((a: any, b: any) =>
-                        new Date(b.date).getTime() - new Date(a.date).getTime()
-                    );
+        this.subscriptions.add(
+            this.vehicleService.getVehicleDetails(id).subscribe({
+                next: (data) => {
+                    this.vehicleDetails = data;
+                    if (this.vehicleDetails.maintenances) {
+                        this.vehicleDetails.maintenances.sort((a: any, b: any) =>
+                            new Date(b.date).getTime() - new Date(a.date).getTime()
+                        );
+                    }
+
+                    // Load track records if available
+                    if (this.vehicleDetails.track_records) {
+                        this.trackRecords = this.vehicleDetails.track_records;
+                        this.calculateTrackStats();
+                    }
+
+                    // Default to street mode as requested
+                    this.viewMode = 'street';
+
+                    this.loading = false;
+                },
+                error: (err) => {
+                    this.logger.error('Error loading vehicle details', err);
+                    this.loading = false;
                 }
-
-                // Load track records if available
-                if (this.vehicleDetails.track_records) {
-                    this.trackRecords = this.vehicleDetails.track_records;
-                    this.calculateTrackStats();
-                }
-
-                // Default to street mode as requested
-                this.viewMode = 'street';
-
-                this.loading = false;
-            },
-            error: (err) => {
-                console.error('Error loading vehicle details', err);
-                this.loading = false;
-            }
-        });
+            })
+        );
     }
 
     loadRelatedData() {
-        this.supplierService.getSuppliers().subscribe(data => this.suppliers = data);
-        this.invoiceService.getInvoices().subscribe(data => this.invoices = data);
-        this.maintenanceService.getMaintenances().subscribe(data => this.maintenances = data);
+        this.subscriptions.add(this.supplierService.getSuppliers().subscribe(data => this.suppliers = data));
+        this.subscriptions.add(this.invoiceService.getInvoices().subscribe(data => this.invoices = data));
+        this.subscriptions.add(this.maintenanceService.getMaintenances().subscribe(data => this.maintenances = data));
     }
 
     goBack() {
@@ -155,11 +165,13 @@ export class VehicleDetailComponent implements OnInit {
             }
         });
 
-        dialogRef.afterClosed().subscribe(result => {
-            if (result) {
-                this.loadVehicleDetails(this.vehicleDetails.vehicle.id);
-            }
-        });
+        this.subscriptions.add(
+            dialogRef.afterClosed().subscribe(result => {
+                if (result) {
+                    this.loadVehicleDetails(this.vehicleDetails.vehicle.id);
+                }
+            })
+        );
     }
 
     openPartDialog(part: any) {
@@ -188,21 +200,21 @@ export class VehicleDetailComponent implements OnInit {
     onSaveTorqueSpecs(specs: any[]) {
         if (!this.vehicleDetails?.vehicle?.id) return;
 
-        this.vehicleService.updateTorqueSpecs(this.vehicleDetails.vehicle.id, specs).subscribe({
-            next: (response) => {
-                // Update local state
-                if (!this.vehicleDetails.specs) {
-                    this.vehicleDetails.specs = {};
+        this.subscriptions.add(
+            this.vehicleService.updateTorqueSpecs(this.vehicleDetails.vehicle.id, specs).subscribe({
+                next: (response) => {
+                    // Update local state
+                    if (!this.vehicleDetails.specs) {
+                        this.vehicleDetails.specs = {};
+                    }
+                    this.vehicleDetails.specs.torque_specs = response.specs;
+                    this.logger.info('Torque specs updated successfully');
+                },
+                error: (error) => {
+                    this.logger.error('Error updating torque specs', error);
                 }
-                this.vehicleDetails.specs.torque_specs = response.specs;
-
-                // Optional: Show success message (snackbar would be nice, but console for now)
-                console.log('Torque specs updated');
-            },
-            error: (error) => {
-                console.error('Error updating torque specs:', error);
-            }
-        });
+            })
+        );
     }
 
     // Track mode methods
@@ -254,46 +266,52 @@ export class VehicleDetailComponent implements OnInit {
     onTrackRecordAdded(record: TrackRecord) {
         if (!this.vehicleDetails?.vehicle?.id) return;
 
-        this.vehicleService.createTrackRecord(this.vehicleDetails.vehicle.id, record).subscribe({
-            next: (newRecord) => {
-                this.trackRecords.push(newRecord);
-                this.calculateTrackStats();
-                console.log('Track record added');
-            },
-            error: (error) => {
-                console.error('Error adding track record:', error);
-            }
-        });
+        this.subscriptions.add(
+            this.vehicleService.createTrackRecord(this.vehicleDetails.vehicle.id, record).subscribe({
+                next: (newRecord) => {
+                    this.trackRecords.push(newRecord);
+                    this.calculateTrackStats();
+                    this.logger.info('Track record added successfully');
+                },
+                error: (error) => {
+                    this.logger.error('Error adding track record', error);
+                }
+            })
+        );
     }
 
     onTrackRecordUpdated(record: TrackRecord) {
         if (!record.id) return;
 
-        this.vehicleService.updateTrackRecord(record.id, record).subscribe({
-            next: (updatedRecord) => {
-                const index = this.trackRecords.findIndex(r => r.id === updatedRecord.id);
-                if (index !== -1) {
-                    this.trackRecords[index] = updatedRecord;
-                    this.calculateTrackStats();
+        this.subscriptions.add(
+            this.vehicleService.updateTrackRecord(record.id, record).subscribe({
+                next: (updatedRecord) => {
+                    const index = this.trackRecords.findIndex(r => r.id === updatedRecord.id);
+                    if (index !== -1) {
+                        this.trackRecords[index] = updatedRecord;
+                        this.calculateTrackStats();
+                    }
+                    this.logger.info('Track record updated successfully');
+                },
+                error: (error) => {
+                    this.logger.error('Error updating track record', error);
                 }
-                console.log('Track record updated');
-            },
-            error: (error) => {
-                console.error('Error updating track record:', error);
-            }
-        });
+            })
+        );
     }
 
     onTrackRecordDeleted(recordId: number) {
-        this.vehicleService.deleteTrackRecord(recordId).subscribe({
-            next: () => {
-                this.trackRecords = this.trackRecords.filter(r => r.id !== recordId);
-                this.calculateTrackStats();
-                console.log('Track record deleted');
-            },
-            error: (error) => {
-                console.error('Error deleting track record:', error);
-            }
-        });
+        this.subscriptions.add(
+            this.vehicleService.deleteTrackRecord(recordId).subscribe({
+                next: () => {
+                    this.trackRecords = this.trackRecords.filter(r => r.id !== recordId);
+                    this.calculateTrackStats();
+                    this.logger.info('Track record deleted successfully');
+                },
+                error: (error) => {
+                    this.logger.error('Error deleting track record', error);
+                }
+            })
+        );
     }
 }

@@ -1,9 +1,9 @@
-import { Component, ViewChild, inject } from '@angular/core';
+import { Component, ViewChild, inject, OnDestroy } from '@angular/core';
 import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { map, shareReplay, filter } from 'rxjs/operators';
 import { HeaderComponent } from './layout/header/header.component';
 import { SidenavComponent } from './layout/sidenav/sidenav.component';
@@ -25,7 +25,7 @@ import { NotificationService } from './core/services/notification.service';
     templateUrl: './app.component.html',
     styleUrls: ['./app.component.scss']
 })
-export class AppComponent {
+export class AppComponent implements OnDestroy {
     title = 'My Garage';
     @ViewChild('drawer') drawer!: MatSidenav;
 
@@ -33,6 +33,7 @@ export class AppComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
     private notificationService = inject(NotificationService);
+    private subscriptions = new Subscription();
 
     isAuthenticated$ = this.authService.isAuthenticated$;
 
@@ -44,19 +45,27 @@ export class AppComponent {
 
     constructor() {
         // Close sidenav on navigation on mobile
-        this.router.events.pipe(
-            filter(event => event instanceof NavigationEnd)
-        ).subscribe(() => {
-            if (this.drawer && this.drawer.mode === 'over') {
-                this.drawer.close();
-            }
-        });
+        this.subscriptions.add(
+            this.router.events.pipe(
+                filter(event => event instanceof NavigationEnd)
+            ).subscribe(() => {
+                if (this.drawer && this.drawer.mode === 'over') {
+                    this.drawer.close();
+                }
+            })
+        );
 
         // Check for notifications when authenticated
-        this.isAuthenticated$.subscribe(isAuth => {
-            if (isAuth) {
-                this.notificationService.checkNotifications();
-            }
-        });
+        this.subscriptions.add(
+            this.isAuthenticated$.subscribe(isAuth => {
+                if (isAuth) {
+                    this.notificationService.checkNotifications();
+                }
+            })
+        );
+    }
+
+    ngOnDestroy(): void {
+        this.subscriptions.unsubscribe();
     }
 }

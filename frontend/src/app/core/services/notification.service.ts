@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, BehaviorSubject, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { LoggerService } from './logger.service';
 
 export interface Notification {
     id: number;
@@ -19,6 +20,7 @@ export interface Notification {
 export class NotificationService {
     private http = inject(HttpClient);
     private apiUrl = `${environment.apiUrl}/notifications/`;
+    private logger = inject(LoggerService);
 
     private notificationsSubject = new BehaviorSubject<Notification[]>([]);
     notifications$ = this.notificationsSubject.asObservable();
@@ -36,14 +38,14 @@ export class NotificationService {
                 this.notificationsSubject.next(notifications);
                 this.updateUnreadCount(notifications);
             },
-            error: (err) => console.error('Error loading notifications', err)
+            error: (err) => this.logger.error('Error loading notifications', err)
         });
     }
 
     checkNotifications(): void {
         this.http.post(this.apiUrl + 'check', {}).subscribe({
             next: () => this.loadNotifications(),
-            error: (err) => console.error('Error checking notifications', err)
+            error: (err) => this.logger.error('Error checking notifications', err)
         });
     }
 

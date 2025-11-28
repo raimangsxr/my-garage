@@ -16,6 +16,7 @@ import { MaintenanceService, Maintenance } from '../../core/services/maintenance
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
+import { LoggerService } from '../../core/services/logger.service';
 
 @Component({
     selector: 'app-maintenance',
@@ -44,6 +45,7 @@ export class MaintenanceComponent implements OnInit {
     private supplierService = inject(SupplierService);
     private dialog = inject(MatDialog);
     private snackBar = inject(MatSnackBar);
+    private logger = inject(LoggerService);
 
     dataSource: MatTableDataSource<Maintenance> = new MatTableDataSource<Maintenance>([]);
     vehicles: Vehicle[] = [];
@@ -106,7 +108,7 @@ export class MaintenanceComponent implements OnInit {
                 this.loadSuppliers(); // Load suppliers before maintenances to ensure names are available for sorting/filtering
             },
             error: (err) => {
-                console.error('Error loading vehicles', err);
+                this.logger.error('Error loading vehicles', err);
                 this.showSnackBar('Error loading vehicles');
             }
         });
@@ -119,7 +121,7 @@ export class MaintenanceComponent implements OnInit {
                 this.loadMaintenances();
             },
             error: (err) => {
-                console.error('Error loading suppliers', err);
+                this.logger.error('Error loading suppliers', err);
                 this.loadMaintenances(); // Load maintenances anyway
             }
         });
@@ -131,7 +133,7 @@ export class MaintenanceComponent implements OnInit {
                 this.dataSource.data = data;
             },
             error: (err) => {
-                console.error('Error loading maintenances', err);
+                this.logger.error('Error loading maintenances', err);
                 this.showSnackBar('Error loading maintenances');
             }
         });
@@ -192,7 +194,7 @@ export class MaintenanceComponent implements OnInit {
                 this.showSnackBar('Maintenance record created successfully');
             },
             error: (err) => {
-                console.error('Error creating maintenance', err);
+                this.logger.error('Error creating maintenance', err);
                 this.showSnackBar('Error creating maintenance');
             }
         });
@@ -205,7 +207,7 @@ export class MaintenanceComponent implements OnInit {
                 this.showSnackBar('Maintenance record updated successfully');
             },
             error: (err) => {
-                console.error('Error updating maintenance', err);
+                this.logger.error('Error updating maintenance', err);
                 this.showSnackBar('Error updating maintenance');
             }
         });
@@ -219,7 +221,7 @@ export class MaintenanceComponent implements OnInit {
                     this.showSnackBar('Maintenance record deleted successfully');
                 },
                 error: (err) => {
-                    console.error('Error deleting maintenance', err);
+                    this.logger.error('Error deleting maintenance', err);
                     this.showSnackBar('Error deleting maintenance');
                 }
             });

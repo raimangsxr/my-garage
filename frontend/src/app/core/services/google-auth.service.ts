@@ -1,9 +1,10 @@
-import { Injectable, NgZone } from '@angular/core';
+import { Injectable, NgZone, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, from } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
+import { LoggerService } from './logger.service';
 
 declare global {
     interface Window {
@@ -25,11 +26,12 @@ export class GoogleAuthService {
     private userSubject = new BehaviorSubject<GoogleUser | null>(null);
     public user$ = this.userSubject.asObservable();
 
-    constructor(
-        private http: HttpClient,
-        private ngZone: NgZone,
-        private authService: AuthService
-    ) {
+    private http = inject(HttpClient);
+    private ngZone = inject(NgZone);
+    private authService = inject(AuthService);
+    private logger = inject(LoggerService);
+
+    constructor() {
         this.loadStoredSession();
     }
 
@@ -44,7 +46,7 @@ export class GoogleAuthService {
 
     initializeGoogleSignIn(buttonElementId: string) {
         if (!window.google) {
-            console.error('Google Identity Services script not loaded');
+            this.logger.error('Google Identity Services script not loaded');
             return;
         }
 
@@ -63,7 +65,7 @@ export class GoogleAuthService {
 
     private handleCredentialResponse(response: any) {
         this.ngZone.run(() => {
-            console.log('Google Auth Response:', response);
+            this.logger.debug('Google Auth Response received');
 
             // Send token to backend for validation and session
             this.http.post<any>(`${environment.apiUrl}/auth/google/login`, {
@@ -81,7 +83,7 @@ export class GoogleAuthService {
                     this.userSubject.next(user);
                 },
                 error: (err) => {
-                    console.error('Google login failed', err);
+                    this.logger.error('Google login failed', err);
                 }
             });
         });

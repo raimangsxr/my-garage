@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -18,6 +18,7 @@ import { Invoice, InvoiceService } from '../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -54,14 +55,13 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     @ViewChild(MatSort) sort!: MatSort;
     @ViewChild(MatPaginator) paginator!: MatPaginator;
 
-    constructor(
-        private invoiceService: InvoiceService,
-        private maintenanceService: MaintenanceService,
-        private supplierService: SupplierService,
-        private vehicleService: VehicleService,
-        private snackBar: MatSnackBar,
-        private router: Router
-    ) { }
+    private invoiceService = inject(InvoiceService);
+    private maintenanceService = inject(MaintenanceService);
+    private supplierService = inject(SupplierService);
+    private vehicleService = inject(VehicleService);
+    private snackBar = inject(MatSnackBar);
+    private router = inject(Router);
+    private logger = inject(LoggerService);
 
     ngOnInit(): void {
         this.loadData();
@@ -98,7 +98,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             next: (suppliers) => {
                 this.suppliers = suppliers;
             },
-            error: (err) => console.error('Error loading suppliers', err)
+            error: (err) => this.logger.error('Error loading suppliers', err)
         });
 
         // Load vehicles
@@ -106,7 +106,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             next: (vehicles) => {
                 this.vehicles = vehicles;
             },
-            error: (err) => console.error('Error loading vehicles', err)
+            error: (err) => this.logger.error('Error loading vehicles', err)
         });
 
         // Load maintenances
@@ -114,7 +114,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             next: (maintenances) => {
                 this.maintenances = maintenances;
             },
-            error: (err) => console.error('Error loading maintenances', err)
+            error: (err) => this.logger.error('Error loading maintenances', err)
         });
 
         // Load invoices independently
@@ -128,7 +128,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                 this.checkPendingInvoices();
             },
             error: (err) => {
-                console.error('Error loading invoices', err);
+                this.logger.error('Error loading invoices', err);
                 this.showSnackBar('Error loading invoices');
             }
         });
@@ -215,7 +215,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                 this.checkPendingInvoices();
             },
             error: (err) => {
-                console.error('Error retrying invoice', err);
+                this.logger.error('Error retrying invoice', err);
                 this.showSnackBar('Error retrying invoice');
             }
         });
@@ -233,7 +233,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                     this.showSnackBar('Invoice deleted successfully');
                 },
                 error: (err) => {
-                    console.error('Error deleting invoice', err);
+                    this.logger.error('Error deleting invoice', err);
                     this.showSnackBar('Error deleting invoice');
                 }
             });

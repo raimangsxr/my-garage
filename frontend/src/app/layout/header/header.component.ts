@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, inject, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, inject, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { UserService, User } from '../../core/services/user.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { MatBadgeModule } from '@angular/material/badge';
+import { Subscription } from 'rxjs';
 
 @Component({
     selector: 'app-header',
@@ -18,7 +19,7 @@ import { MatBadgeModule } from '@angular/material/badge';
     templateUrl: './header.component.html',
     styleUrls: ['./header.component.scss']
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
     @Output() menuToggle = new EventEmitter<void>();
 
     private authService = inject(AuthService);
@@ -28,18 +29,28 @@ export class HeaderComponent implements OnInit {
     user: User | null = null;
     unreadCount = 0;
 
-    ngOnInit() {
-        this.userService.currentUser$.subscribe(user => {
-            this.user = user;
-        });
+    private subscriptions = new Subscription();
 
-        this.notificationService.unreadCount$.subscribe(count => {
-            this.unreadCount = count;
-        });
+    ngOnInit() {
+        this.subscriptions.add(
+            this.userService.currentUser$.subscribe(user => {
+                this.user = user;
+            })
+        );
+
+        this.subscriptions.add(
+            this.notificationService.unreadCount$.subscribe(count => {
+                this.unreadCount = count;
+            })
+        );
 
         // Initial fetch
-        this.userService.getMe().subscribe();
+        this.subscriptions.add(this.userService.getMe().subscribe());
         this.notificationService.loadNotifications();
+    }
+
+    ngOnDestroy() {
+        this.subscriptions.unsubscribe();
     }
 
     toggleMenu() {
