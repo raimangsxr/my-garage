@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.component';
 
@@ -18,7 +19,8 @@ import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.componen
         MatButtonModule,
         MatIconModule,
         MatMenuModule,
-        MatDialogModule
+        MatDialogModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './vehicles.component.html',
     styleUrls: ['./vehicles.component.scss']
@@ -29,14 +31,23 @@ export class VehiclesComponent implements OnInit {
     private router = inject(Router);
 
     vehicles: Vehicle[] = [];
+    isLoading = false;
 
     ngOnInit() {
         this.loadVehicles();
     }
 
     loadVehicles() {
-        this.vehicleService.getVehicles().subscribe(vehicles => {
-            this.vehicles = vehicles;
+        this.isLoading = true;
+        this.vehicleService.getVehicles().subscribe({
+            next: (vehicles) => {
+                this.vehicles = vehicles;
+                this.isLoading = false;
+            },
+            error: (error) => {
+                console.error('Error loading vehicles', error);
+                this.isLoading = false;
+            }
         });
     }
 

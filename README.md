@@ -60,3 +60,8 @@
 
 4.  **Access the App**
     Open your browser and navigate to `http://localhost:4200`.
+
+## 🤝 Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+

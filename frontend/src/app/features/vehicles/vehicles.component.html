@@ -3,7 +3,11 @@
         <h2>My Vehicles</h2>
     </div>
 
-    <div class="vehicles-grid">
+    <div class="loading-container" *ngIf="isLoading">
+        <mat-spinner diameter="50"></mat-spinner>
+    </div>
+
+    <div class="vehicles-grid" *ngIf="!isLoading">
         <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card" (click)="viewVehicleDetails(vehicle.id!)">
             <div class="vehicle-image"
                 [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
