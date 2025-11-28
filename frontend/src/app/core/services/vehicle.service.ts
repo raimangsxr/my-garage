@@ -32,6 +32,7 @@ export interface Vehicle {
 export interface TrackRecord {
     id?: number;
     vehicle_id?: number;
+    track_id?: number;
     circuit_name: string;
     best_lap_time: string;  // Format: MM:SS.mmm
     date_achieved: string;

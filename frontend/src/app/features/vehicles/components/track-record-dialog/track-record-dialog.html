@@ -2,7 +2,7 @@
 <mat-dialog-content>
     <form [formGroup]="form" class="track-record-form">
         <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Circuit Name</mat-label>
+            <mat-label>Track Name</mat-label>
             <input matInput formControlName="circuit_name" [matAutocomplete]="auto"
                 placeholder="e.g. Circuit de Barcelona-Catalunya">
             <mat-autocomplete #auto="matAutocomplete">
@@ -11,7 +11,7 @@
                 </mat-option>
             </mat-autocomplete>
             <mat-error *ngIf="form.get('circuit_name')?.hasError('required')">
-                Circuit name is required
+                Track name is required
             </mat-error>
         </mat-form-field>
 
@@ -43,7 +43,7 @@
             <mat-form-field appearance="outline">
                 <mat-label>Weather Conditions</mat-label>
                 <mat-select formControlName="weather_conditions">
-                    <mat-option *ngFor="let opt of ['Soleado', 'Nuboso', 'Húmedo', 'Lluvioso']" [value]="opt">{{ opt
+                    <mat-option *ngFor="let opt of ['Sunny', 'Cloudy', 'Wet', 'Rainy']" [value]="opt">{{ opt
                         }}</mat-option>
                 </mat-select>
             </mat-form-field>
@@ -59,7 +59,7 @@
                 <mat-label>Group</mat-label>
                 <mat-select formControlName="group">
                     <mat-option
-                        *ngFor="let opt of ['Rápidos', 'Intermedios rápidos', 'Intermedios', 'Intermedios lentos', 'Lentos']"
+                        *ngFor="let opt of ['Fast', 'Moderately Fast', 'Intermediate', 'Moderately Slow', 'Slow']"
                         [value]="opt">{{ opt }}</mat-option>
                 </mat-select>
             </mat-form-field>

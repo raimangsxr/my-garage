@@ -35,7 +35,7 @@
     <!-- Street View -->
     <div class="entities-grid" *ngIf="viewMode === 'street'">
         <!-- Maintenances Column -->
-        <app-entity-column title="Mantenimientos" icon="history" [count]="vehicleDetails.maintenances.length">
+        <app-entity-column title="Maintenance" icon="history" [count]="vehicleDetails.maintenances.length">
             <div header-actions class="torque-actions">
                 <button mat-icon-button (click)="maintenanceTimeline.toggleSearchMode()"
                     [color]="maintenanceTimeline.isSearchMode ? 'accent' : ''" title="Search maintenance">
@@ -48,7 +48,7 @@
         </app-entity-column>
 
         <!-- Parts Column -->
-        <app-entity-column title="Recambios" icon="extension" [count]="parts.length">
+        <app-entity-column title="Parts" icon="extension" [count]="parts.length">
             <div header-actions class="torque-actions">
                 <button mat-icon-button (click)="partsList.toggleSearchMode()"
                     [color]="partsList.isSearchMode ? 'accent' : ''" title="Search parts">
@@ -60,7 +60,7 @@
         </app-entity-column>
 
         <!-- Invoices Column -->
-        <app-entity-column title="Facturas" icon="receipt" [count]="vehicleDetails.invoices?.length || 0">
+        <app-entity-column title="Invoices" icon="receipt" [count]="vehicleDetails.invoices?.length || 0">
             <div header-actions class="torque-actions">
                 <button mat-icon-button (click)="openInvoiceUpload()" title="Upload Invoice">
                     <mat-icon>cloud_upload</mat-icon>

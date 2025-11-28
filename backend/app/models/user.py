@@ -1,5 +1,8 @@
 from typing import Optional, List, TYPE_CHECKING
 from sqlmodel import Field, SQLModel, Relationship
+if TYPE_CHECKING:
+    from .settings import Settings
+
 from sqlalchemy import Column, LargeBinary
 
 class UserBase(SQLModel):
@@ -12,6 +15,8 @@ class User(UserBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     hashed_password: str
     image_binary: Optional[bytes] = Field(default=None, sa_column=Column(LargeBinary))
+    
+    settings: Optional["Settings"] = Relationship(back_populates="user", sa_relationship_kwargs={"uselist": False})
 
 class UserRead(UserBase):
     id: int

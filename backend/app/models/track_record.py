@@ -4,6 +4,7 @@ from sqlmodel import Field, SQLModel, Relationship
 
 if TYPE_CHECKING:
     from .vehicle import Vehicle
+    from .track import Track
 
 class TrackRecordBase(SQLModel):
     circuit_name: str
@@ -18,15 +19,18 @@ class TrackRecordBase(SQLModel):
 class TrackRecord(TrackRecordBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     vehicle_id: int = Field(foreign_key="vehicle.id")
+    track_id: Optional[int] = Field(default=None, foreign_key="track.id")
     
     vehicle: Optional["Vehicle"] = Relationship(back_populates="track_records")
+    track: Optional["Track"] = Relationship(back_populates="track_records")
 
 class TrackRecordRead(TrackRecordBase):
     id: int
     vehicle_id: int
+    track_id: Optional[int] = None
 
 class TrackRecordCreate(TrackRecordBase):
-    pass
+    track_id: Optional[int] = None
 
 class TrackRecordUpdate(TrackRecordBase):
     circuit_name: Optional[str] = None

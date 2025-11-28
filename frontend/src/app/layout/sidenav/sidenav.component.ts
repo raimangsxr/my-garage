@@ -15,9 +15,11 @@ export class SidenavComponent {
     modules = [
         { name: 'Dashboard', icon: 'dashboard', route: '/dashboard' },
         { name: 'Vehicles', icon: 'directions_car', route: '/vehicles' },
+        { name: 'Tracks', icon: 'track_changes', route: '/tracks' },
         { name: 'Maintenance', icon: 'build', route: '/maintenance' },
         { name: 'Invoices', icon: 'receipt', route: '/invoices' },
         { name: 'Suppliers', icon: 'store', route: '/suppliers' },
         { name: 'Parts', icon: 'extension', route: '/parts' },
+        { name: 'Settings', icon: 'settings', route: '/settings' },
     ];
 }

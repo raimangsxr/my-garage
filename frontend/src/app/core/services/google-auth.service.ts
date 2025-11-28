@@ -65,7 +65,7 @@ export class GoogleAuthService {
         this.ngZone.run(() => {
             console.log('Google Auth Response:', response);
 
-            // Enviar token al backend para validación y sesión
+            // Send token to backend for validation and session
             this.http.post<any>(`${environment.apiUrl}/auth/google/login`, {
                 credential: response.credential
             }).subscribe({
@@ -73,7 +73,7 @@ export class GoogleAuthService {
                     const user = res.user;
                     const token = res.access_token; // Token de la app (JWT)
 
-                    // Guardar sesión
+                    // Save session
                     this.authService.setToken(token);
                     localStorage.setItem('google_user', JSON.stringify(user));
 

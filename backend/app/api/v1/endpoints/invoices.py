@@ -118,11 +118,17 @@ async def upload_invoice(
     
     # 3. Procesar en background con Gemini
     from app.core.config import settings
+    
+    # Determine API Key: User's setting > Server env
+    gemini_key = settings.GEMINI_API_KEY
+    if current_user.settings and current_user.settings.gemini_api_key:
+        gemini_key = current_user.settings.gemini_api_key
+        
     background_tasks.add_task(
         process_invoice_background,
         invoice.id,
         file_path,
-        settings.GEMINI_API_KEY,  # Usar API Key del servidor
+        gemini_key,  # Usar API Key determinada
         None,  # TODO: Pasar session factory
         False # detailed_mode = False para primera subida
     )

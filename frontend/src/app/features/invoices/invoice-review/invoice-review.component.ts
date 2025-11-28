@@ -106,7 +106,7 @@ export class InvoiceReviewComponent implements OnInit {
 
         this.loading = true;
 
-        // Cargar detalles de la factura (para la imagen)
+        // Load invoice details (for the image)
         this.invoiceService.getInvoice(this.invoiceId).subscribe({
             next: (invoice) => {
                 this.invoice = invoice;
@@ -115,7 +115,7 @@ export class InvoiceReviewComponent implements OnInit {
             error: (err) => console.error('Error loading invoice details', err)
         });
 
-        // Cargar datos extraídos
+        // Load extracted data
         this.invoiceService.getExtractedData(this.invoiceId).subscribe({
             next: (data) => {
                 this.populateForm(data);
@@ -159,7 +159,7 @@ export class InvoiceReviewComponent implements OnInit {
             confidence: data.confidence
         });
 
-        // Mantenimientos
+        // Maintenances
         const maintenancesArray = this.reviewForm.get('maintenances') as FormArray;
         maintenancesArray.clear();
         data.maintenances.forEach(m => {
@@ -183,7 +183,7 @@ export class InvoiceReviewComponent implements OnInit {
             maintenancesArray.push(mGroup);
         });
 
-        // Piezas sueltas
+        // Parts only
         const partsOnlyArray = this.reviewForm.get('parts_only') as FormArray;
         partsOnlyArray.clear();
         data.parts_only.forEach(p => {
@@ -240,12 +240,12 @@ export class InvoiceReviewComponent implements OnInit {
 
         this.approving = true;
 
-        // Primero actualizamos los datos con lo que haya en el formulario
+        // First update the data with what's in the form
         const formData = this.reviewForm.value;
 
         this.invoiceService.updateExtractedData(this.invoiceId, formData).subscribe({
             next: () => {
-                // Luego aprobamos
+                // Then approve
                 this.invoiceService.approveInvoice(this.invoiceId!).subscribe({
                     next: () => {
                         this.approving = false;

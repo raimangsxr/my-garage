@@ -42,7 +42,25 @@ def create_track_record(
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
     
-    record = TrackRecord(vehicle_id=vehicle_id, **record_in.model_dump())
+    # Handle track resolution
+    track_id = record_in.track_id
+    if not track_id and record_in.circuit_name:
+        # Find or create track by name
+        from app.models.track import Track
+        statement = select(Track).where(Track.name == record_in.circuit_name)
+        track = db.exec(statement).first()
+        if not track:
+            track = Track(name=record_in.circuit_name)
+            db.add(track)
+            db.commit()
+            db.refresh(track)
+        track_id = track.id
+    
+    record_data = record_in.model_dump()
+    if track_id:
+        record_data['track_id'] = track_id
+        
+    record = TrackRecord(vehicle_id=vehicle_id, **record_data)
     db.add(record)
     db.commit()
     db.refresh(record)

@@ -11,13 +11,14 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSelectModule } from '@angular/material/select';
 import { TrackRecord } from '../../../../core/services/vehicle.service';
 import { OrganizerService } from '../../../../services/organizer.service';
+import { TracksService } from '../../../tracks/tracks.service';
 
 // Popular Spanish and European circuits
 const POPULAR_CIRCUITS = [
   'Circuit de Barcelona-Catalunya',
-  'Circuito de Jerez',
+  'Jerez Circuit',
   'Circuit Ricardo Tormo',
-  'Circuito del Jarama',
+  'Jarama Circuit',
   'Motorland Aragón',
   'Circuit de Catalunya',
   'Portimão',
@@ -56,11 +57,12 @@ export class TrackRecordDialogComponent {
   private dialogRef = inject(MatDialogRef<TrackRecordDialogComponent>);
   private data: TrackRecord | undefined = inject(MAT_DIALOG_DATA);
   private organizerService = inject(OrganizerService);
+  private tracksService = inject(TracksService);
 
   form: FormGroup;
   isEditMode = false;
-  circuits = POPULAR_CIRCUITS;
-  filteredCircuits: string[] = POPULAR_CIRCUITS;
+  circuits: string[] = [];
+  filteredCircuits: string[] = [];
   organizers: string[] = [];
 
   constructor() {
@@ -79,6 +81,22 @@ export class TrackRecordDialogComponent {
     // Load organizers from backend
     this.organizerService.getOrganizers().subscribe(orgs => {
       this.organizers = orgs;
+    });
+
+    // Load tracks from backend
+    // Load tracks from backend
+    this.tracksService.getTracks().subscribe(tracks => {
+      this.circuits = tracks.map(t => t.name).sort();
+      // Also add popular circuits if not present, to help user
+      POPULAR_CIRCUITS.forEach(c => {
+        if (!this.circuits.includes(c)) {
+          this.circuits.push(c);
+        }
+      });
+      this.circuits.sort();
+
+      // Initial filter
+      this.filteredCircuits = this._filterCircuits(this.form.get('circuit_name')?.value || '');
     });
 
     // Setup autocomplete filtering

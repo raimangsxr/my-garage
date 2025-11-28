@@ -14,6 +14,10 @@ class VehicleSpecsBase(SQLModel):
     engine_type: Optional[str] = None
     fuel_type: Optional[str] = None
     transmission: Optional[str] = None
+    horsepower: Optional[int] = None
+    torque: Optional[int] = None
+    drivetrain: Optional[str] = None
+    weight: Optional[int] = None
     # Fluids & Consumables
     engine_oil_type: Optional[str] = None
     coolant_type: Optional[str] = None

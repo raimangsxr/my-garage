@@ -79,14 +79,14 @@ export class InvoiceUploadComponent implements OnInit {
     }
 
     handleFile(file: File) {
-        // Validar tipo
+        // Validate file type
         const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
         if (!validTypes.includes(file.type)) {
             this.snackBar.open('Invalid file type. Please upload PDF or Image.', 'Close', { duration: 3000 });
             return;
         }
 
-        // Validar tamaño (10MB)
+        // Validate file size (10MB)
         if (file.size > 10 * 1024 * 1024) {
             this.snackBar.open('File too large. Maximum size is 10MB.', 'Close', { duration: 3000 });
             return;
@@ -94,7 +94,7 @@ export class InvoiceUploadComponent implements OnInit {
 
         this.selectedFile = file;
 
-        // Crear preview
+        // Create preview
         if (file.type.startsWith('image/') || file.type === 'application/pdf') {
             const reader = new FileReader();
             reader.onload = (e: any) => {
@@ -114,7 +114,7 @@ export class InvoiceUploadComponent implements OnInit {
             next: (invoice) => {
                 this.uploading = false;
                 this.snackBar.open('Invoice uploaded successfully! Processing...', 'Close', { duration: 3000 });
-                // Navegar a la lista o al detalle para ver el progreso
+                // Navigate to the list or detail to see progress
                 this.router.navigate(['/invoices']);
             },
             error: (err) => {

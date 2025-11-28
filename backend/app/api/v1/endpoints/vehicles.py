@@ -69,9 +69,9 @@ def create_vehicle(
         db.add(vehicle_specs)
         db.commit()
     
-    vehicle_dict = vehicle.model_dump()
-    vehicle_dict["image_url"] = None
-    return VehicleRead(**vehicle_dict)
+    vehicle_read = VehicleRead.model_validate(vehicle)
+    vehicle_read.image_url = None
+    return vehicle_read
 
 @router.put("/{id}", response_model=VehicleRead)
 def update_vehicle(
@@ -116,12 +116,12 @@ def update_vehicle(
     db.commit()
     db.refresh(vehicle)
     
-    vehicle_dict = vehicle.model_dump()
+    vehicle_read = VehicleRead.model_validate(vehicle)
     if vehicle.image_binary:
-        vehicle_dict["image_url"] = f"/api/v1/vehicles/{vehicle.id}/image"
+        vehicle_read.image_url = f"/api/v1/vehicles/{vehicle.id}/image"
     else:
-        vehicle_dict["image_url"] = None
-    return VehicleRead(**vehicle_dict)
+        vehicle_read.image_url = None
+    return vehicle_read
 
 @router.delete("/{id}", response_model=VehicleRead)
 def delete_vehicle(

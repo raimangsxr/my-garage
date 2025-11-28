@@ -7,4 +7,6 @@ from .invoice import Invoice, InvoiceBase, InvoiceStatus
 from .user import User, UserCreate, UserRead, UserUpdate, UserPasswordUpdate
 from .notification import Notification, NotificationCreate, NotificationRead, NotificationUpdate
 from .track_record import TrackRecord, TrackRecordBase, TrackRecordCreate, TrackRecordRead, TrackRecordUpdate
+from .track import Track, TrackBase, TrackCreate, TrackRead, TrackUpdate
 from .google_auth import GoogleAuthToken
+from .settings import Settings, SettingsCreate, SettingsRead, SettingsUpdate

@@ -32,7 +32,7 @@ class Vehicle(VehicleBase, table=True):
     
     # Relationships
     maintenances: List["Maintenance"] = Relationship(back_populates="vehicle")
-    specs: Optional["VehicleSpecs"] = Relationship(back_populates="vehicle", sa_relationship_kwargs={"uselist": False})
+    specs: Optional["VehicleSpecs"] = Relationship(back_populates="vehicle", sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"})
     track_records: List["TrackRecord"] = Relationship(back_populates="vehicle")
     invoices: List["Invoice"] = Relationship(back_populates="vehicle")
 

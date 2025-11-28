@@ -4,6 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session, select
 from pydantic import BaseModel
+import logging
+
+logger = logging.getLogger(__name__)
 
 from app.api import deps
 from app.core import security
@@ -74,19 +77,58 @@ def google_login(
     
     try:
         # Verificar el token de Google
-        # TODO: Agregar GOOGLE_CLIENT_ID a settings
+        # Check env var first
         google_client_id = getattr(settings, 'GOOGLE_CLIENT_ID', None)
-        if not google_client_id:
+        
+        # Also check database settings (from any user, or just check if the token audience matches one of them)
+        # Since we don't know the user yet, we can't look up *their* settings.
+        # But we can get the audience from the token (unverified) or just try to verify with the env var.
+        # If env var fails or is missing, we could try to find a matching client_id in DB?
+        # Simpler approach: If we have a DB setting for the user who is trying to login... wait we don't know who it is.
+        
+        # Strategy: Get all unique client_ids from Settings table
+        try:
+             from app.models.settings import Settings
+             db_client_ids = session.exec(select(Settings.google_client_id).where(Settings.google_client_id != None)).all()
+             valid_client_ids = [cid for cid in db_client_ids if cid]
+             if google_client_id:
+                 valid_client_ids.append(google_client_id)
+        except Exception as e:
+            logger.warning(f"Could not fetch client IDs from DB: {e}")
+            valid_client_ids = [google_client_id] if google_client_id else []
+
+        if not valid_client_ids:
             raise HTTPException(
                 status_code=500,
                 detail="Google OAuth not configured on server"
             )
+            
+        # Verify with the first valid one, or try all?
+        # id_token.verify_oauth2_token verifies the signature and that the audience is one of the provided ones?
+        # Actually verify_oauth2_token takes a single request and audience.
+        # We can pass the list of valid_client_ids as audience? No, it expects a single string or None (if we don't check audience).
+        # But we MUST check audience.
         
-        idinfo = id_token.verify_oauth2_token(
-            request.credential,
-            google_requests.Request(),
-            google_client_id
-        )
+        # Let's try to verify without checking audience first to get the payload, then check audience manually?
+        # Or just iterate.
+        
+        idinfo = None
+        last_error = None
+        
+        for client_id in set(valid_client_ids):
+            try:
+                idinfo = id_token.verify_oauth2_token(
+                    request.credential,
+                    google_requests.Request(),
+                    client_id
+                )
+                break
+            except ValueError as e:
+                last_error = e
+                continue
+        
+        if not idinfo:
+             raise ValueError(f"Could not verify token against any configured Client ID. Last error: {last_error}")
         
         # Extraer información del usuario
         google_id = idinfo['sub']

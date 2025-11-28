@@ -93,7 +93,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     }
 
     loadData(): void {
-        // Cargar proveedores
+        // Load suppliers
         this.supplierService.getSuppliers().subscribe({
             next: (suppliers) => {
                 this.suppliers = suppliers;
@@ -101,7 +101,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             error: (err) => console.error('Error loading suppliers', err)
         });
 
-        // Cargar vehículos
+        // Load vehicles
         this.vehicleService.getVehicles().subscribe({
             next: (vehicles) => {
                 this.vehicles = vehicles;
@@ -109,7 +109,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             error: (err) => console.error('Error loading vehicles', err)
         });
 
-        // Cargar mantenimientos
+        // Load maintenances
         this.maintenanceService.getMaintenances().subscribe({
             next: (maintenances) => {
                 this.maintenances = maintenances;
@@ -117,7 +117,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             error: (err) => console.error('Error loading maintenances', err)
         });
 
-        // Cargar facturas independientemente
+        // Load invoices independently
         this.loadInvoices();
     }
 
@@ -144,11 +144,11 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     }
 
     checkPendingInvoices() {
-        // Cancelar suscripciones anteriores
+        // Cancel previous subscriptions
         this.pollSubscriptions.forEach(sub => sub.unsubscribe());
         this.pollSubscriptions = [];
 
-        // Buscar facturas pendientes o procesando
+        // Find pending or processing invoices
         const pendingInvoices = this.dataSource.data.filter(inv =>
             inv.status === 'pending' || inv.status === 'processing'
         );
@@ -157,7 +157,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             if (inv.id) {
                 const sub = this.invoiceService.pollInvoiceStatus(inv.id).subscribe({
                     next: (updatedInv) => {
-                        // Actualizar en la lista
+                        // Update in the list
                         const currentData = this.dataSource.data;
                         const index = currentData.findIndex(i => i.id === updatedInv.id);
                         if (index !== -1) {
@@ -165,7 +165,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                             this.dataSource.data = [...currentData]; // Trigger change detection
                         }
 
-                        // Si terminó de procesar, recargar todo para asegurar consistencia
+                        // If finished processing, reload everything to ensure consistency
                         if (updatedInv.status !== 'pending' && updatedInv.status !== 'processing') {
                             if (updatedInv.status === 'failed') {
                                 this.showSnackBar(`Processing failed: ${updatedInv.error_message || 'Unknown error'}`);
@@ -209,9 +209,9 @@ export class InvoicesComponent implements OnInit, OnDestroy {
         this.invoiceService.retryInvoice(invoice.id).subscribe({
             next: () => {
                 this.showSnackBar('Retrying invoice processing...');
-                // Actualizar estado localmente para feedback inmediato
+                // Update status locally for immediate feedback
                 invoice.status = 'pending';
-                // Iniciar polling
+                // Start polling
                 this.checkPendingInvoices();
             },
             error: (err) => {

@@ -4,7 +4,7 @@
             <mat-icon class="header-icon">dashboard</mat-icon>
             Dashboard
         </h1>
-        <p class="subtitle">Vista general de tu garaje</p>
+        <p class="subtitle">Overview of your garage</p>
     </div>
 
     <div *ngIf="loading" class="loading-container">
@@ -14,7 +14,7 @@
     <div *ngIf="error" class="error-container">
         <mat-icon>error_outline</mat-icon>
         <p>{{ error }}</p>
-        <button mat-raised-button color="primary" (click)="loadStats()">Reintentar</button>
+        <button mat-raised-button color="primary" (click)="loadStats()">Retry</button>
     </div>
 
     <div *ngIf="!loading && !error && stats" class="dashboard-content">
@@ -27,7 +27,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ stats.total_vehicles }}</div>
-                        <div class="stat-label">Vehículos</div>
+                        <div class="stat-label">Vehicles</div>
                     </div>
                 </div>
             </mat-card>
@@ -39,7 +39,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ stats.scheduled_maintenance }}</div>
-                        <div class="stat-label">Mantenimientos Programados</div>
+                        <div class="stat-label">Scheduled Maintenance</div>
                     </div>
                 </div>
             </mat-card>
@@ -51,7 +51,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ stats.total_spent | number:'1.0-0' }}€</div>
-                        <div class="stat-label">Gasto Total</div>
+                        <div class="stat-label">Total Spending</div>
                     </div>
                 </div>
             </mat-card>
@@ -63,7 +63,7 @@
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ stats.total_suppliers }}</div>
-                        <div class="stat-label">Proveedores</div>
+                        <div class="stat-label">Suppliers</div>
                     </div>
                 </div>
             </mat-card>
@@ -76,7 +76,7 @@
                 <mat-card-header>
                     <mat-card-title>
                         <mat-icon>bar_chart</mat-icon>
-                        Gastos Mensuales
+                        Monthly Expenses
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
@@ -100,13 +100,13 @@
                 <mat-card-header>
                     <mat-card-title>
                         <mat-icon>history</mat-icon>
-                        Actividad Reciente
+                        Recent Activity
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
                     <div *ngIf="stats.recent_activity.length === 0" class="empty-state">
                         <mat-icon>event_busy</mat-icon>
-                        <p>No hay actividad reciente</p>
+                        <p>No recent activity</p>
                     </div>
                     <div class="activity-list" *ngIf="stats.recent_activity.length > 0">
                         <div *ngFor="let activity of stats.recent_activity" class="activity-item">
@@ -138,26 +138,26 @@
             <mat-card-header>
                 <mat-card-title>
                     <mat-icon>bolt</mat-icon>
-                    Acciones Rápidas
+                    Quick Actions
                 </mat-card-title>
             </mat-card-header>
             <mat-card-content>
                 <div class="quick-actions">
                     <button mat-raised-button color="primary" [routerLink]="['/vehicles']">
                         <mat-icon>add</mat-icon>
-                        Añadir Vehículo
+                        Add Vehicle
                     </button>
                     <button mat-raised-button color="accent" [routerLink]="['/maintenance']">
                         <mat-icon>build</mat-icon>
-                        Nuevo Mantenimiento
+                        New Maintenance
                     </button>
                     <button mat-raised-button [routerLink]="['/invoices']">
                         <mat-icon>receipt</mat-icon>
-                        Ver Facturas
+                        View Invoices
                     </button>
                     <button mat-raised-button [routerLink]="['/suppliers']">
                         <mat-icon>store</mat-icon>
-                        Gestionar Proveedores
+                        Manage Suppliers
                     </button>
                 </div>
             </mat-card-content>

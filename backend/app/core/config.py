@@ -1,6 +1,9 @@
+import logging
+import logging.config
 from typing import List, Union
 from pydantic import AnyHttpUrl, validator
 from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "My Garage"
@@ -26,5 +29,59 @@ class Settings(BaseSettings):
     class Config:
         case_sensitive = True
         env_file = ".env"
+        extra = "ignore"
 
 settings = Settings()
+
+# Logging Configuration
+LOG_LEVEL = "ERROR"
+
+def setup_logging():
+    LOGGING_CONFIG = {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            },
+        },
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "default",
+                "level": LOG_LEVEL,
+            },
+        },
+        "root": {
+            "handlers": ["console"],
+            "level": LOG_LEVEL,
+        },
+        "loggers": {
+            "uvicorn": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False
+            },
+            "uvicorn.error": {
+                "level": "INFO",
+            },
+            "uvicorn.access": {
+                "handlers": ["console"],
+                "level": "INFO",
+                "propagate": False,
+            },
+            "fastapi": {
+                "handlers": ["console"],
+                "level": LOG_LEVEL,
+                "propagate": False,
+            },
+            "sqlalchemy.engine": {
+                "handlers": ["console"],
+                "level": LOG_LEVEL,
+                "propagate": False,
+            },
+        }
+    }
+    logging.config.dictConfig(LOGGING_CONFIG)
+
+setup_logging()
