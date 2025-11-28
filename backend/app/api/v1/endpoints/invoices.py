@@ -290,11 +290,17 @@ async def reject_invoice(
     
     # Lanzar re-procesamiento en background con detailed_mode=True
     from app.core.config import settings
+    
+    # Determine API Key: User's setting > Server env
+    gemini_key = settings.GEMINI_API_KEY
+    if current_user.settings and current_user.settings.gemini_api_key:
+        gemini_key = current_user.settings.gemini_api_key
+    
     background_tasks.add_task(
         process_invoice_background,
         invoice.id,
         file_path,
-        settings.GEMINI_API_KEY,
+        gemini_key,  # Usar API Key determinada
         None,
         True # detailed_mode = True
     )
@@ -337,11 +343,17 @@ async def retry_invoice(
     # Lanzar procesamiento en background (modo normal, no detallado necesariamente, o podríamos usar detallado si falló)
     # Vamos a usar modo normal por defecto para reintentos simples (ej. cuota)
     from app.core.config import settings
+    
+    # Determine API Key: User's setting > Server env
+    gemini_key = settings.GEMINI_API_KEY
+    if current_user.settings and current_user.settings.gemini_api_key:
+        gemini_key = current_user.settings.gemini_api_key
+    
     background_tasks.add_task(
         process_invoice_background,
         invoice.id,
         file_path,
-        settings.GEMINI_API_KEY,
+        gemini_key,  # Usar API Key determinada
         None,
         False # detailed_mode = False
     )
