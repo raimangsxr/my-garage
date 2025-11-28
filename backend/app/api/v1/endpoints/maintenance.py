@@ -18,11 +18,11 @@ def read_maintenances(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Retrieve maintenance records.
+    Retrieve maintenance records with optimized eager loading.
     """
     statement = select(Maintenance).options(
         selectinload(Maintenance.vehicle),
-        selectinload(Maintenance.parts).options(selectinload(Part.supplier)),
+        selectinload(Maintenance.parts).selectinload(Part.supplier),
         selectinload(Maintenance.supplier)
     ).offset(skip).limit(limit).order_by(Maintenance.date.desc())
     maintenances = session.exec(statement).all()

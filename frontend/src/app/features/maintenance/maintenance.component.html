@@ -14,6 +14,10 @@
     </mat-form-field>
 
     <div class="maintenance-list">
+        <div *ngIf="isLoading" class="loading-overlay">
+            <mat-spinner></mat-spinner>
+        </div>
+
         <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
             <!-- Date Column -->
             <ng-container matColumnDef="date">

@@ -11,6 +11,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
 
@@ -29,7 +30,8 @@ import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.compo
         MatPaginatorModule,
         MatInputModule,
         MatFormFieldModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './suppliers.component.html',
     styleUrls: ['./suppliers.component.scss']
@@ -37,6 +39,7 @@ import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.compo
 export class SuppliersComponent implements OnInit {
     dataSource: MatTableDataSource<Supplier> = new MatTableDataSource<Supplier>([]);
     displayedColumns: string[] = ['name', 'email', 'phone', 'address', 'actions'];
+    isLoading = false;
 
     @ViewChild(MatSort) sort!: MatSort;
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -66,13 +69,16 @@ export class SuppliersComponent implements OnInit {
     }
 
     loadSuppliers(): void {
+        this.isLoading = true;
         this.supplierService.getSuppliers().subscribe({
             next: (data) => {
                 this.dataSource.data = data;
+                this.isLoading = false;
             },
             error: (err) => {
                 console.error('Error loading suppliers', err);
                 this.showSnackBar('Error loading suppliers');
+                this.isLoading = false;
             }
         });
     }

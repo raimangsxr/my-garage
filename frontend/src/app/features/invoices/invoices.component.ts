@@ -49,6 +49,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     maintenances: Maintenance[] = [];
     suppliers: Supplier[] = [];
     vehicles: Vehicle[] = [];
+    isLoading = false;
     displayedColumns: string[] = ['status', 'number', 'date', 'vehicle', 'supplier', 'amount', 'actions'];
     private pollSubscriptions: Subscription[] = [];
 
@@ -93,6 +94,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     }
 
     loadData(): void {
+        this.isLoading = true;
         // Load suppliers
         this.supplierService.getSuppliers().subscribe({
             next: (suppliers) => {
@@ -126,10 +128,12 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             next: (data) => {
                 this.dataSource.data = data;
                 this.checkPendingInvoices();
+                this.isLoading = false;
             },
             error: (err) => {
                 this.logger.error('Error loading invoices', err);
                 this.showSnackBar('Error loading invoices');
+                this.isLoading = false;
             }
         });
     }

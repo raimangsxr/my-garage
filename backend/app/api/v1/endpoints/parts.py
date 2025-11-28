@@ -1,14 +1,15 @@
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
+from sqlalchemy.orm import selectinload
 
 from app.api import deps
-from app.models.part import Part, PartBase
+from app.models.part import Part, PartBase, PartRead
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Part])
+@router.get("/")
 def read_parts(
     skip: int = 0,
     limit: int = 100,
@@ -16,11 +17,24 @@ def read_parts(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Retrieve parts.
+    Retrieve parts with optimized eager loading.
     """
-    statement = select(Part).offset(skip).limit(limit)
+    statement = select(Part).options(
+        selectinload(Part.supplier)
+    ).offset(skip).limit(limit)
     parts = session.exec(statement).all()
-    return parts
+    
+    # Convert to PartRead with supplier
+    result = []
+    for part in parts:
+        part_dict = part.model_dump()
+        if part.supplier:
+            part_dict["supplier"] = part.supplier.model_dump()
+        else:
+            part_dict["supplier"] = None
+        result.append(PartRead(**part_dict))
+    
+    return result
 
 @router.post("/", response_model=Part)
 def create_part(

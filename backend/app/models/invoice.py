@@ -19,7 +19,7 @@ class InvoiceStatus(str, Enum):
 class InvoiceBase(SQLModel):
     # Campos opcionales hasta que Gemini los extraiga
     number: Optional[str] = Field(default=None)
-    date: Optional[datetime.date] = Field(default=None)
+    date: Optional[datetime.date] = Field(default=None, index=True)
     amount: Optional[float] = Field(default=None)
     tax_amount: Optional[float] = Field(default=None)
     
@@ -28,7 +28,7 @@ class InvoiceBase(SQLModel):
     file_name: Optional[str] = Field(default=None)
     
     # Estado del procesamiento
-    status: str = Field(default=InvoiceStatus.PENDING.value)
+    status: str = Field(default=InvoiceStatus.PENDING.value, index=True)
     
     # Datos extraídos por Gemini (JSON)
     extracted_data: Optional[str] = Field(default=None)  # JSON con InvoiceExtractedData
@@ -36,8 +36,8 @@ class InvoiceBase(SQLModel):
     
     # Relaciones (el vehículo se determina automáticamente o manualmente)
     # Relaciones (el vehículo se determina automáticamente o manualmente)
-    vehicle_id: Optional[int] = Field(default=None, foreign_key="vehicle.id")
-    supplier_id: Optional[int] = Field(default=None, foreign_key="supplier.id")
+    vehicle_id: Optional[int] = Field(default=None, foreign_key="vehicle.id", index=True)
+    supplier_id: Optional[int] = Field(default=None, foreign_key="supplier.id", index=True)
     
     # Ya NO tiene maintenance_id - las facturas se vinculan vía vehicle
 
@@ -48,3 +48,13 @@ class Invoice(InvoiceBase, table=True):
     vehicle: Optional["Vehicle"] = Relationship(back_populates="invoices")
     supplier: Optional["Supplier"] = Relationship(back_populates="invoices")
     parts: List["Part"] = Relationship(back_populates="invoice")
+
+class InvoiceRead(InvoiceBase):
+    id: int
+    vehicle: Optional[dict] = None
+    supplier: Optional[dict] = None
+
+class InvoiceList(InvoiceBase):
+    id: int
+    vehicle: Optional[dict] = None
+    supplier: Optional[dict] = None

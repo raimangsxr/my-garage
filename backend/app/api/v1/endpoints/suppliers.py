@@ -3,12 +3,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, select
 
 from app.api import deps
-from app.models.supplier import Supplier, SupplierBase
+from app.models.supplier import Supplier, SupplierBase, SupplierRead
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[Supplier])
+@router.get("/", response_model=List[SupplierRead])
 def read_suppliers(
     skip: int = 0,
     limit: int = 100,
@@ -16,7 +16,7 @@ def read_suppliers(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Retrieve suppliers.
+    Retrieve suppliers (basic info only, no relationships).
     """
     statement = select(Supplier).offset(skip).limit(limit)
     suppliers = session.exec(statement).all()

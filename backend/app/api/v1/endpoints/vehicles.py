@@ -206,7 +206,7 @@ def get_vehicle_details(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Get complete vehicle details with all related data.
+    Get complete vehicle details with all related data in a single optimized query.
     """
     from app.models.maintenance import Maintenance
     from app.models.part import Part
@@ -215,10 +215,17 @@ def get_vehicle_details(
     from app.models.vehicle_specs import VehicleSpecs
     from sqlalchemy.orm import selectinload
     
-    # Get vehicle with all relationships loaded
+    # Single optimized query with comprehensive eager loading
     statement = select(Vehicle).where(Vehicle.id == id).options(
-        selectinload(Vehicle.maintenances),
         selectinload(Vehicle.specs),
+        selectinload(Vehicle.maintenances).options(
+            selectinload(Maintenance.supplier),
+            selectinload(Maintenance.parts).selectinload(Part.supplier)
+        ),
+        selectinload(Vehicle.invoices).options(
+            selectinload(Invoice.supplier),
+            selectinload(Invoice.parts).selectinload(Part.supplier)
+        ),
         selectinload(Vehicle.track_records)
     )
     vehicle = db.exec(statement).first()
@@ -238,32 +245,21 @@ def get_vehicle_details(
     if vehicle.specs:
         specs_dict = vehicle.specs.model_dump()
     
-    # Get maintenance records with related data
+    # Serialize maintenances with parts
     maintenances_data = []
     all_parts = []
-    all_parts = []
-    
-    # Get all invoices for the vehicle
-    invoices_stmt = select(Invoice).where(Invoice.vehicle_id == id)
-    vehicle_invoices = db.exec(invoices_stmt).all()
-    all_invoices = [i.model_dump() for i in vehicle_invoices]
     
     for maintenance in vehicle.maintenances:
         maint_dict = maintenance.model_dump()
         
-        # Get parts for this maintenance
-        parts_stmt = select(Part).where(Part.maintenance_id == maintenance.id).options(
-            selectinload(Part.supplier),
-            selectinload(Part.invoice)
-        )
-        parts = db.exec(parts_stmt).all()
+        # Serialize parts for this maintenance
         maint_parts = []
-        for p in parts:
+        for p in maintenance.parts:
             p_dict = p.model_dump()
             if p.supplier:
                 p_dict["supplier"] = p.supplier.model_dump()
-            if p.invoice:
-                p_dict["invoice"] = p.invoice.model_dump()
+            else:
+                p_dict["supplier"] = None
             maint_parts.append(p_dict)
             all_parts.append(p_dict)
         
@@ -271,20 +267,29 @@ def get_vehicle_details(
         
         # Get invoices for this maintenance (derived from parts)
         maint_invoices_map = {}
-        for p in parts:
+        for p in maintenance.parts:
             if p.invoice:
                 maint_invoices_map[p.invoice.id] = p.invoice.model_dump()
         
         maint_dict["invoices"] = list(maint_invoices_map.values())
         
         # Get supplier if exists (labor supplier)
-        if maintenance.supplier_id:
-            supplier = db.get(Supplier, maintenance.supplier_id)
-            maint_dict["supplier"] = supplier.model_dump() if supplier else None
+        if maintenance.supplier:
+            maint_dict["supplier"] = maintenance.supplier.model_dump()
         else:
             maint_dict["supplier"] = None
             
         maintenances_data.append(maint_dict)
+    
+    # Serialize all vehicle invoices
+    all_invoices = []
+    for invoice in vehicle.invoices:
+        inv_dict = invoice.model_dump()
+        if invoice.supplier:
+            inv_dict["supplier"] = invoice.supplier.model_dump()
+        else:
+            inv_dict["supplier"] = None
+        all_invoices.append(inv_dict)
     
     # Get track records
     track_records_data = []

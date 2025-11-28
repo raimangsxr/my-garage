@@ -79,7 +79,7 @@ async def process_invoice_background(
             )
 
 
-@router.get("/", response_model=List[Invoice])
+@router.get("/")
 def read_invoices(
     skip: int = 0,
     limit: int = 100,
@@ -87,11 +87,31 @@ def read_invoices(
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
-    Retrieve invoices.
+    Retrieve invoices with optimized eager loading.
     """
-    statement = select(Invoice).offset(skip).limit(limit)
+    from sqlalchemy.orm import selectinload
+    
+    statement = select(Invoice).options(
+        selectinload(Invoice.vehicle),
+        selectinload(Invoice.supplier)
+    ).offset(skip).limit(limit).order_by(Invoice.date.desc())
     invoices = session.exec(statement).all()
-    return invoices
+    
+    # Convert to dict with nested relationships
+    result = []
+    for invoice in invoices:
+        invoice_dict = invoice.model_dump()
+        if invoice.vehicle:
+            invoice_dict["vehicle"] = invoice.vehicle.model_dump(exclude={'image_binary'})
+        else:
+            invoice_dict["vehicle"] = None
+        if invoice.supplier:
+            invoice_dict["supplier"] = invoice.supplier.model_dump()
+        else:
+            invoice_dict["supplier"] = None
+        result.append(invoice_dict)
+    
+    return result
 
 
 @router.post("/upload", response_model=Invoice)

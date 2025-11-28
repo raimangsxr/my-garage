@@ -18,3 +18,6 @@ class Supplier(SupplierBase, table=True):
     maintenances: List["Maintenance"] = Relationship(back_populates="supplier")
     parts: List["Part"] = Relationship(back_populates="supplier")
     invoices: List["Invoice"] = Relationship(back_populates="supplier")
+
+class SupplierRead(SupplierBase):
+    id: int

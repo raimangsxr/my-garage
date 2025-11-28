@@ -11,6 +11,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Part, PartService } from '../../core/services/part.service';
 import { PartDialogComponent } from './part-dialog/part-dialog.component';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
@@ -32,7 +33,8 @@ import { Maintenance, MaintenanceService } from '../../core/services/maintenance
         MatPaginatorModule,
         MatInputModule,
         MatFormFieldModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './parts.component.html',
     styleUrls: ['./parts.component.scss']
@@ -42,6 +44,7 @@ export class PartsComponent implements OnInit {
     suppliers: Supplier[] = [];
     invoices: Invoice[] = [];
     maintenances: Maintenance[] = [];
+    isLoading = false;
     displayedColumns: string[] = ['name', 'reference', 'price', 'quantity', 'actions'];
 
     @ViewChild(MatSort) sort!: MatSort;
@@ -76,13 +79,16 @@ export class PartsComponent implements OnInit {
     }
 
     loadParts(): void {
+        this.isLoading = true;
         this.partService.getParts().subscribe({
             next: (data) => {
                 this.dataSource.data = data;
+                this.isLoading = false;
             },
             error: (err) => {
                 console.error('Error loading parts', err);
                 this.showSnackBar('Error loading parts');
+                this.isLoading = false;
             }
         });
     }

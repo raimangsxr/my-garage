@@ -12,6 +12,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MaintenanceService, Maintenance } from '../../core/services/maintenance.service';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
@@ -34,7 +35,8 @@ import { LoggerService } from '../../core/services/logger.service';
         MatPaginatorModule,
         MatInputModule,
         MatFormFieldModule,
-        MatTooltipModule
+        MatTooltipModule,
+        MatProgressSpinnerModule
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
@@ -50,6 +52,7 @@ export class MaintenanceComponent implements OnInit {
     dataSource: MatTableDataSource<Maintenance> = new MatTableDataSource<Maintenance>([]);
     vehicles: Vehicle[] = [];
     suppliers: Supplier[] = [];
+    isLoading = false;
     displayedColumns: string[] = ['date', 'vehicle', 'description', 'supplier', 'parts', 'invoices', 'cost', 'actions'];
 
     @ViewChild(MatSort) sort!: MatSort;
@@ -102,6 +105,7 @@ export class MaintenanceComponent implements OnInit {
     }
 
     loadData(): void {
+        this.isLoading = true;
         this.vehicleService.getVehicles().subscribe({
             next: (vehicles) => {
                 this.vehicles = vehicles;
@@ -131,10 +135,12 @@ export class MaintenanceComponent implements OnInit {
         this.maintenanceService.getMaintenances().subscribe({
             next: (data) => {
                 this.dataSource.data = data;
+                this.isLoading = false;
             },
             error: (err) => {
                 this.logger.error('Error loading maintenances', err);
                 this.showSnackBar('Error loading maintenances');
+                this.isLoading = false;
             }
         });
     }
