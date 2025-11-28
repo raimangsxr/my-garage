@@ -121,12 +121,11 @@ async def upload_invoice(
     file: UploadFile = File(...),
     vehicle_id: Optional[int] = Form(None),
     current_user: User = Depends(deps.get_current_active_user),
-    google_token: GoogleAuthToken = Depends(deps.get_google_auth_token),
     background_tasks: BackgroundTasks,
 ) -> Any:
     """
     Sube una factura y la procesa automáticamente con Gemini.
-    El usuario debe estar autenticado con Google OAuth para usar la API de Gemini.
+    El procesamiento usa la API key de Gemini del usuario (si está configurada) o la del servidor.
     """
     logger.info(f"Uploading invoice from user {current_user.email}")
     
