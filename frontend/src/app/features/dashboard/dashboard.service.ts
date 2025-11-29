@@ -10,6 +10,7 @@ export interface DashboardStats {
     total_suppliers: number;
     recent_activity: RecentActivity[];
     monthly_costs: MonthlyCost[];
+    circuit_summary: CircuitSummary;
 }
 
 export interface RecentActivity {
@@ -24,6 +25,17 @@ export interface RecentActivity {
 export interface MonthlyCost {
     month: string;
     cost: number;
+}
+
+export interface CircuitBestTime {
+    circuit_name: string;
+    best_time: string;
+}
+
+export interface CircuitSummary {
+    total_circuits: number;
+    best_times_per_circuit: CircuitBestTime[];
+    total_track_days: number;
 }
 
 @Injectable({

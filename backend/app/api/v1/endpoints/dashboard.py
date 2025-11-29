@@ -83,11 +83,45 @@ def get_dashboard_stats(
     # Total suppliers
     total_suppliers = db.exec(select(func.count(Supplier.id))).one()
     
+    # Circuit summary statistics
+    from app.models.track_record import TrackRecord
+    
+    # Get all track records with circuit information
+    track_records = db.exec(select(TrackRecord)).all()
+    
+    # Calculate circuit statistics
+    circuit_data = {}
+    for record in track_records:
+        circuit_name = record.circuit_name
+        if circuit_name not in circuit_data:
+            circuit_data[circuit_name] = []
+        circuit_data[circuit_name].append(record.best_lap_time)
+    
+    # Get best time for each circuit
+    best_times_per_circuit = []
+    for circuit_name, times in circuit_data.items():
+        # Sort times to get the best (minimum) time
+        sorted_times = sorted(times)
+        best_times_per_circuit.append({
+            "circuit_name": circuit_name,
+            "best_time": sorted_times[0] if sorted_times else None
+        })
+    
+    # Sort by circuit name for consistent display
+    best_times_per_circuit.sort(key=lambda x: x["circuit_name"])
+    
+    circuit_summary = {
+        "total_circuits": len(circuit_data),
+        "best_times_per_circuit": best_times_per_circuit,
+        "total_track_days": len(track_records)
+    }
+    
     return {
         "total_vehicles": total_vehicles,
         "scheduled_maintenance": scheduled_maintenance,
         "total_spent": total_spent,
         "total_suppliers": total_suppliers,
         "recent_activity": recent_activity,
-        "monthly_costs": monthly_costs
+        "monthly_costs": monthly_costs,
+        "circuit_summary": circuit_summary
     }
