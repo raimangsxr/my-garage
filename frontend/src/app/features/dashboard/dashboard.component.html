@@ -71,29 +71,84 @@
 
         <!-- Main Content Grid -->
         <div class="content-grid">
-            <!-- Monthly Costs Chart -->
-            <mat-card class="chart-card">
-                <mat-card-header>
-                    <mat-card-title>
-                        <mat-icon>bar_chart</mat-icon>
-                        Monthly Expenses
-                    </mat-card-title>
-                </mat-card-header>
-                <mat-card-content>
-                    <div class="chart-container">
-                        <div class="bar-chart">
-                            <div *ngFor="let monthData of stats.monthly_costs" class="bar-column">
-                                <div class="bar-wrapper">
-                                    <div class="bar" [style.height.%]="getBarHeight(monthData.cost)">
-                                        <span class="bar-label">{{ monthData.cost | number:'1.0-0' }}€</span>
+            <!-- Left Column: Monthly Expenses + Track Summary -->
+            <div class="left-column">
+                <!-- Track Summary Card -->
+                <mat-card class="track-summary-card">
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>flag</mat-icon>
+                            Track Summary
+                        </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div *ngIf="stats.circuit_summary.total_circuits === 0" class="empty-state">
+                            <mat-icon>not_listed_location</mat-icon>
+                            <p>No track data</p>
+                        </div>
+                        <div *ngIf="stats.circuit_summary.total_circuits > 0" class="circuit-stats">
+                            <div class="circuit-stat-row">
+                                <div class="circuit-stat-item">
+                                    <div class="circuit-stat-icon">
+                                        <mat-icon>location_on</mat-icon>
+                                    </div>
+                                    <div class="circuit-stat-info">
+                                        <div class="circuit-stat-value">{{ stats.circuit_summary.total_circuits }}</div>
+                                        <div class="circuit-stat-label">Circuits Visited</div>
                                     </div>
                                 </div>
-                                <div class="bar-month">{{ monthData.month }}</div>
+                                <div class="circuit-stat-item">
+                                    <div class="circuit-stat-icon">
+                                        <mat-icon>event</mat-icon>
+                                    </div>
+                                    <div class="circuit-stat-info">
+                                        <div class="circuit-stat-value">{{ stats.circuit_summary.total_track_days }}
+                                        </div>
+                                        <div class="circuit-stat-label">Track Days</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="circuit-best-times">
+                                <h4>Best Times</h4>
+                                <div class="circuit-time-list">
+                                    <div *ngFor="let circuit of stats.circuit_summary.best_times_per_circuit"
+                                        class="circuit-time-item">
+                                        <div class="circuit-time-name">
+                                            <mat-icon>track_changes</mat-icon>
+                                            {{ circuit.circuit_name }}
+                                        </div>
+                                        <div class="circuit-time-value">{{ circuit.best_time }}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </mat-card-content>
-            </mat-card>
+                    </mat-card-content>
+                </mat-card>
+                <!-- Monthly Costs Chart -->
+                <mat-card class="chart-card">
+                    <mat-card-header>
+                        <mat-card-title>
+                            <mat-icon>bar_chart</mat-icon>
+                            Monthly Expenses
+                        </mat-card-title>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <div class="chart-container">
+                            <div class="bar-chart">
+                                <div *ngFor="let monthData of stats.monthly_costs" class="bar-column">
+                                    <div class="bar-wrapper">
+                                        <div class="bar" [style.height.%]="getBarHeight(monthData.cost)">
+                                            <span class="bar-label">{{ monthData.cost | number:'1.0-0' }}€</span>
+                                        </div>
+                                    </div>
+                                    <div class="bar-month">{{ monthData.month }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </mat-card-content>
+                </mat-card>
+            </div>
 
             <!-- Recent Activity -->
             <mat-card class="activity-card">

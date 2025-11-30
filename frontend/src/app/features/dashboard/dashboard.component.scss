@@ -172,8 +172,16 @@
     }
 }
 
+// Left Column (for Monthly Expenses + Track Summary stacked vertically)
+.left-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
 .chart-card,
-.activity-card {
+.activity-card,
+.track-summary-card {
     background: rgba(255, 255, 255, 0.95) !important;
     backdrop-filter: blur(10px);
     border-radius: 20px !important;
@@ -443,6 +451,164 @@
                 background-clip: text;
             }
         }
+    }
+}
+
+// Circuit Summary Card
+.circuit-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.circuit-stat-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.circuit-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 14px;
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        transform: translateY(-2px);
+        border-color: rgba(102, 126, 234, 0.3);
+    }
+
+    .circuit-stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+
+        mat-icon {
+            color: white;
+            font-size: 24px;
+            width: 24px;
+            height: 24px;
+        }
+    }
+
+    .circuit-stat-info {
+        flex: 1;
+        min-width: 0;
+
+        .circuit-stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #2d3748;
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+        }
+
+        .circuit-stat-label {
+            font-size: 0.8rem;
+            color: #718096;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    }
+}
+
+.circuit-best-times {
+    h4 {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin: 0 0 1rem 0;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+}
+
+.circuit-time-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: #667eea;
+        border-radius: 10px;
+
+        &:hover {
+            background: #5568d3;
+        }
+    }
+}
+
+.circuit-time-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.875rem 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 12px;
+    border: 1px solid rgba(102, 126, 234, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover {
+        background: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateX(4px);
+        border-color: rgba(102, 126, 234, 0.25);
+    }
+
+    .circuit-time-name {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 500;
+        color: #2d3748;
+        font-size: 0.9rem;
+
+        mat-icon {
+            font-size: 18px;
+            width: 18px;
+            height: 18px;
+            color: #667eea;
+        }
+    }
+
+    .circuit-time-value {
+        font-weight: 700;
+        color: #667eea;
+        font-size: 1rem;
+        font-family: 'Courier New', monospace;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
 }
 
