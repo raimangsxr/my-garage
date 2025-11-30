@@ -1,0 +1,179 @@
+.chart-container-flex {
+    display: flex;
+    width: 100%;
+    position: relative;
+    padding: 10px 0;
+}
+
+.y-axis-scale {
+    width: 50px;
+    position: relative;
+    flex-shrink: 0;
+    border-right: 1px solid #e2e8f0;
+    margin-right: 10px;
+
+    .y-scale-labels {
+        position: absolute;
+        top: 10px; // Match chart padding
+        bottom: 30px; // Match chart bottom padding
+        left: 0;
+        right: 0;
+    }
+
+    .y-label {
+        position: absolute;
+        right: 8px;
+        transform: translateY(-50%);
+        font-size: 11px;
+        color: #64748b;
+        font-family: 'Roboto Mono', monospace;
+    }
+}
+
+.chart-content {
+    flex-grow: 1;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-wrapper {
+    flex-grow: 1;
+    position: relative;
+    margin-bottom: 5px;
+
+    svg {
+        width: 100%;
+        height: 100%;
+        overflow: visible;
+    }
+}
+
+.markers-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none; // Let clicks pass through to SVG if needed, but markers need events
+}
+
+.chart-marker {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    transform: translate(-50%, 50%); // Center on point
+    cursor: pointer;
+    pointer-events: auto;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    z-index: 10;
+
+    &:hover {
+        transform: translate(-50%, 50%) scale(1.2);
+        z-index: 20;
+    }
+}
+
+.marker-popup {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-bottom: 10px;
+    min-width: 100px;
+    z-index: 100;
+    pointer-events: none;
+    animation: fadeIn 0.2s ease-out;
+
+    &.popup-left {
+        left: auto;
+        right: 0;
+        transform: none;
+
+        .popup-arrow {
+            left: auto;
+            right: 10px;
+            transform: translateX(50%) rotate(45deg);
+        }
+    }
+
+    &.popup-right {
+        left: 0;
+        transform: none;
+
+        .popup-arrow {
+            left: 10px;
+            transform: translateX(-50%) rotate(45deg);
+        }
+    }
+
+    .popup-arrow {
+        position: absolute;
+        bottom: -6px;
+        left: 50%;
+        transform: translateX(-50%) rotate(45deg);
+        width: 12px;
+        height: 12px;
+        background: white;
+        box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.05);
+    }
+
+    .popup-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+    }
+
+    .popup-header {
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 2px;
+        text-transform: uppercase;
+    }
+
+    .popup-time {
+        font-size: 16px;
+        font-weight: 700;
+        color: #1e293b;
+        font-family: 'Roboto Mono', monospace;
+    }
+
+    .popup-date {
+        font-size: 11px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+}
+
+.x-axis-labels {
+    height: 20px;
+    position: relative;
+    margin-top: 5px;
+
+    .x-label {
+        position: absolute;
+        transform: translateX(-50%);
+        font-size: 11px;
+        color: #64748b;
+        white-space: nowrap;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}

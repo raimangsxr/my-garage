@@ -1,112 +1,95 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
+import { ActivatedRoute, Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatIconModule } from '@angular/material/icon';
+import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
+import { MatTableModule } from '@angular/material/table';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TracksService } from './tracks.service';
-import { TrackDetail, VehicleRecordGroup } from './tracks.models';
+import { TrackDetail } from './tracks.models';
+import { CircuitEvolutionChartComponent, ChartSeries } from '../../shared/components/circuit-evolution-chart/circuit-evolution-chart.component';
 
 @Component({
     selector: 'app-track-detail',
     standalone: true,
     imports: [
         CommonModule,
-        RouterModule,
-        MatCardModule,
-        MatTableModule,
-        MatIconModule,
         MatButtonModule,
+        MatIconModule,
+        MatCardModule,
+        MatChipsModule,
+        MatTableModule,
         MatProgressSpinnerModule,
-        MatTabsModule,
-        MatChipsModule
+        CircuitEvolutionChartComponent
     ],
     templateUrl: './track-detail.component.html',
-    styleUrl: './track-detail.component.scss'
+    styleUrls: ['./track-detail.component.scss']
 })
 export class TrackDetailComponent implements OnInit {
-    private tracksService = inject(TracksService);
     private route = inject(ActivatedRoute);
     private router = inject(Router);
+    private tracksService = inject(TracksService);
 
+    trackId: number | null = null;
     trackDetail: TrackDetail | null = null;
-    loading = false;
+    loading = true;
     error: string | null = null;
 
     displayedColumns: string[] = ['date_achieved', 'best_lap_time', 'weather_conditions', 'tire_compound', 'group', 'organizer'];
 
+    // Predefined colors for vehicles
+    private vehicleColors = [
+        '#3b82f6', // Blue
+        '#ef4444', // Red
+        '#10b981', // Green
+        '#f59e0b', // Orange
+        '#8b5cf6', // Purple
+        '#ec4899', // Pink
+        '#6366f1', // Indigo
+        '#14b8a6'  // Teal
+    ];
+
     ngOnInit() {
-        this.route.params.subscribe(params => {
-            const trackId = params['id'];
-            if (trackId) {
-                this.loadTrackDetail(+trackId);
+        const idParam = this.route.snapshot.paramMap.get('id');
+        if (idParam) {
+            this.trackId = +idParam;
+            this.loadTrackDetail(this.trackId);
+        } else {
+            this.error = 'Invalid track ID';
+            this.loading = false;
+        }
+    }
+
+    loadTrackDetail(id: number) {
+        this.loading = true;
+        this.tracksService.getTrackDetail(id).subscribe({
+            next: (data) => {
+                this.trackDetail = data;
+                this.loading = false;
+            },
+            error: (err) => {
+                console.error('Error loading track detail:', err);
+                this.error = 'Failed to load track details. Please try again.';
+                this.loading = false;
             }
         });
     }
 
-    loadTrackDetail(trackId: number) {
-        this.loading = true;
-        this.error = null;
+    get chartData(): ChartSeries[] {
+        if (!this.trackDetail || !this.trackDetail.vehicle_groups) return [];
 
-        this.tracksService.getTrackDetail(trackId).subscribe({
-            next: (detail) => {
-                this.trackDetail = detail;
-                this.loading = false;
-            },
-            error: (err) => {
-                this.error = 'Error loading track details';
-                this.loading = false;
-                console.error('Error loading track detail:', err);
-            }
-        });
+        return this.trackDetail.vehicle_groups
+            .filter(group => group.records && group.records.length > 0)
+            .map((group, index) => ({
+                name: group.vehicle_name,
+                color: this.vehicleColors[index % this.vehicleColors.length],
+                records: group.records
+            }));
     }
 
     goBack() {
         this.router.navigate(['/tracks']);
-    }
-
-    getChartData(records: VehicleRecordGroup[]): any[] {
-        // Flatten all records and sort by date
-        const allRecords = records.flatMap(group =>
-            group.records.map(r => ({
-                ...r,
-                vehicle_name: group.vehicle_name
-            }))
-        ).sort((a, b) => new Date(a.date_achieved).getTime() - new Date(b.date_achieved).getTime());
-
-        return allRecords;
-    }
-
-    // Helper to convert lap time string to seconds for chart
-    lapTimeToSeconds(lapTime: string): number {
-        const parts = lapTime.split(':');
-        if (parts.length === 2) {
-            const minutes = parseInt(parts[0]);
-            const seconds = parseFloat(parts[1]);
-            return minutes * 60 + seconds;
-        }
-        return parseFloat(lapTime);
-    }
-
-    // Get min and max for chart scaling
-    getMinMaxTimes(records: any[]): { min: number, max: number } {
-        const times = records.map(r => this.lapTimeToSeconds(r.best_lap_time));
-        return {
-            min: Math.min(...times),
-            max: Math.max(...times)
-        };
-    }
-
-    // Calculate progress bar height
-    getBarHeight(record: any, minMax: { min: number, max: number }): number {
-        const time = this.lapTimeToSeconds(record.best_lap_time);
-        const range = minMax.max - minMax.min;
-        if (range === 0) return 100;
-        // Invert: faster times (lower) should be taller bars
-        return ((minMax.max - time) / range) * 100;
     }
 }

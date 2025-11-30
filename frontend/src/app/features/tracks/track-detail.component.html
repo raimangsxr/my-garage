@@ -82,6 +82,28 @@
             </mat-card-content>
         </mat-card>
 
+        <!-- Evolution Chart -->
+        <mat-card class="chart-card" *ngIf="chartData.length > 0">
+            <mat-card-header>
+                <mat-card-title>
+                    <mat-icon>show_chart</mat-icon>
+                    Lap Time Evolution
+                </mat-card-title>
+                <mat-card-subtitle>Comparing session progress across vehicles</mat-card-subtitle>
+            </mat-card-header>
+            <mat-card-content>
+                <app-circuit-evolution-chart [data]="chartData" height="350px"></app-circuit-evolution-chart>
+
+                <!-- Legend -->
+                <div class="chart-legend">
+                    <div *ngFor="let series of chartData" class="legend-item">
+                        <span class="color-dot" [style.background-color]="series.color"></span>
+                        <span class="vehicle-name">{{ series.name }}</span>
+                    </div>
+                </div>
+            </mat-card-content>
+        </mat-card>
+
         <!-- Vehicle Groups -->
         <mat-card class="vehicles-card">
             <mat-card-header>

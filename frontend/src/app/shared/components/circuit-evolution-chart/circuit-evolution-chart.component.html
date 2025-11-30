@@ -1,0 +1,65 @@
+<div class="chart-container-flex" [style.height]="height">
+    <!-- Y-Axis Scale -->
+    <div class="y-axis-scale">
+        <div class="y-scale-labels">
+            <span *ngFor="let label of chartData.yScale.labels" [style.top.%]="label.position" class="y-label">
+                {{ label.value }}
+            </span>
+        </div>
+    </div>
+
+    <div class="chart-content">
+        <div class="chart-wrapper">
+            <!-- SVG for lines and areas -->
+            <svg viewBox="0 0 100 100" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient *ngFor="let series of data; let i = index" [id]="'gradient-' + i" x1="0" y1="0"
+                        x2="0" y2="1">
+                        <stop offset="0%" [attr.stop-color]="series.color" stop-opacity="0.2" />
+                        <stop offset="100%" [attr.stop-color]="series.color" stop-opacity="0" />
+                    </linearGradient>
+                </defs>
+
+                <!-- Grid lines -->
+                <line x1="0" y1="25" x2="100" y2="25" stroke="#f1f5f9" stroke-width="1" />
+                <line x1="0" y1="50" x2="100" y2="50" stroke="#f1f5f9" stroke-width="1" />
+                <line x1="0" y1="75" x2="100" y2="75" stroke="#f1f5f9" stroke-width="1" />
+
+                <!-- Series Areas and Lines -->
+                <ng-container *ngFor="let series of chartData.seriesPoints; let i = index">
+                    <!-- Area -->
+                    <polygon [attr.points]="series.areaPoints" [attr.fill]="'url(#gradient-' + i + ')'" />
+                    <!-- Line -->
+                    <polyline [attr.points]="series.points" fill="none" [attr.stroke]="series.color" stroke-width="2"
+                        vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
+                </ng-container>
+            </svg>
+
+            <!-- HTML-based markers overlay -->
+            <div class="markers-overlay">
+                <div *ngFor="let point of chartData.allPoints" class="chart-marker" [style.left.%]="point.xPercent"
+                    [style.bottom.%]="point.yPercent" [style.background-color]="point.seriesColor"
+                    (click)="selectPoint(point)">
+
+                    <!-- Popup that appears on click -->
+                    <div class="marker-popup" *ngIf="selectedPoint === point" [class.popup-left]="point.xPercent > 80"
+                        [class.popup-right]="point.xPercent < 20">
+                        <div class="popup-arrow"></div>
+                        <div class="popup-content">
+                            <div class="popup-header" [style.color]="point.seriesColor">{{ point.seriesName }}</div>
+                            <div class="popup-time">{{ point.time }}</div>
+                            <div class="popup-date">{{ point.dateLabel }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- X-Axis Labels -->
+        <div class="x-axis-labels">
+            <span *ngFor="let label of chartData.xLabels" [style.left.%]="label.x" class="x-label">
+                {{ label.label }}
+            </span>
+        </div>
+    </div>
+</div>

@@ -21,70 +21,8 @@
         </div>
 
         <!-- Progress Chart Area -->
-        <div class="chart-section" *ngIf="chartData.points">
-            <div class="chart-container-flex">
-                <!-- Y-Axis Scale with dynamic labels -->
-                <div class="y-axis-scale">
-                    <div class="y-scale-labels">
-                        <span *ngFor="let label of chartData.yScale.labels" [style.top.%]="label.position"
-                            class="y-label">
-                            {{ label.value }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="chart-content">
-                    <div class="chart-wrapper">
-                        <!-- SVG for line and area -->
-                        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
-                            <defs>
-                                <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.2" />
-                                    <stop offset="100%" stop-color="#3b82f6" stop-opacity="0" />
-                                </linearGradient>
-                            </defs>
-
-                            <!-- Area under the line -->
-                            <polygon [attr.points]="chartData.areaPoints" fill="url(#chartGradient)" />
-
-                            <!-- Grid lines -->
-                            <line x1="0" y1="25" x2="100" y2="25" stroke="#f1f5f9" stroke-width="1" />
-                            <line x1="0" y1="50" x2="100" y2="50" stroke="#f1f5f9" stroke-width="1" />
-                            <line x1="0" y1="75" x2="100" y2="75" stroke="#f1f5f9" stroke-width="1" />
-
-                            <!-- Main Line -->
-                            <polyline [attr.points]="chartData.points" fill="none" stroke="#3b82f6" stroke-width="2"
-                                vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-
-                        <!-- HTML-based markers overlay -->
-                        <div class="markers-overlay">
-                            <div *ngFor="let point of chartData.dataPoints; let i = index" class="chart-marker"
-                                [style.left.%]="point.xPercent" [style.bottom.%]="point.yPercent"
-                                (click)="selectPoint(i)">
-                                <mat-icon>fiber_manual_record</mat-icon>
-
-                                <!-- Popup that appears on click -->
-                                <div class="marker-popup" *ngIf="selectedPointIndex === i" [class.popup-first]="i === 0"
-                                    [class.popup-last]="i === chartData.dataPoints.length - 1">
-                                    <div class="popup-arrow"></div>
-                                    <div class="popup-content">
-                                        <div class="popup-time">{{ point.time }}</div>
-                                        <div class="popup-date">{{ point.dateLabel }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- X-Axis Labels -->
-                    <div class="x-axis-labels">
-                        <span *ngFor="let label of chartData.xLabels" [style.left.%]="label.x" class="x-label">
-                            {{ label.label }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+        <div class="chart-section" *ngIf="chartSeries.length > 0">
+            <app-circuit-evolution-chart [data]="chartSeries" height="250px"></app-circuit-evolution-chart>
             <div class="chart-legend">
                 <span>Lap Time Progression</span>
             </div>
