@@ -15,6 +15,7 @@ El objetivo principal de este proyecto es mantener un control de versiones estri
     * Asegúrate de que todo el código nuevo cumpla con los estándares de estilo del proyecto (por ejemplo, PEP 8 para Python, ESLint para JavaScript).
     * En el Frontend (Angular) es muy importante que se prime la homogenización y reutilización (extensión) de componentes. Por ejemplo, si tenemos que crear una tabla, quiero crear un componente tabla y que se implemente este componente en todas las vistas donde se requiera una tabla, y que, en caso de que se requiera que la tabla haga algo nuevo, se extienda el componente tabla existente (ya que quizás es una funcionalidad que también pueden implementar otras tablas).
     * En el Backend (FastAPI) es importante construir un modelo de datos sólido y escalable, de forma que las consultas a base de datos estén optimizadas y que la serialización se realice de la forma más adecuada de acuerdo a cómo se consumen los modelos en el Frontend.
+    
 3.  **Commit:**
     * Realiza un único *commit* atómico por tarea.
     * El mensaje de *commit* debe seguir el formato de "Conventional Commits" (ej. `feat: [Descripción de la funcionalidad]` o `fix: [Descripción del arreglo]`).
