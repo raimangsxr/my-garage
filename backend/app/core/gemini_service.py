@@ -152,6 +152,49 @@ Por favor, realiza un análisis EXHAUSTIVO y CRÍTICO de cada campo.
 """
 
         base_prompt += """
+**CLASIFICACIÓN DE LA FACTURA (MUY IMPORTANTE):**
+
+Debes determinar si esta factura corresponde a:
+
+A) SERVICIO DE MANTENIMIENTO (is_maintenance=true):
+   La factura incluye trabajo/servicios realizados en un vehículo.
+   
+   **Indicadores clave de mantenimiento:**
+   - Mano de obra / Labor / Servicio
+   - Palabras de acción: "Cambio de...", "Reparación de...", "Instalación de...", "Revisión de...", "Sustitución de..."
+   - Servicios: "Cambio de aceite", "Alineación", "Balanceo", "Diagnóstico", "Revisión pre-ITV"
+   - Trabajos mecánicos: "Reparación de frenos", "Cambio de correa de distribución"
+   - Puede incluir piezas utilizadas durante el servicio
+   
+   **Acción:** Poblar el array "maintenances" con:
+   - description: descripción del trabajo/servicio realizado
+   - labor_cost: costo de mano de obra (si aparece separado)
+   - parts: array con las piezas utilizadas en el servicio
+
+B) COMPRA DE PIEZAS (is_parts_only=true):
+   Solo adquisición de repuestos/piezas sin servicio de instalación o trabajo asociado.
+   
+   **Indicadores clave de compra:**
+   - Solo productos/artículos listados
+   - Sin cargos de mano de obra
+   - Palabras como: "Venta", "Compra", "Suministro", "Producto"
+   - Descripciones simples: "Filtro de aceite", "Pastillas de freno", "Neumático 205/55R16"
+   - Facturas de distribuidores de repuestos o tiendas de autopartes
+   
+   **Acción:** Poblar el array "parts_only" con las piezas adquiridas
+
+**REGLA DE DECISIÓN (sigue este orden):**
+1. ¿Hay cargo por mano de obra/servicio? → SÍ = is_maintenance=true
+2. ¿Hay palabras de acción (cambio, reparación, instalación, revisión)? → SÍ = is_maintenance=true  
+3. ¿Solo hay productos/piezas sin servicio asociado? → SÍ = is_parts_only=true
+4. **IMPORTANTE:** is_maintenance e is_parts_only son MUTUAMENTE EXCLUYENTES (solo uno puede ser true)
+
+**Ejemplos:**
+- "Cambio de aceite y filtros - Mano de obra: 25€, Filtro: 15€" → is_maintenance=true
+- "Reparación de sistema de frenos" → is_maintenance=true
+- "Filtro de aceite Mann W920/21" (sin instalación) → is_parts_only=true
+- "4x Neumáticos Michelin 205/55R16" (sin montaje mencionado) → is_parts_only=true
+
 Estructura del JSON:
 {
     "invoice_number": "string o null",
