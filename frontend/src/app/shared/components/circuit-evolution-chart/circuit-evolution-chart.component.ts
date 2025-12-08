@@ -65,12 +65,22 @@ export class CircuitEvolutionChartComponent implements OnChanges {
         }
     }
 
-    selectPoint(point: ChartPoint): void {
-        this.selectedPoint = this.selectedPoint === point ? null : point;
+    selectPoint(point: ChartPoint, event: MouseEvent): void {
+        event.stopPropagation();
+        event.preventDefault();
+        if (this.selectedPoint === point) {
+            this.selectedPoint = null;
+        } else {
+            this.selectedPoint = point;
+        }
     }
 
-    closeTooltip(): void {
-        this.selectedPoint = null;
+    onChartClick(event: MouseEvent): void {
+        // Only close if clicking on the chart area itself, not on a marker
+        const target = event.target as HTMLElement;
+        if (!target.classList.contains('marker')) {
+            this.selectedPoint = null;
+        }
     }
 
     private processData(): void {
