@@ -1,0 +1,236 @@
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { MatIconModule } from '@angular/material/icon';
+
+export interface ChartRecord {
+    best_lap_time: string;
+    date_achieved: string;
+    [key: string]: any;
+}
+
+export interface ChartSeries {
+    name: string;
+    color: string;
+    records: ChartRecord[];
+}
+
+interface ChartPoint {
+    x: number;           // X position (0-100%)
+    y: number;           // Y position (0-100%)
+    time: string;        // Original time string
+    timeSeconds: number; // Time in seconds for calculations
+    date: Date;          // Date object
+    dateLabel: string;   // Formatted date label
+    seriesName: string;  // Vehicle name
+    seriesColor: string; // Series color
+    seriesIndex: number; // Series index
+}
+
+interface ProcessedSeries {
+    name: string;
+    color: string;
+    points: ChartPoint[];
+    polylinePoints: string;
+}
+
+@Component({
+    selector: 'app-circuit-evolution-chart',
+    standalone: true,
+    imports: [CommonModule, MatIconModule],
+    templateUrl: './circuit-evolution-chart.component.html',
+    styleUrls: ['./circuit-evolution-chart.component.scss']
+})
+export class CircuitEvolutionChartComponent implements OnChanges {
+    @Input() data: ChartSeries[] = [];
+    @Input() height: string = '300px';
+
+    // Processed data
+    processedSeries: ProcessedSeries[] = [];
+    allPoints: ChartPoint[] = [];
+    yAxisLabels: { value: string; position: number }[] = [];
+    xAxisLabels: { label: string; position: number }[] = [];
+
+    // Scale bounds
+    private minTime = 0;
+    private maxTime = 0;
+    private minDate = 0;
+    private maxDate = 0;
+
+    // Tooltip state
+    selectedPoint: ChartPoint | null = null;
+
+    ngOnChanges(changes: SimpleChanges): void {
+        if (changes['data']) {
+            this.processData();
+        }
+    }
+
+    selectPoint(point: ChartPoint): void {
+        this.selectedPoint = this.selectedPoint === point ? null : point;
+    }
+
+    closeTooltip(): void {
+        this.selectedPoint = null;
+    }
+
+    private processData(): void {
+        if (!this.data || this.data.length === 0) {
+            this.processedSeries = [];
+            this.allPoints = [];
+            this.yAxisLabels = [];
+            this.xAxisLabels = [];
+            return;
+        }
+
+        // Collect all times and dates for scale calculation
+        const allTimes: number[] = [];
+        const allDates: number[] = [];
+
+        this.data.forEach(series => {
+            series.records.forEach(record => {
+                allTimes.push(this.timeToSeconds(record.best_lap_time));
+                allDates.push(new Date(record.date_achieved).getTime());
+            });
+        });
+
+        if (allTimes.length === 0) return;
+
+        // Calculate scales with padding
+        this.minTime = Math.min(...allTimes) - 2; // 2 seconds padding below
+        this.maxTime = Math.max(...allTimes) + 2; // 2 seconds padding above
+        this.minDate = Math.min(...allDates);
+        this.maxDate = Math.max(...allDates);
+
+        // Add date padding (5% on each side)
+        const dateRange = this.maxDate - this.minDate;
+        const datePadding = dateRange * 0.05;
+        this.minDate -= datePadding;
+        this.maxDate += datePadding;
+
+        // Process each series
+        this.processedSeries = [];
+        this.allPoints = [];
+
+        this.data.forEach((series, seriesIndex) => {
+            const sortedRecords = [...series.records].sort((a, b) =>
+                new Date(a.date_achieved).getTime() - new Date(b.date_achieved).getTime()
+            );
+
+            const points: ChartPoint[] = sortedRecords.map(record => {
+                const timeSeconds = this.timeToSeconds(record.best_lap_time);
+                const dateMs = new Date(record.date_achieved).getTime();
+
+                // Calculate positions (0-100)
+                const x = this.calculateXPosition(dateMs);
+                const y = this.calculateYPosition(timeSeconds);
+
+                return {
+                    x,
+                    y,
+                    time: record.best_lap_time,
+                    timeSeconds,
+                    date: new Date(record.date_achieved),
+                    dateLabel: this.formatDate(new Date(record.date_achieved)),
+                    seriesName: series.name,
+                    seriesColor: series.color,
+                    seriesIndex
+                };
+            });
+
+            // Generate polyline points string
+            const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+
+            this.processedSeries.push({
+                name: series.name,
+                color: series.color,
+                points,
+                polylinePoints
+            });
+
+            this.allPoints.push(...points);
+        });
+
+        this.generateYAxisLabels();
+        this.generateXAxisLabels();
+    }
+
+    private calculateXPosition(dateMs: number): number {
+        if (this.maxDate === this.minDate) return 50;
+        return ((dateMs - this.minDate) / (this.maxDate - this.minDate)) * 100;
+    }
+
+    private calculateYPosition(timeSeconds: number): number {
+        if (this.maxTime === this.minTime) return 50;
+        // Invert: faster times (lower seconds) at bottom (higher Y value in SVG)
+        const normalized = (timeSeconds - this.minTime) / (this.maxTime - this.minTime);
+        return normalized * 100; // 0% = top (slowest), 100% = bottom (fastest)
+    }
+
+    private generateYAxisLabels(): void {
+        this.yAxisLabels = [];
+        const numLabels = 5;
+        const range = this.maxTime - this.minTime;
+
+        for (let i = 0; i < numLabels; i++) {
+            const fraction = i / (numLabels - 1);
+            const timeValue = this.minTime + (range * fraction);
+            const position = fraction * 100;
+
+            this.yAxisLabels.push({
+                value: this.secondsToTime(timeValue),
+                position
+            });
+        }
+    }
+
+    private generateXAxisLabels(): void {
+        this.xAxisLabels = [];
+
+        // Get unique dates from all points
+        const uniqueDates = [...new Set(this.allPoints.map(p => p.date.toDateString()))];
+
+        if (uniqueDates.length <= 5) {
+            // Show all unique dates
+            uniqueDates.forEach(dateStr => {
+                const date = new Date(dateStr);
+                const position = this.calculateXPosition(date.getTime());
+                this.xAxisLabels.push({
+                    label: this.formatDate(date),
+                    position
+                });
+            });
+        } else {
+            // Show first, middle, and last dates
+            const positions = [0, 25, 50, 75, 100];
+            positions.forEach(pos => {
+                const dateMs = this.minDate + ((this.maxDate - this.minDate) * pos / 100);
+                this.xAxisLabels.push({
+                    label: this.formatDate(new Date(dateMs)),
+                    position: pos
+                });
+            });
+        }
+    }
+
+    private timeToSeconds(timeStr: string): number {
+        try {
+            const parts = timeStr.split(':');
+            if (parts.length === 2) {
+                return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
+            }
+            return parseFloat(parts[0]);
+        } catch {
+            return 0;
+        }
+    }
+
+    private secondsToTime(seconds: number): string {
+        const m = Math.floor(seconds / 60);
+        const s = Math.floor(seconds % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    private formatDate(date: Date): string {
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+    }
+}

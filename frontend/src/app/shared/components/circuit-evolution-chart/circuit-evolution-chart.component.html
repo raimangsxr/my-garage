@@ -1,0 +1,61 @@
+<div class="chart-wrapper" [style.height]="height">
+    <div class="chart-container">
+        <!-- Y-axis labels -->
+        <div class="y-axis">
+            <div *ngFor="let label of yAxisLabels" class="y-label" [style.top.%]="label.position">
+                {{ label.value }}
+            </div>
+        </div>
+
+        <!-- Chart area -->
+        <div class="chart-area">
+            <!-- Grid lines -->
+            <div *ngFor="let label of yAxisLabels" class="grid-line" [style.top.%]="label.position"></div>
+
+            <!-- SVG for lines -->
+            <svg class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <ng-container *ngFor="let series of processedSeries">
+                    <polyline [attr.points]="series.polylinePoints" fill="none" [attr.stroke]="series.color"
+                        stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round" />
+                </ng-container>
+            </svg>
+
+            <!-- Data point markers -->
+            <div class="markers-layer">
+                <div *ngFor="let point of allPoints" class="marker" [style.left.%]="point.x" [style.top.%]="point.y"
+                    [style.background-color]="point.seriesColor" [class.active]="selectedPoint === point"
+                    (click)="selectPoint(point); $event.stopPropagation()" (mouseenter)="selectPoint(point)"
+                    (mouseleave)="closeTooltip()">
+
+                    <!-- Tooltip -->
+                    <div class="tooltip" *ngIf="selectedPoint === point" [class.tooltip-left]="point.x > 70"
+                        [class.tooltip-right]="point.x < 30">
+                        <div class="tooltip-arrow"></div>
+                        <div class="tooltip-content">
+                            <div class="tooltip-header" [style.color]="point.seriesColor">
+                                {{ point.seriesName }}
+                            </div>
+                            <div class="tooltip-body">
+                                <div class="tooltip-time">
+                                    <mat-icon>timer</mat-icon>
+                                    <span>{{ point.time }}</span>
+                                </div>
+                                <div class="tooltip-date">
+                                    <mat-icon>calendar_today</mat-icon>
+                                    <span>{{ point.dateLabel }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- X-axis labels -->
+    <div class="x-axis">
+        <div *ngFor="let label of xAxisLabels" class="x-label" [style.left.%]="label.position">
+            {{ label.label }}
+        </div>
+    </div>
+</div>
