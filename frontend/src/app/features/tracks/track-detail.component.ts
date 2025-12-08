@@ -10,6 +10,19 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
 import { TracksService } from './tracks.service';
 import { TrackDetail, VehicleRecordGroup } from './tracks.models';
+import { CircuitEvolutionChartComponent, ChartSeries } from '../../shared/components/circuit-evolution-chart/circuit-evolution-chart.component';
+
+// Color palette for vehicles
+const VEHICLE_COLORS = [
+    '#3b82f6', // Blue
+    '#ef4444', // Red
+    '#10b981', // Green
+    '#f59e0b', // Orange
+    '#8b5cf6', // Purple
+    '#ec4899', // Pink
+    '#06b6d4', // Cyan
+    '#84cc16'  // Lime
+];
 
 @Component({
     selector: 'app-track-detail',
@@ -23,7 +36,8 @@ import { TrackDetail, VehicleRecordGroup } from './tracks.models';
         MatButtonModule,
         MatProgressSpinnerModule,
         MatTabsModule,
-        MatChipsModule
+        MatChipsModule,
+        CircuitEvolutionChartComponent
     ],
     templateUrl: './track-detail.component.html',
     styleUrl: './track-detail.component.scss'
@@ -38,6 +52,22 @@ export class TrackDetailComponent implements OnInit {
     error: string | null = null;
 
     displayedColumns: string[] = ['date_achieved', 'best_lap_time', 'weather_conditions', 'tire_compound', 'group', 'organizer'];
+
+    // Chart data as series
+    get chartSeries(): ChartSeries[] {
+        if (!this.trackDetail || !this.trackDetail.vehicle_groups) return [];
+
+        return this.trackDetail.vehicle_groups
+            .filter(group => group.records && group.records.length > 0)
+            .map((group, index) => ({
+                name: group.vehicle_name,
+                color: VEHICLE_COLORS[index % VEHICLE_COLORS.length],
+                records: group.records.map(r => ({
+                    best_lap_time: r.best_lap_time,
+                    date_achieved: r.date_achieved
+                }))
+            }));
+    }
 
     ngOnInit() {
         this.route.params.subscribe(params => {
