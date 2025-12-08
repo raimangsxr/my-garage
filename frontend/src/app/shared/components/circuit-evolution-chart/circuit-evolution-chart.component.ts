@@ -186,30 +186,45 @@ export class CircuitEvolutionChartComponent implements OnChanges {
     private generateXAxisLabels(): void {
         this.xAxisLabels = [];
 
-        // Get unique dates from all points
-        const uniqueDates = [...new Set(this.allPoints.map(p => p.date.toDateString()))];
+        // Get unique dates with their positions, sorted by date
+        const datePositions: { date: Date; position: number }[] = [];
+        const seenDates = new Set<string>();
 
-        if (uniqueDates.length <= 5) {
-            // Show all unique dates
-            uniqueDates.forEach(dateStr => {
-                const date = new Date(dateStr);
-                const position = this.calculateXPosition(date.getTime());
-                this.xAxisLabels.push({
-                    label: this.formatDate(date),
-                    position
+        this.allPoints.forEach(p => {
+            const dateStr = p.date.toDateString();
+            if (!seenDates.has(dateStr)) {
+                seenDates.add(dateStr);
+                datePositions.push({
+                    date: p.date,
+                    position: this.calculateXPosition(p.date.getTime())
                 });
+            }
+        });
+
+        // Sort by position
+        datePositions.sort((a, b) => a.position - b.position);
+
+        // Minimum spacing between labels (in percentage)
+        const minSpacing = 15;
+        const filteredPositions: { date: Date; position: number }[] = [];
+
+        datePositions.forEach(dp => {
+            // Check if this label is far enough from all existing labels
+            const isFarEnough = filteredPositions.every(
+                existing => Math.abs(existing.position - dp.position) >= minSpacing
+            );
+            if (isFarEnough) {
+                filteredPositions.push(dp);
+            }
+        });
+
+        // Generate labels from filtered positions
+        filteredPositions.forEach(dp => {
+            this.xAxisLabels.push({
+                label: this.formatDate(dp.date),
+                position: dp.position
             });
-        } else {
-            // Show first, middle, and last dates
-            const positions = [0, 25, 50, 75, 100];
-            positions.forEach(pos => {
-                const dateMs = this.minDate + ((this.maxDate - this.minDate) * pos / 100);
-                this.xAxisLabels.push({
-                    label: this.formatDate(new Date(dateMs)),
-                    position: pos
-                });
-            });
-        }
+        });
     }
 
     private timeToSeconds(timeStr: string): number {
