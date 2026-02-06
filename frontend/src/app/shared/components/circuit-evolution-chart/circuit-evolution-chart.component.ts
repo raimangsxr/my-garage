@@ -57,7 +57,12 @@ export class CircuitEvolutionChartComponent implements OnChanges {
     private maxDate = 0;
 
     // Tooltip state
-    selectedPoint: ChartPoint | null = null;
+    hoverPoint: ChartPoint | null = null;
+    lockedPoint: ChartPoint | null = null;
+
+    get selectedPoint(): ChartPoint | null {
+        return this.lockedPoint || this.hoverPoint;
+    }
 
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['data']) {
@@ -65,22 +70,28 @@ export class CircuitEvolutionChartComponent implements OnChanges {
         }
     }
 
-    selectPoint(point: ChartPoint, event: MouseEvent): void {
-        event.stopPropagation();
-        event.preventDefault();
-        if (this.selectedPoint === point) {
-            this.selectedPoint = null;
-        } else {
-            this.selectedPoint = point;
+    // Interaction methods
+    onMarkerEnter(point: ChartPoint): void {
+        this.hoverPoint = point;
+    }
+
+    onMarkerLeave(point: ChartPoint): void {
+        if (this.hoverPoint === point) {
+            this.hoverPoint = null;
         }
     }
 
+    onMarkerClick(point: ChartPoint, event: MouseEvent): void {
+        event.stopPropagation();
+        // Toggle lock if clicking the same point, otherwise lock new point
+        this.lockedPoint = this.lockedPoint === point ? null : point;
+        // clear hover to prevent "sticking" if we move mouse away after unlock
+        this.hoverPoint = null;
+    }
+
     onChartClick(event: MouseEvent): void {
-        // Only close if clicking on the chart area itself, not on a marker
-        const target = event.target as HTMLElement;
-        if (!target.classList.contains('marker')) {
-            this.selectedPoint = null;
-        }
+        // Clear lock on background click
+        this.lockedPoint = null;
     }
 
     private processData(): void {
@@ -171,9 +182,10 @@ export class CircuitEvolutionChartComponent implements OnChanges {
 
     private calculateYPosition(timeSeconds: number): number {
         if (this.maxTime === this.minTime) return 50;
-        // Invert: faster times (lower seconds) at bottom (higher Y value in SVG)
+        // Invert Y-axis: Faster times (lower seconds) at BOTTOM (100%)
+        // Slowest times (higher seconds) at TOP (0%)
         const normalized = (timeSeconds - this.minTime) / (this.maxTime - this.minTime);
-        return normalized * 100; // 0% = top (slowest), 100% = bottom (fastest)
+        return (1 - normalized) * 100;
     }
 
     private generateYAxisLabels(): void {
@@ -184,7 +196,9 @@ export class CircuitEvolutionChartComponent implements OnChanges {
         for (let i = 0; i < numLabels; i++) {
             const fraction = i / (numLabels - 1);
             const timeValue = this.minTime + (range * fraction);
-            const position = fraction * 100;
+
+            // Inverted position: 0 (Fastest) -> 100% (Bottom)
+            const position = (1 - fraction) * 100;
 
             this.yAxisLabels.push({
                 value: this.secondsToTime(timeValue),
