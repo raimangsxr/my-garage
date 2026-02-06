@@ -25,7 +25,9 @@
             <div class="markers-layer">
                 <div *ngFor="let point of allPoints" class="marker" [style.left.%]="point.x" [style.top.%]="point.y"
                     [style.background-color]="point.seriesColor" [class.active]="selectedPoint === point"
-                    (click)="selectPoint(point, $event)">
+                    (mouseenter)="onMarkerEnter(point)"
+                    (mouseleave)="onMarkerLeave(point)"
+                    (click)="onMarkerClick(point, $event)">
                 </div>
             </div>
 
