@@ -15,22 +15,40 @@ export interface ChartSeries {
 }
 
 interface ChartPoint {
-    x: number;           // X position (0-100%)
-    y: number;           // Y position (0-100%)
-    time: string;        // Original time string
-    timeSeconds: number; // Time in seconds for calculations
-    date: Date;          // Date object
-    dateLabel: string;   // Formatted date label
-    seriesName: string;  // Vehicle name
-    seriesColor: string; // Series color
-    seriesIndex: number; // Series index
+    x: number;
+    y: number;
+    time: string;
+    timeSeconds: number;
+    date: Date;
+    dateLabel: string;
+    seriesName: string;
+    seriesColor: string;
+    seriesIndex: number;
+    weatherConditions?: string;
+    tireCompound?: string;
+    group?: string;
+    organizer?: string;
 }
 
 interface ProcessedSeries {
     name: string;
     color: string;
     points: ChartPoint[];
-    polylinePoints: string;
+    sessionPolyline: string;
+    recordStepPolyline: string;
+    recordPoints: ChartPoint[];
+    bestSeconds: number;
+    firstSeconds: number;
+}
+
+interface AbsoluteRecord {
+    time: string;
+    timeSeconds: number;
+    date: Date;
+    dateLabel: string;
+    seriesName: string;
+    seriesColor: string;
+    y: number;
 }
 
 @Component({
@@ -44,24 +62,43 @@ export class CircuitEvolutionChartComponent implements OnChanges {
     @Input() data: ChartSeries[] = [];
     @Input() height: string = '300px';
 
-    // Processed data
     processedSeries: ProcessedSeries[] = [];
-    allPoints: ChartPoint[] = [];
     yAxisLabels: { value: string; position: number }[] = [];
     xAxisLabels: { label: string; position: number }[] = [];
+    absoluteRecord: AbsoluteRecord | null = null;
 
-    // Scale bounds
+    visibleSeries = new Set<string>();
+    focusSeriesName: string | null = null;
+    viewMode: 'record' | 'session' | 'both' = 'both';
+
     private minTime = 0;
     private maxTime = 0;
     private minDate = 0;
     private maxDate = 0;
 
-    // Tooltip state
     hoverPoint: ChartPoint | null = null;
     lockedPoint: ChartPoint | null = null;
 
     get selectedPoint(): ChartPoint | null {
         return this.lockedPoint || this.hoverPoint;
+    }
+
+    get renderedSeries(): ProcessedSeries[] {
+        return this.processedSeries.filter(series => this.visibleSeries.has(series.name));
+    }
+
+    get renderedPoints(): ChartPoint[] {
+        if (this.viewMode === 'record') {
+            return this.renderedSeries.flatMap(series => series.recordPoints);
+        }
+        return this.renderedSeries.flatMap(series => series.points);
+    }
+
+    get fastestSeries(): ProcessedSeries | null {
+        if (!this.renderedSeries.length) {
+            return null;
+        }
+        return [...this.renderedSeries].sort((a, b) => a.bestSeconds - b.bestSeconds)[0];
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -70,139 +107,372 @@ export class CircuitEvolutionChartComponent implements OnChanges {
         }
     }
 
-    // Interaction methods
+    isSeriesVisible(name: string): boolean {
+        return this.visibleSeries.has(name);
+    }
+
+    toggleSeries(name: string): void {
+        if (this.visibleSeries.has(name)) {
+            if (this.visibleSeries.size === 1) {
+                return;
+            }
+            this.visibleSeries.delete(name);
+        } else {
+            this.visibleSeries.add(name);
+        }
+
+        if (this.selectedPoint && !this.visibleSeries.has(this.selectedPoint.seriesName)) {
+            this.lockedPoint = null;
+            this.hoverPoint = null;
+        }
+
+        this.generateXAxisLabels();
+    }
+
+    isolateSeries(name: string, event: MouseEvent): void {
+        event.stopPropagation();
+        this.visibleSeries = new Set([name]);
+        this.focusSeriesName = name;
+
+        if (this.selectedPoint && this.selectedPoint.seriesName !== name) {
+            this.lockedPoint = null;
+            this.hoverPoint = null;
+        }
+
+        this.generateXAxisLabels();
+    }
+
+    resetSeriesVisibility(): void {
+        this.visibleSeries = new Set(this.processedSeries.map(series => series.name));
+        this.focusSeriesName = null;
+        this.generateXAxisLabels();
+    }
+
+    setViewMode(mode: 'record' | 'session' | 'both'): void {
+        this.viewMode = mode;
+    }
+
+    onLegendEnter(name: string): void {
+        this.focusSeriesName = name;
+    }
+
+    onLegendLeave(): void {
+        if (!this.lockedPoint) {
+            this.focusSeriesName = null;
+        }
+    }
+
     onMarkerEnter(point: ChartPoint): void {
         this.hoverPoint = point;
+        this.focusSeriesName = point.seriesName;
     }
 
     onMarkerLeave(point: ChartPoint): void {
         if (this.hoverPoint === point) {
             this.hoverPoint = null;
         }
+        if (!this.lockedPoint) {
+            this.focusSeriesName = null;
+        }
     }
 
     onMarkerClick(point: ChartPoint, event: MouseEvent): void {
         event.stopPropagation();
-        // Toggle lock if clicking the same point, otherwise lock new point
         this.lockedPoint = this.lockedPoint === point ? null : point;
-        // clear hover to prevent "sticking" if we move mouse away after unlock
         this.hoverPoint = null;
+        this.focusSeriesName = this.lockedPoint ? this.lockedPoint.seriesName : null;
     }
 
-    onChartClick(event: MouseEvent): void {
-        // Clear lock on background click
+    onChartClick(): void {
         this.lockedPoint = null;
+        this.hoverPoint = null;
+        this.focusSeriesName = null;
+    }
+
+    isSeriesDimmed(seriesName: string): boolean {
+        return this.focusSeriesName !== null && this.focusSeriesName !== seriesName;
+    }
+
+    getImprovementLabel(series: ProcessedSeries): string {
+        const delta = series.firstSeconds - series.bestSeconds;
+        if (delta <= 0) {
+            return '0.000s';
+        }
+        return `${delta.toFixed(3)}s`;
+    }
+
+    getSelectedVsAbsoluteDelta(): number | null {
+        if (!this.selectedPoint || !this.absoluteRecord) {
+            return null;
+        }
+        return this.selectedPoint.timeSeconds - this.absoluteRecord.timeSeconds;
+    }
+
+    formatRelativeDelta(delta: number): string {
+        if (!Number.isFinite(delta)) {
+            return '0.000';
+        }
+        const sign = delta > 0 ? '+' : '';
+        return `${sign}${delta.toFixed(3)}`;
     }
 
     private processData(): void {
         if (!this.data || this.data.length === 0) {
             this.processedSeries = [];
-            this.allPoints = [];
             this.yAxisLabels = [];
             this.xAxisLabels = [];
+            this.absoluteRecord = null;
+            this.visibleSeries.clear();
             return;
         }
 
-        // Collect all times and dates for scale calculation
         const allTimes: number[] = [];
         const allDates: number[] = [];
+        let absoluteCandidate: Omit<AbsoluteRecord, 'y' | 'dateLabel'> | null = null;
 
-        this.data.forEach(series => {
-            series.records.forEach(record => {
-                allTimes.push(this.timeToSeconds(record.best_lap_time));
-                allDates.push(new Date(record.date_achieved).getTime());
-            });
-        });
+        for (const series of this.data) {
+            for (const record of series.records) {
+                const seconds = this.timeToSeconds(record.best_lap_time);
+                const date = new Date(record.date_achieved);
+                if (Number.isFinite(seconds)) {
+                    allTimes.push(seconds);
+                }
+                if (Number.isFinite(date.getTime())) {
+                    allDates.push(date.getTime());
+                }
 
-        if (allTimes.length === 0) return;
+                if (!Number.isFinite(seconds) || !Number.isFinite(date.getTime())) {
+                    return;
+                }
 
-        // Calculate scales with padding
-        this.minTime = Math.min(...allTimes) - 2; // 2 seconds padding below
-        this.maxTime = Math.max(...allTimes) + 2; // 2 seconds padding above
+                if (!absoluteCandidate || seconds < absoluteCandidate.timeSeconds) {
+                    absoluteCandidate = {
+                        time: record.best_lap_time,
+                        timeSeconds: seconds,
+                        date,
+                        seriesName: series.name,
+                        seriesColor: series.color
+                    };
+                }
+            }
+        }
+
+        if (allTimes.length === 0 || allDates.length === 0) {
+            this.processedSeries = [];
+            this.absoluteRecord = null;
+            return;
+        }
+
+        const minRaw = Math.min(...allTimes);
+        const maxRaw = Math.max(...allTimes);
+        const timePadding = Math.max(0.5, (maxRaw - minRaw) * 0.12);
+        this.minTime = Math.max(0, minRaw - timePadding);
+        this.maxTime = maxRaw + timePadding;
+
         this.minDate = Math.min(...allDates);
         this.maxDate = Math.max(...allDates);
-
-        // Add date padding (5% on each side)
         const dateRange = this.maxDate - this.minDate;
-        const datePadding = dateRange * 0.05;
+        const datePadding = Math.max(1, dateRange * 0.04);
         this.minDate -= datePadding;
         this.maxDate += datePadding;
 
-        // Process each series
-        this.processedSeries = [];
-        this.allPoints = [];
+        this.processedSeries = this.data
+            .filter(series => series.records.length > 0)
+            .map((series, seriesIndex) => {
+                const dailyBestRecords = this.getDailyBestRecords(series.records);
 
-        this.data.forEach((series, seriesIndex) => {
-            const sortedRecords = [...series.records].sort((a, b) =>
-                new Date(a.date_achieved).getTime() - new Date(b.date_achieved).getTime()
-            );
+                const points: ChartPoint[] = dailyBestRecords.map(record => {
+                    const timeSeconds = record.timeSeconds;
+                    const date = record.date;
 
-            const points: ChartPoint[] = sortedRecords.map(record => {
-                const timeSeconds = this.timeToSeconds(record.best_lap_time);
-                const dateMs = new Date(record.date_achieved).getTime();
+                    return {
+                        x: this.calculateXPosition(date.getTime()),
+                        y: this.calculateYPosition(timeSeconds),
+                        time: record.bestLapTime,
+                        timeSeconds,
+                        date,
+                        dateLabel: this.formatDate(date),
+                        seriesName: series.name,
+                        seriesColor: series.color,
+                        seriesIndex,
+                        weatherConditions: record.weatherConditions,
+                        tireCompound: record.tireCompound,
+                        group: record.group,
+                        organizer: record.organizer
+                    };
+                });
 
-                // Calculate positions (0-100)
-                const x = this.calculateXPosition(dateMs);
-                const y = this.calculateYPosition(timeSeconds);
+                const sessionPolyline = points.map(p => `${p.x},${p.y}`).join(' ');
+                const recordPoints = this.extractRecordPoints(points);
+                const recordStepPolyline = this.buildStepPolyline(points);
+
+                const firstSeconds = points[0]?.timeSeconds ?? 0;
+                const bestSeconds = Math.min(...points.map(p => p.timeSeconds));
 
                 return {
-                    x,
-                    y,
-                    time: record.best_lap_time,
-                    timeSeconds,
-                    date: new Date(record.date_achieved),
-                    dateLabel: this.formatDate(new Date(record.date_achieved)),
-                    seriesName: series.name,
-                    seriesColor: series.color,
-                    seriesIndex
+                    name: series.name,
+                    color: series.color,
+                    points,
+                    sessionPolyline,
+                    recordStepPolyline,
+                    recordPoints,
+                    bestSeconds,
+                    firstSeconds
                 };
             });
 
-            // Generate polyline points string
-            const polylinePoints = points.map(p => `${p.x},${p.y}`).join(' ');
+        const currentVisible = new Set(this.visibleSeries);
+        this.visibleSeries = new Set(
+            this.processedSeries
+                .map(series => series.name)
+                .filter(name => currentVisible.size === 0 || currentVisible.has(name))
+        );
 
-            this.processedSeries.push({
-                name: series.name,
-                color: series.color,
-                points,
-                polylinePoints
-            });
+        if (this.visibleSeries.size === 0) {
+            this.visibleSeries = new Set(this.processedSeries.map(series => series.name));
+        }
 
-            this.allPoints.push(...points);
-        });
+        if (absoluteCandidate) {
+            this.absoluteRecord = {
+                time: absoluteCandidate.time,
+                timeSeconds: absoluteCandidate.timeSeconds,
+                date: absoluteCandidate.date,
+                seriesName: absoluteCandidate.seriesName,
+                seriesColor: absoluteCandidate.seriesColor,
+                y: this.calculateYPosition(absoluteCandidate.timeSeconds),
+                dateLabel: this.formatDate(absoluteCandidate.date)
+            };
+        } else {
+            this.absoluteRecord = null;
+        }
 
         this.generateYAxisLabels();
         this.generateXAxisLabels();
     }
 
+    private extractRecordPoints(points: ChartPoint[]): ChartPoint[] {
+        const milestones: ChartPoint[] = [];
+        let currentBest = Number.POSITIVE_INFINITY;
+
+        points.forEach(point => {
+            if (point.timeSeconds < currentBest) {
+                milestones.push(point);
+                currentBest = point.timeSeconds;
+            }
+        });
+
+        return milestones;
+    }
+
+    private buildStepPolyline(points: ChartPoint[]): string {
+        if (!points.length) {
+            return '';
+        }
+
+        const coords: string[] = [];
+        let currentBestY = points[0].y;
+        let currentBestSeconds = points[0].timeSeconds;
+
+        coords.push(`${points[0].x},${currentBestY}`);
+
+        for (let i = 1; i < points.length; i++) {
+            const point = points[i];
+            coords.push(`${point.x},${currentBestY}`);
+
+            if (point.timeSeconds < currentBestSeconds) {
+                currentBestSeconds = point.timeSeconds;
+                currentBestY = point.y;
+                coords.push(`${point.x},${currentBestY}`);
+            }
+        }
+
+        return coords.join(' ');
+    }
+
+    private getDailyBestRecords(records: ChartRecord[]): {
+        date: Date;
+        bestLapTime: string;
+        timeSeconds: number;
+        weatherConditions?: string;
+        tireCompound?: string;
+        group?: string;
+        organizer?: string;
+    }[] {
+        const dailyBest = new Map<string, {
+            date: Date;
+            bestLapTime: string;
+            timeSeconds: number;
+            weatherConditions?: string;
+            tireCompound?: string;
+            group?: string;
+            organizer?: string;
+        }>();
+
+        records.forEach(record => {
+            const date = new Date(record.date_achieved);
+            const timeSeconds = this.timeToSeconds(record.best_lap_time);
+            if (!Number.isFinite(date.getTime()) || !Number.isFinite(timeSeconds)) {
+                return;
+            }
+
+            const key = this.dateKey(date);
+            const existing = dailyBest.get(key);
+            if (!existing || timeSeconds < existing.timeSeconds) {
+                dailyBest.set(key, {
+                    date,
+                    bestLapTime: record.best_lap_time,
+                    timeSeconds,
+                    weatherConditions: this.normalizeOptional(record['weather_conditions']),
+                    tireCompound: this.normalizeOptional(record['tire_compound']),
+                    group: this.normalizeOptional(record['group']),
+                    organizer: this.normalizeOptional(record['organizer'])
+                });
+            }
+        });
+
+        return [...dailyBest.values()].sort((a, b) => a.date.getTime() - b.date.getTime());
+    }
+
+    private dateKey(date: Date): string {
+        const year = date.getFullYear();
+        const month = `${date.getMonth() + 1}`.padStart(2, '0');
+        const day = `${date.getDate()}`.padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    private normalizeOptional(value: unknown): string | undefined {
+        if (typeof value !== 'string') {
+            return undefined;
+        }
+        const trimmed = value.trim();
+        return trimmed ? trimmed : undefined;
+    }
+
     private calculateXPosition(dateMs: number): number {
-        if (this.maxDate === this.minDate) return 50;
+        if (this.maxDate === this.minDate) {
+            return 50;
+        }
         return ((dateMs - this.minDate) / (this.maxDate - this.minDate)) * 100;
     }
 
     private calculateYPosition(timeSeconds: number): number {
-        if (this.maxTime === this.minTime) return 50;
-        // Invert Y-axis: Faster times (lower seconds) at BOTTOM (100%)
-        // Slowest times (higher seconds) at TOP (0%)
+        if (this.maxTime === this.minTime) {
+            return 50;
+        }
         const normalized = (timeSeconds - this.minTime) / (this.maxTime - this.minTime);
         return (1 - normalized) * 100;
     }
 
     private generateYAxisLabels(): void {
         this.yAxisLabels = [];
-        const numLabels = 5;
+        const labelCount = 5;
         const range = this.maxTime - this.minTime;
 
-        for (let i = 0; i < numLabels; i++) {
-            const fraction = i / (numLabels - 1);
-            const timeValue = this.minTime + (range * fraction);
-
-            // Inverted position: 0 (Fastest) -> 100% (Bottom)
-            const position = (1 - fraction) * 100;
-
+        for (let i = 0; i < labelCount; i++) {
+            const fraction = i / (labelCount - 1);
             this.yAxisLabels.push({
-                value: this.secondsToTime(timeValue),
-                position
+                value: this.secondsToTime(this.minTime + (range * fraction)),
+                position: (1 - fraction) * 100
             });
         }
     }
@@ -210,66 +480,58 @@ export class CircuitEvolutionChartComponent implements OnChanges {
     private generateXAxisLabels(): void {
         this.xAxisLabels = [];
 
-        // Get unique dates with their positions, sorted by date
-        const datePositions: { date: Date; position: number }[] = [];
-        const seenDates = new Set<string>();
+        const visiblePoints = this.renderedSeries.flatMap(series => series.points);
+        if (!visiblePoints.length) {
+            return;
+        }
 
-        this.allPoints.forEach(p => {
-            const dateStr = p.date.toDateString();
-            if (!seenDates.has(dateStr)) {
-                seenDates.add(dateStr);
-                datePositions.push({
-                    date: p.date,
-                    position: this.calculateXPosition(p.date.getTime())
+        const uniqueDates = new Map<string, { date: Date; position: number }>();
+        visiblePoints.forEach(point => {
+            const key = point.date.toISOString().slice(0, 10);
+            if (!uniqueDates.has(key)) {
+                uniqueDates.set(key, {
+                    date: point.date,
+                    position: this.calculateXPosition(point.date.getTime())
                 });
             }
         });
 
-        // Sort by position
-        datePositions.sort((a, b) => a.position - b.position);
+        const sorted = [...uniqueDates.values()].sort((a, b) => a.position - b.position);
+        if (sorted.length <= 3) {
+            this.xAxisLabels = sorted.map(item => ({
+                label: this.formatDate(item.date),
+                position: item.position
+            }));
+            return;
+        }
 
-        // Minimum spacing between labels (in percentage)
-        const minSpacing = 15;
-        const filteredPositions: { date: Date; position: number }[] = [];
+        const first = sorted[0];
+        const mid = sorted[Math.floor(sorted.length / 2)];
+        const last = sorted[sorted.length - 1];
 
-        datePositions.forEach(dp => {
-            // Check if this label is far enough from all existing labels
-            const isFarEnough = filteredPositions.every(
-                existing => Math.abs(existing.position - dp.position) >= minSpacing
-            );
-            if (isFarEnough) {
-                filteredPositions.push(dp);
-            }
-        });
-
-        // Generate labels from filtered positions
-        filteredPositions.forEach(dp => {
-            this.xAxisLabels.push({
-                label: this.formatDate(dp.date),
-                position: dp.position
-            });
-        });
+        this.xAxisLabels = [
+            { label: this.formatDate(first.date), position: first.position },
+            { label: this.formatDate(mid.date), position: mid.position },
+            { label: this.formatDate(last.date), position: last.position }
+        ];
     }
 
     private timeToSeconds(timeStr: string): number {
-        try {
-            const parts = timeStr.split(':');
-            if (parts.length === 2) {
-                return parseInt(parts[0]) * 60 + parseFloat(parts[1]);
-            }
-            return parseFloat(parts[0]);
-        } catch {
-            return 0;
+        const parts = timeStr.split(':');
+        if (parts.length === 2) {
+            return parseInt(parts[0], 10) * 60 + parseFloat(parts[1]);
         }
+        return parseFloat(parts[0]);
     }
 
-    private secondsToTime(seconds: number): string {
-        const m = Math.floor(seconds / 60);
-        const s = Math.floor(seconds % 60);
-        return `${m}:${s.toString().padStart(2, '0')}`;
+    secondsToTime(seconds: number): string {
+        const safe = Math.max(0, seconds);
+        const m = Math.floor(safe / 60);
+        const s = safe - (m * 60);
+        return `${m}:${s.toFixed(3).padStart(6, '0')}`;
     }
 
     private formatDate(date: Date): string {
-        return date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
     }
 }

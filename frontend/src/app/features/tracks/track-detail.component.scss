@@ -247,35 +247,6 @@
     mat-card-content {
         padding: 1.5rem;
     }
-
-    .chart-legend {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        margin-top: 1rem;
-        justify-content: center;
-        padding-top: 1rem;
-        border-top: 1px solid #f0f0f0;
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            color: #4a5568;
-
-            .color-dot {
-                width: 12px;
-                height: 12px;
-                border-radius: 50%;
-                display: inline-block;
-            }
-
-            .vehicle-name {
-                font-weight: 500;
-            }
-        }
-    }
 }
 
 .vehicles-card {

@@ -64,7 +64,11 @@ export class TrackDetailComponent implements OnInit {
                 color: VEHICLE_COLORS[index % VEHICLE_COLORS.length],
                 records: group.records.map(r => ({
                     best_lap_time: r.best_lap_time,
-                    date_achieved: r.date_achieved
+                    date_achieved: r.date_achieved,
+                    weather_conditions: r.weather_conditions,
+                    tire_compound: r.tire_compound,
+                    group: r.group,
+                    organizer: r.organizer
                 }))
             }));
     }

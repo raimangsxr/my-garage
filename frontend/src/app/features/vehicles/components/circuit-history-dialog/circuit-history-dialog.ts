@@ -32,9 +32,12 @@ export class CircuitHistoryDialogComponent {
 
     sortBy: 'date' | 'time' = 'date';
     sortDirection: 'asc' | 'desc' = 'desc';
-    selectedPointIndex: number | null = null; // Track which marker is clicked
+    selectedPointIndex: number | null = null;
+    selectedPointType: 'session' | 'record' = 'record';
+    showSessionTrend = true;
 
-    selectPoint(index: number): void {
+    selectPoint(index: number, type: 'session' | 'record' = 'record'): void {
+        this.selectedPointType = type;
         this.selectedPointIndex = this.selectedPointIndex === index ? null : index;
     }
 
@@ -59,105 +62,160 @@ export class CircuitHistoryDialogComponent {
         )[0];
     }
 
-    get chartData(): {
-        points: string,
-        areaPoints: string,
-        dataPoints: { x: number, y: number, xPercent: number, yPercent: number, time: string, date: Date, dateLabel: string }[],
-        yScale: { labels: { value: string, position: number }[] },
-        xLabels: { x: number, label: string }[],
-        scaleMin: number,
-        scaleMax: number
-    } {
-        const records = [...this.data.records].sort((a, b) =>
+    get recordsByDate(): TrackRecord[] {
+        return [...this.data.records].sort((a, b) =>
             new Date(a.date_achieved).getTime() - new Date(b.date_achieved).getTime()
         );
+    }
 
-        if (records.length < 2) return {
-            points: '',
-            areaPoints: '',
-            dataPoints: [],
-            yScale: { labels: [] },
-            xLabels: [],
-            scaleMin: 0,
-            scaleMax: 0
-        };
-
-        const times = records.map(r => this.timeToSeconds(r.best_lap_time));
-        const minTime = Math.min(...times);
-        const maxTime = Math.max(...times);
-
-        // Fixed scale: 2 seconds below best (faster), 2 seconds above worst (slower)
-        const scaleMin = minTime - 2;  // Fastest possible (will be at top)
-        const scaleMax = maxTime + 2;  // Slowest possible (will be at bottom)
-        const scaleRange = scaleMax - scaleMin;
-
-        // Calculate data points
-        const dataPoints = records.map((r, i) => {
-            const x = (i / (records.length - 1)) * 100;
-            const time = this.timeToSeconds(r.best_lap_time);
-
-            // Y position: faster times (lower numbers) at BOTTOM (y=100), slower times (higher numbers) at TOP (y=0)
-            const normalized = (time - scaleMin) / scaleRange;
-            const y = 100 - (normalized * 100); // Invert: faster at bottom (100), slower at top (0)
-
-            const date = new Date(r.date_achieved);
+    get chartData(): {
+        hasEnoughData: boolean,
+        yScale: { labels: { value: string, position: number }[] },
+        xLabels: { x: number, label: string }[],
+        sessionLine: string,
+        recordStepLine: string,
+        recordArea: string,
+        sessionPoints: {
+            record: TrackRecord,
+            x: number,
+            y: number,
+            xPercent: number,
+            yPercent: number,
+            dateLabel: string,
+            seconds: number,
+            improvementFromPrevious?: number | null
+        }[],
+        recordPoints: {
+            record: TrackRecord,
+            x: number,
+            y: number,
+            xPercent: number,
+            yPercent: number,
+            dateLabel: string,
+            seconds: number,
+            improvementFromPrevious: number | null
+        }[],
+        firstTime: number | null,
+        bestTime: number | null
+    } {
+        const records = this.recordsByDate;
+        if (records.length < 2) {
             return {
+                hasEnoughData: false,
+                yScale: { labels: [] },
+                xLabels: [],
+                sessionLine: '',
+                recordStepLine: '',
+                recordArea: '',
+                sessionPoints: [],
+                recordPoints: [],
+                firstTime: null,
+                bestTime: null
+            };
+        }
+
+        const sessionSeconds = records.map(r => this.timeToSeconds(r.best_lap_time));
+        const minSession = Math.min(...sessionSeconds);
+        const maxSession = Math.max(...sessionSeconds);
+        const margin = Math.max(0.8, (maxSession - minSession) * 0.12);
+        const scaleMin = Math.max(0, minSession - margin);
+        const scaleMax = maxSession + margin;
+        const scaleRange = Math.max(0.001, scaleMax - scaleMin);
+
+        const sessionPoints = records.map((record, index) => {
+            const x = (index / (records.length - 1)) * 100;
+            const seconds = this.timeToSeconds(record.best_lap_time);
+            const y = ((seconds - scaleMin) / scaleRange) * 100;
+            return {
+                record,
                 x,
                 y,
                 xPercent: x,
-                yPercent: normalized * 100, // For HTML positioning (bottom-based): faster at 0, slower at 100
-                time: r.best_lap_time,
-                date,
-                dateLabel: this.formatDateShort(date)
+                yPercent: y,
+                dateLabel: this.formatDateShort(new Date(record.date_achieved)),
+                seconds,
+                improvementFromPrevious: null
             };
         });
 
-        const points = dataPoints.map(p => `${p.x},${p.y}`).join(' ');
+        const recordPoints: {
+            record: TrackRecord,
+            x: number,
+            y: number,
+            xPercent: number,
+            yPercent: number,
+            dateLabel: string,
+            seconds: number,
+            improvementFromPrevious: number | null
+        }[] = [];
+        let currentBest = Number.POSITIVE_INFINITY;
 
-        // Area polygon - close at bottom (y=100)
-        const areaPoints = `0,100 ${points} 100,100`;
+        sessionPoints.forEach(point => {
+            if (point.seconds < currentBest) {
+                recordPoints.push({
+                    ...point,
+                    improvementFromPrevious: Number.isFinite(currentBest) ? currentBest - point.seconds : null
+                });
+                currentBest = point.seconds;
+            }
+        });
 
-        // Generate Y-axis scale labels (4-5 evenly distributed labels)
+        const sessionLine = sessionPoints.map(p => `${p.x},${p.y}`).join(' ');
+        const recordStepLine = this.buildRecordStepLine(sessionPoints);
+        const recordArea = this.buildRecordArea(sessionPoints);
+
         const yScaleLabels: { value: string, position: number }[] = [];
-        const numLabels = 5; // Show 5 labels (top, 3 middle, bottom)
-
-        for (let i = 0; i < numLabels; i++) {
-            const fraction = i / (numLabels - 1);
-            const currentTime = scaleMin + (scaleRange * fraction);
-            const normalized = (currentTime - scaleMin) / scaleRange;
-            const svgY = 100 - (normalized * 100); // SVG: faster at bottom
-
+        const labelCount = 5;
+        for (let i = 0; i < labelCount; i++) {
+            const ratio = i / (labelCount - 1);
+            const value = scaleMin + (scaleRange * ratio);
             yScaleLabels.push({
-                value: this.secondsToTime(currentTime),
-                position: svgY // For CSS top positioning
+                value: this.secondsToTimeWithMillis(value),
+                position: ratio * 100
             });
         }
 
-        // Generate X-axis labels
-        const xLabels: { x: number, label: string }[] = [];
-        if (dataPoints.length > 0) {
-            xLabels.push({ x: dataPoints[0].x, label: dataPoints[0].dateLabel });
-
-            if (dataPoints.length > 2) {
-                const midIndex = Math.floor(dataPoints.length / 2);
-                xLabels.push({ x: dataPoints[midIndex].x, label: dataPoints[midIndex].dateLabel });
-            }
-
-            if (dataPoints.length > 1) {
-                const lastIndex = dataPoints.length - 1;
-                xLabels.push({ x: dataPoints[lastIndex].x, label: dataPoints[lastIndex].dateLabel });
-            }
-        }
+        const xLabels = this.buildXAxisLabels(sessionPoints);
 
         return {
-            points,
-            areaPoints,
-            dataPoints,
+            hasEnoughData: true,
             yScale: { labels: yScaleLabels },
             xLabels,
-            scaleMin,
-            scaleMax
+            sessionLine,
+            recordStepLine,
+            recordArea,
+            sessionPoints,
+            recordPoints,
+            firstTime: sessionPoints[0]?.seconds ?? null,
+            bestTime: currentBest !== Number.POSITIVE_INFINITY ? currentBest : null
         };
+    }
+
+    get selectedPoint() {
+        const data = this.chartData;
+        if (this.selectedPointIndex === null) {
+            return data.recordPoints[data.recordPoints.length - 1] ?? null;
+        }
+        if (this.selectedPointType === 'record') {
+            return data.recordPoints[this.selectedPointIndex] ?? null;
+        }
+        return data.sessionPoints[this.selectedPointIndex] ?? null;
+    }
+
+    get totalImprovementLabel(): string | null {
+        const data = this.chartData;
+        if (data.firstTime === null || data.bestTime === null) {
+            return null;
+        }
+        const improvement = data.firstTime - data.bestTime;
+        if (improvement <= 0) {
+            return null;
+        }
+        return this.formatDelta(improvement);
+    }
+
+    toggleSessionTrend(): void {
+        this.showSessionTrend = !this.showSessionTrend;
     }
 
     secondsToTime(seconds: number): string {
@@ -166,10 +224,21 @@ export class CircuitHistoryDialogComponent {
         return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
+    secondsToTimeWithMillis(seconds: number): string {
+        if (!Number.isFinite(seconds)) {
+            return '--:--.---';
+        }
+        const safeSeconds = Math.max(0, seconds);
+        const minutes = Math.floor(safeSeconds / 60);
+        const secs = safeSeconds - (minutes * 60);
+        return `${minutes}:${secs.toFixed(3).padStart(6, '0')}`;
+    }
+
     formatDateShort(date: Date): string {
         const month = date.toLocaleString('en', { month: 'short' });
         const day = date.getDate();
-        return `${month} ${day}`;
+        const year = date.getFullYear().toString().slice(-2);
+        return `${month} ${day} '${year}`;
     }
 
     toggleSort(column: 'date' | 'time') {
@@ -200,6 +269,74 @@ export class CircuitHistoryDialogComponent {
         } catch (e) {
             return 999999; // Fallback for bad data
         }
+    }
+
+    private buildXAxisLabels(points: { x: number, dateLabel: string }[]): { x: number, label: string }[] {
+        if (points.length === 0) {
+            return [];
+        }
+        if (points.length <= 3) {
+            return points.map(p => ({ x: p.x, label: p.dateLabel }));
+        }
+        const first = points[0];
+        const mid = points[Math.floor(points.length / 2)];
+        const last = points[points.length - 1];
+        return [
+            { x: first.x, label: first.dateLabel },
+            { x: mid.x, label: mid.dateLabel },
+            { x: last.x, label: last.dateLabel }
+        ];
+    }
+
+    private buildRecordStepLine(points: { x: number, y: number }[]): string {
+        if (points.length === 0) {
+            return '';
+        }
+        const coordinates: string[] = [];
+        let runningBest = Number.POSITIVE_INFINITY;
+        let previousX = points[0].x;
+        let previousY = points[0].y;
+
+        points.forEach((point, index) => {
+            const isImprovement = point.y < runningBest || index === 0;
+            if (index === 0) {
+                coordinates.push(`${point.x},${point.y}`);
+                runningBest = point.y;
+                return;
+            }
+
+            coordinates.push(`${point.x},${previousY}`);
+
+            if (isImprovement && point.y !== previousY) {
+                coordinates.push(`${point.x},${point.y}`);
+                previousY = point.y;
+            }
+
+            previousX = point.x;
+            runningBest = Math.min(runningBest, point.y);
+        });
+
+        if (previousX < 100) {
+            coordinates.push(`100,${previousY}`);
+        }
+
+        return coordinates.join(' ');
+    }
+
+    private buildRecordArea(points: { x: number, y: number }[]): string {
+        const stepLine = this.buildRecordStepLine(points);
+        if (!stepLine) {
+            return '';
+        }
+        return `0,100 ${stepLine} 100,100`;
+    }
+
+    private formatDelta(seconds: number): string {
+        const millis = Math.round(seconds * 1000);
+        const sign = millis >= 0 ? '-' : '+';
+        const abs = Math.abs(millis);
+        const secs = (abs / 1000).toFixed(3);
+        return `${sign}${secs}s`;
     }
 
     editRecord(record: TrackRecord) {

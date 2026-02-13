@@ -39,8 +39,7 @@ export class TrackRecordsComponent {
     const bestRecords: TrackRecord[] = [];
 
     grouped.forEach((records) => {
-      // Sort records for this circuit by time (ascending)
-      records.sort((a, b) => a.best_lap_time.localeCompare(b.best_lap_time));
+      records.sort((a, b) => this.timeToSeconds(a.best_lap_time) - this.timeToSeconds(b.best_lap_time));
       // Take the best one
       if (records.length > 0) {
         bestRecords.push(records[0]);
@@ -51,7 +50,7 @@ export class TrackRecordsComponent {
       if (this.sortBy === 'circuit') {
         return a.circuit_name.localeCompare(b.circuit_name);
       } else {
-        return a.best_lap_time.localeCompare(b.best_lap_time);
+        return this.timeToSeconds(a.best_lap_time) - this.timeToSeconds(b.best_lap_time);
       }
     });
   }
@@ -96,5 +95,13 @@ export class TrackRecordsComponent {
 
   getCircuitSessionCount(circuitName: string): number {
     return this.records.filter(r => r.circuit_name === circuitName).length;
+  }
+
+  private timeToSeconds(timeStr: string): number {
+    const parts = timeStr.split(':');
+    if (parts.length === 2) {
+      return parseInt(parts[0], 10) * 60 + parseFloat(parts[1]);
+    }
+    return parseFloat(parts[0]);
   }
 }

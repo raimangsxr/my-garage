@@ -1,66 +1,128 @@
-<div class="chart-wrapper" [style.height]="height" (click)="onChartClick($event)">
-    <div class="chart-container">
-        <!-- Y-axis labels -->
-        <div class="y-axis">
-            <div *ngFor="let label of yAxisLabels" class="y-label" [style.top.%]="label.position">
-                {{ label.value }}
-            </div>
+<div class="chart-shell" (click)="onChartClick()">
+    <div class="chart-toolbar">
+        <div class="toolbar-group">
+            <button type="button" class="mode-btn" [class.active]="viewMode === 'both'" (click)="setViewMode('both'); $event.stopPropagation()">
+                Record + Sessions
+            </button>
+            <button type="button" class="mode-btn" [class.active]="viewMode === 'record'" (click)="setViewMode('record'); $event.stopPropagation()">
+                Record only
+            </button>
+            <button type="button" class="mode-btn" [class.active]="viewMode === 'session'" (click)="setViewMode('session'); $event.stopPropagation()">
+                Daily sessions
+            </button>
         </div>
+        <button type="button" class="reset-btn" (click)="resetSeriesVisibility(); $event.stopPropagation()">Reset vehicles</button>
+    </div>
 
-        <!-- Chart area -->
-        <div class="chart-area">
-            <!-- Grid lines -->
-            <div *ngFor="let label of yAxisLabels" class="grid-line" [style.top.%]="label.position"></div>
+    <div class="absolute-record" *ngIf="absoluteRecord">
+        <span class="label">Absolute record</span>
+        <span class="time">{{ absoluteRecord.time }}</span>
+        <span class="meta">{{ absoluteRecord.seriesName }} · {{ absoluteRecord.dateLabel }}</span>
+    </div>
 
-            <!-- SVG for lines - use vector-effect for consistent stroke -->
-            <svg class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <ng-container *ngFor="let series of processedSeries">
-                    <polyline [attr.points]="series.polylinePoints" fill="none" [attr.stroke]="series.color"
-                        stroke-width="2" vector-effect="non-scaling-stroke" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                </ng-container>
-            </svg>
-
-            <!-- Data point markers -->
-            <div class="markers-layer">
-                <div *ngFor="let point of allPoints" class="marker" [style.left.%]="point.x" [style.top.%]="point.y"
-                    [style.background-color]="point.seriesColor" [class.active]="selectedPoint === point"
-                    (mouseenter)="onMarkerEnter(point)"
-                    (mouseleave)="onMarkerLeave(point)"
-                    (click)="onMarkerClick(point, $event)">
+    <div class="chart-wrapper" [style.height]="height">
+        <div class="chart-container">
+            <div class="y-axis">
+                <div *ngFor="let label of yAxisLabels" class="y-label" [style.top.%]="label.position">
+                    {{ label.value }}
                 </div>
             </div>
 
-            <!-- Tooltip (rendered outside markers layer for better z-index) -->
-            <div class="tooltip-container" *ngIf="selectedPoint">
-                <div class="tooltip" [style.left.%]="selectedPoint.x" [style.top.%]="selectedPoint.y"
-                    [class.tooltip-left]="selectedPoint.x > 70" [class.tooltip-right]="selectedPoint.x < 30"
-                    (click)="$event.stopPropagation()">
-                    <div class="tooltip-arrow"></div>
-                    <div class="tooltip-content">
-                        <div class="tooltip-header" [style.color]="selectedPoint.seriesColor">
-                            {{ selectedPoint.seriesName }}
-                        </div>
-                        <div class="tooltip-body">
-                            <div class="tooltip-time">
-                                <mat-icon>timer</mat-icon>
-                                <span>{{ selectedPoint.time }}</span>
+            <div class="chart-area">
+                <div *ngFor="let label of yAxisLabels" class="grid-line" [style.top.%]="label.position"></div>
+
+                <svg class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <line *ngIf="absoluteRecord" x1="0" x2="100" [attr.y1]="absoluteRecord.y" [attr.y2]="absoluteRecord.y"
+                        stroke="#b45309" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" />
+
+                    <ng-container *ngFor="let series of renderedSeries">
+                        <polyline *ngIf="viewMode !== 'record'" [attr.points]="series.sessionPolyline" fill="none" [attr.stroke]="series.color"
+                            stroke-width="1.2" stroke-dasharray="2 2" vector-effect="non-scaling-stroke" stroke-linecap="round"
+                            [attr.opacity]="isSeriesDimmed(series.name) ? 0.22 : 0.5" />
+
+                        <polyline *ngIf="viewMode !== 'session'" [attr.points]="series.recordStepPolyline" fill="none" [attr.stroke]="series.color"
+                            stroke-width="2.7" vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round"
+                            [attr.opacity]="isSeriesDimmed(series.name) ? 0.24 : 1" />
+                    </ng-container>
+                </svg>
+
+                <div *ngIf="absoluteRecord" class="absolute-line-label" [style.top.%]="absoluteRecord.y">
+                    Absolute {{ absoluteRecord.time }}
+                </div>
+
+                <div class="markers-layer">
+                    <div *ngFor="let point of renderedPoints" class="marker" [style.left.%]="point.x" [style.top.%]="point.y"
+                        [style.background-color]="point.seriesColor" [class.active]="selectedPoint === point"
+                        [class.dimmed]="isSeriesDimmed(point.seriesName)" (mouseenter)="onMarkerEnter(point)"
+                        (mouseleave)="onMarkerLeave(point)" (click)="onMarkerClick(point, $event)">
+                    </div>
+                </div>
+
+                <div class="tooltip-container" *ngIf="selectedPoint">
+                    <div class="tooltip" [style.left.%]="selectedPoint.x" [style.top.%]="selectedPoint.y"
+                        [class.tooltip-left]="selectedPoint.x > 76" [class.tooltip-right]="selectedPoint.x < 24"
+                        (click)="$event.stopPropagation()">
+                        <div class="tooltip-arrow"></div>
+                        <div class="tooltip-content">
+                            <div class="tooltip-header">
+                                <span class="tooltip-series-dot" [style.background-color]="selectedPoint.seriesColor"></span>
+                                <span class="tooltip-series-name">{{ selectedPoint.seriesName }}</span>
                             </div>
-                            <div class="tooltip-date">
-                                <mat-icon>calendar_today</mat-icon>
-                                <span>{{ selectedPoint.dateLabel }}</span>
+                            <div class="tooltip-body">
+                                <div class="tooltip-time">
+                                    <mat-icon>timer</mat-icon>
+                                    <span>{{ selectedPoint.time }}</span>
+                                </div>
+                                <div class="tooltip-delta" *ngIf="getSelectedVsAbsoluteDelta() as delta"
+                                    [class.better]="delta < 0" [class.worse]="delta > 0">
+                                    <mat-icon>compare_arrows</mat-icon>
+                                    <span>{{ formatRelativeDelta(delta) }}</span>
+                                </div>
+                                <div class="tooltip-date">
+                                    <mat-icon>calendar_today</mat-icon>
+                                    <span>{{ selectedPoint.dateLabel }}</span>
+                                </div>
+                            </div>
+                            <div class="tooltip-meta" *ngIf="selectedPoint.weatherConditions || selectedPoint.tireCompound || selectedPoint.group || selectedPoint.organizer">
+                                <div class="tooltip-meta-item" *ngIf="selectedPoint.weatherConditions">
+                                    <mat-icon>wb_sunny</mat-icon>
+                                    <span>{{ selectedPoint.weatherConditions }}</span>
+                                </div>
+                                <div class="tooltip-meta-item" *ngIf="selectedPoint.tireCompound">
+                                    <mat-icon>album</mat-icon>
+                                    <span>{{ selectedPoint.tireCompound }}</span>
+                                </div>
+                                <div class="tooltip-meta-item" *ngIf="selectedPoint.group">
+                                    <mat-icon>groups</mat-icon>
+                                    <span>{{ selectedPoint.group }}</span>
+                                </div>
+                                <div class="tooltip-meta-item" *ngIf="selectedPoint.organizer">
+                                    <mat-icon>business</mat-icon>
+                                    <span>{{ selectedPoint.organizer }}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="x-axis">
+            <div *ngFor="let label of xAxisLabels" class="x-label" [style.left.%]="label.position">
+                {{ label.label }}
+            </div>
+        </div>
     </div>
 
-    <!-- X-axis labels -->
-    <div class="x-axis">
-        <div *ngFor="let label of xAxisLabels" class="x-label" [style.left.%]="label.position">
-            {{ label.label }}
-        </div>
+    <div class="chart-legend">
+        <button *ngFor="let series of processedSeries" type="button" class="legend-item"
+            [class.hidden]="!isSeriesVisible(series.name)" [class.focused]="focusSeriesName === series.name"
+            (mouseenter)="onLegendEnter(series.name)" (mouseleave)="onLegendLeave()" (click)="toggleSeries(series.name); $event.stopPropagation()"
+            (dblclick)="isolateSeries(series.name, $event)">
+            <span class="color-dot" [style.background-color]="series.color"></span>
+            <span class="vehicle-name">{{ series.name }}</span>
+            <span class="best-time">{{ secondsToTime(series.bestSeconds) }}</span>
+            <span class="improvement">-{{ getImprovementLabel(series) }}</span>
+        </button>
     </div>
 </div>

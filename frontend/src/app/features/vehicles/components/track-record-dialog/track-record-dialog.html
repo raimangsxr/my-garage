@@ -43,14 +43,33 @@
             <mat-form-field appearance="outline">
                 <mat-label>Weather Conditions</mat-label>
                 <mat-select formControlName="weather_conditions">
-                    <mat-option *ngFor="let opt of ['Sunny', 'Cloudy', 'Wet', 'Rainy']" [value]="opt">{{ opt
-                        }}</mat-option>
+                    <mat-option *ngFor="let opt of weatherOptions" [value]="opt">{{ opt }}</mat-option>
                 </mat-select>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Tire Compound</mat-label>
-                <input matInput formControlName="tire_compound" placeholder="e.g. Soft, Medium">
+                <mat-select formControlName="tire_compound">
+                    <mat-option *ngFor="let opt of tireOptions" [value]="opt">{{ opt }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row" *ngIf="showWeatherOther || showTireOther">
+            <mat-form-field appearance="outline" *ngIf="showWeatherOther">
+                <mat-label>Weather (Other)</mat-label>
+                <input matInput formControlName="weather_conditions_other" placeholder="Write weather condition">
+                <mat-error *ngIf="form.get('weather_conditions_other')?.hasError('required')">
+                    This field is required
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="showTireOther">
+                <mat-label>Tires (Other)</mat-label>
+                <input matInput formControlName="tire_compound_other" placeholder="Write tire compound">
+                <mat-error *ngIf="form.get('tire_compound_other')?.hasError('required')">
+                    This field is required
+                </mat-error>
             </mat-form-field>
         </div>
 
@@ -58,17 +77,35 @@
             <mat-form-field appearance="outline">
                 <mat-label>Group</mat-label>
                 <mat-select formControlName="group">
-                    <mat-option
-                        *ngFor="let opt of ['Fast', 'Moderately Fast', 'Intermediate', 'Moderately Slow', 'Slow']"
-                        [value]="opt">{{ opt }}</mat-option>
+                    <mat-option *ngFor="let opt of groupOptions" [value]="opt">{{ opt }}</mat-option>
                 </mat-select>
             </mat-form-field>
 
             <mat-form-field appearance="outline">
                 <mat-label>Organizer</mat-label>
-                <mat-select formControlName="organizer">
-                    <mat-option *ngFor="let org of organizers" [value]="org">{{ org }}</mat-option>
-                </mat-select>
+                <input matInput formControlName="organizer" [matAutocomplete]="organizerAuto"
+                    placeholder="Search organizer...">
+                <mat-autocomplete #organizerAuto="matAutocomplete">
+                    <mat-option *ngFor="let org of filteredOrganizers" [value]="org">{{ org }}</mat-option>
+                </mat-autocomplete>
+            </mat-form-field>
+        </div>
+
+        <div class="form-row" *ngIf="showGroupOther || showOrganizerOther">
+            <mat-form-field appearance="outline" *ngIf="showGroupOther">
+                <mat-label>Group (Other)</mat-label>
+                <input matInput formControlName="group_other" placeholder="Write group name">
+                <mat-error *ngIf="form.get('group_other')?.hasError('required')">
+                    This field is required
+                </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" *ngIf="showOrganizerOther">
+                <mat-label>Organizer (Other)</mat-label>
+                <input matInput formControlName="organizer_other" placeholder="Write organizer name">
+                <mat-error *ngIf="form.get('organizer_other')?.hasError('required')">
+                    This field is required
+                </mat-error>
             </mat-form-field>
         </div>
 
