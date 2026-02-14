@@ -11,6 +11,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { TracksService } from './tracks.service';
 import { TrackDetail, VehicleRecordGroup } from './tracks.models';
 import { CircuitEvolutionChartComponent, ChartSeries } from '../../shared/components/circuit-evolution-chart/circuit-evolution-chart.component';
+import { buildApiUrl } from '../../core/utils/api-url.util';
+import { environment } from '../../../environments/environment';
 
 // Color palette for vehicles
 const VEHICLE_COLORS = [
@@ -48,8 +50,12 @@ export class TrackDetailComponent implements OnInit {
     private router = inject(Router);
 
     trackDetail: TrackDetail | null = null;
+    trackMapUrl: string | null = null;
+    mapUnavailable = false;
     loading = false;
     error: string | null = null;
+    private originalTrackMapUrl: string | null = null;
+    private tryingMapProxy = false;
 
     displayedColumns: string[] = ['date_achieved', 'best_lap_time', 'weather_conditions', 'tire_compound', 'group', 'organizer'];
 
@@ -89,6 +95,7 @@ export class TrackDetailComponent implements OnInit {
         this.tracksService.getTrackDetail(trackId).subscribe({
             next: (detail) => {
                 this.trackDetail = detail;
+                this.setTrackMapUrl(detail.image_url);
                 this.loading = false;
             },
             error: (err) => {
@@ -101,6 +108,24 @@ export class TrackDetailComponent implements OnInit {
 
     goBack() {
         this.router.navigate(['/tracks']);
+    }
+
+    onTrackMapLoadError(): void {
+        if (!this.originalTrackMapUrl) {
+            this.trackMapUrl = null;
+            this.mapUnavailable = true;
+            return;
+        }
+
+        // External providers sometimes reject direct embedding; retry once via backend proxy.
+        if (!this.tryingMapProxy && /^https?:\/\//i.test(this.originalTrackMapUrl)) {
+            this.tryingMapProxy = true;
+            this.trackMapUrl = this.buildProxyUrl(this.originalTrackMapUrl);
+            return;
+        }
+
+        this.trackMapUrl = null;
+        this.mapUnavailable = true;
     }
 
     getChartData(records: VehicleRecordGroup[]): any[] {
@@ -142,5 +167,39 @@ export class TrackDetailComponent implements OnInit {
         if (range === 0) return 100;
         // Invert: faster times (lower) should be taller bars
         return ((minMax.max - time) / range) * 100;
+    }
+
+    private setTrackMapUrl(rawUrl: string | null): void {
+        this.originalTrackMapUrl = rawUrl?.trim() || null;
+        this.tryingMapProxy = false;
+        this.mapUnavailable = false;
+
+        if (!this.originalTrackMapUrl) {
+            this.trackMapUrl = null;
+            this.mapUnavailable = true;
+            return;
+        }
+
+        this.trackMapUrl = this.toAbsoluteUrl(this.originalTrackMapUrl);
+    }
+
+    private toAbsoluteUrl(value: string): string {
+        if (/^(https?:|data:|blob:)/i.test(value)) {
+            return value;
+        }
+        if (value.startsWith('//')) {
+            return `https:${value}`;
+        }
+
+        const apiBase = environment.apiUrl.replace(/\/+$/, '');
+        const apiOrigin = apiBase.replace(/\/api\/v\d+\/?$/, '');
+        if (value.startsWith('/')) {
+            return `${apiOrigin}${value}`;
+        }
+        return `${apiOrigin}/${value}`;
+    }
+
+    private buildProxyUrl(url: string): string {
+        return `${buildApiUrl('vehicles/proxy-image')}?url=${encodeURIComponent(url)}`;
     }
 }

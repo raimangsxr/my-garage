@@ -73,10 +73,21 @@
                     </div>
 
                     <!-- Right Column: Map -->
-                    <div class="hero-map" *ngIf="trackDetail.image_url">
-                        <div class="map-container">
-                            <img [src]="trackDetail.image_url" [alt]="trackDetail.name + ' track map'">
+                    <div class="hero-map">
+                        <div class="map-container" *ngIf="trackMapUrl; else mapUnavailableTpl">
+                            <img
+                                [src]="trackMapUrl"
+                                [alt]="trackDetail.name + ' track map'"
+                                loading="lazy"
+                                decoding="async"
+                                (error)="onTrackMapLoadError()">
                         </div>
+                        <ng-template #mapUnavailableTpl>
+                            <div class="map-unavailable" *ngIf="mapUnavailable">
+                                <mat-icon>map</mat-icon>
+                                <p>Track map unavailable</p>
+                            </div>
+                        </ng-template>
                     </div>
                 </div>
             </mat-card-content>
