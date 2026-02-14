@@ -35,8 +35,14 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
                         errorMessage = 'Unable to connect to server. Please check your connection.';
                         break;
                     case 401:
-                        authService.logout();
-                        errorMessage = 'Session expired. Please login again.';
+                        if (req.url.includes('/auth/login/access-token') || req.url.includes('/auth/google/login')) {
+                            errorMessage = 'Login failed. Please check your credentials.';
+                        } else if (req.url.includes('/notifications')) {
+                            errorMessage = 'Unable to load notifications.';
+                        } else {
+                            authService.logout();
+                            errorMessage = 'Session expired. Please login again.';
+                        }
                         break;
                     case 403:
                         errorMessage = 'You do not have permission to perform this action.';

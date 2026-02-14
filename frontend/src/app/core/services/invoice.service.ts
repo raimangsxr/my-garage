@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, interval } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, interval, map, of, switchMap as rxSwitchMap } from 'rxjs';
 import { switchMap, takeWhile } from 'rxjs/operators';
-import { environment } from '../../../environments/environment';
+import { buildApiUrl } from '../utils/api-url.util';
+import { PaginatedResponse, normalizePaginated } from '../models/paginated.model';
 
 export interface Invoice {
     id?: number;
@@ -57,16 +58,50 @@ export interface InvoiceExtractedData {
     confidence: number;
 }
 
+export interface InvoicePageOptions {
+    skip?: number;
+    limit?: number;
+    q?: string;
+    status?: Invoice['status'] | '';
+    sortBy?: 'date' | 'amount' | 'number' | 'status' | 'supplier' | 'vehicle' | 'id';
+    sortDir?: 'asc' | 'desc';
+}
+
 @Injectable({
     providedIn: 'root'
 })
 export class InvoiceService {
-    private apiUrl = `${environment.apiUrl}/invoices`;
+    private apiUrl = buildApiUrl('invoices');
 
     constructor(private http: HttpClient) { }
 
+    getInvoicesPage(options: InvoicePageOptions = {}): Observable<PaginatedResponse<Invoice>> {
+        const skip = options.skip ?? 0;
+        const limit = options.limit ?? 100;
+        let params = new HttpParams()
+            .set('skip', skip)
+            .set('limit', limit);
+
+        if (options.q?.trim()) {
+            params = params.set('q', options.q.trim());
+        }
+        if (options.status) {
+            params = params.set('status', options.status);
+        }
+        if (options.sortBy) {
+            params = params.set('sort_by', options.sortBy);
+        }
+        if (options.sortDir) {
+            params = params.set('sort_dir', options.sortDir);
+        }
+
+        return this.http.get<Invoice[] | PaginatedResponse<Invoice>>(this.apiUrl, { params }).pipe(
+            map(response => normalizePaginated(response, skip, limit))
+        );
+    }
+
     getInvoices(): Observable<Invoice[]> {
-        return this.http.get<Invoice[]>(`${this.apiUrl}/`);
+        return this.getAllInvoices(0, []);
     }
 
     getInvoice(id: number): Observable<Invoice> {
@@ -122,6 +157,19 @@ export class InvoiceService {
                 invoice.status === 'pending' || invoice.status === 'processing',
                 true
             )
+        );
+    }
+
+    private getAllInvoices(skip: number, acc: Invoice[]): Observable<Invoice[]> {
+        const pageSize = 200;
+        return this.getInvoicesPage({ skip, limit: pageSize }).pipe(
+            rxSwitchMap(page => {
+                const merged = [...acc, ...page.items];
+                if (merged.length >= page.total) {
+                    return of(merged);
+                }
+                return this.getAllInvoices(skip + pageSize, merged);
+            })
         );
     }
 }

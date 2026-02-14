@@ -1,14 +1,14 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../environments/environment';
+import { buildApiUrl } from '../core/utils/api-url.util';
 
 @Injectable({
     providedIn: 'root'
 })
 export class OrganizerService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/organizers`;
+    private apiUrl = buildApiUrl('organizers');
 
     getOrganizers(): Observable<string[]> {
         return this.http.get<string[]>(this.apiUrl);

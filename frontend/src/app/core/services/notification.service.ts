@@ -1,8 +1,10 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject, map, of, tap } from 'rxjs';
 import { LoggerService } from './logger.service';
+import { buildApiUrl } from '../utils/api-url.util';
+import { PaginatedResponse, normalizePaginated } from '../models/paginated.model';
+import { AuthService } from './auth.service';
 
 export interface Notification {
     id: number;
@@ -19,8 +21,9 @@ export interface Notification {
 })
 export class NotificationService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/notifications/`;
+    private apiUrl = buildApiUrl('notifications');
     private logger = inject(LoggerService);
+    private authService = inject(AuthService);
 
     private notificationsSubject = new BehaviorSubject<Notification[]>([]);
     notifications$ = this.notificationsSubject.asObservable();
@@ -28,29 +31,63 @@ export class NotificationService {
     private unreadCountSubject = new BehaviorSubject<number>(0);
     unreadCount$ = this.unreadCountSubject.asObservable();
 
-    constructor() {
-        this.loadNotifications();
+    getNotificationsPage(skip = 0, limit = 100): Observable<PaginatedResponse<Notification>> {
+        if (!this.authService.getToken()) {
+            return of({ items: [], total: 0, skip, limit });
+        }
+
+        const params = new HttpParams()
+            .set('skip', skip)
+            .set('limit', limit);
+
+        return this.http.get<Notification[] | PaginatedResponse<Notification>>(this.apiUrl, { params }).pipe(
+            map(response => normalizePaginated(response, skip, limit))
+        );
     }
 
-    loadNotifications(): void {
-        this.http.get<Notification[]>(this.apiUrl).subscribe({
+    getNotifications(skip = 0, limit = 100): Observable<Notification[]> {
+        return this.getNotificationsPage(skip, limit).pipe(
+            tap(notifications => {
+                const items = notifications.items;
+                this.notificationsSubject.next(items);
+                this.updateUnreadCount(items);
+            }),
+            map(page => page.items)
+        );
+    }
+
+    loadNotifications(skip = 0, limit = 100): void {
+        if (!this.authService.getToken()) {
+            this.notificationsSubject.next([]);
+            this.unreadCountSubject.next(0);
+            return;
+        }
+
+        this.getNotificationsPage(skip, limit).subscribe({
             next: (notifications) => {
-                this.notificationsSubject.next(notifications);
-                this.updateUnreadCount(notifications);
+                const items = notifications.items;
+                this.notificationsSubject.next(items);
+                this.updateUnreadCount(items);
             },
             error: (err) => this.logger.error('Error loading notifications', err)
         });
     }
 
     checkNotifications(): void {
-        this.http.post(this.apiUrl + 'check', {}).subscribe({
+        if (!this.authService.getToken()) {
+            this.notificationsSubject.next([]);
+            this.unreadCountSubject.next(0);
+            return;
+        }
+
+        this.http.post(`${this.apiUrl}/check`, {}).subscribe({
             next: () => this.loadNotifications(),
             error: (err) => this.logger.error('Error checking notifications', err)
         });
     }
 
     markAsRead(id: number): Observable<Notification> {
-        return this.http.put<Notification>(`${this.apiUrl}${id}/read`, {}).pipe(
+        return this.http.put<Notification>(`${this.apiUrl}/${id}/read`, {}).pipe(
             tap(updated => {
                 const current = this.notificationsSubject.value;
                 const index = current.findIndex(n => n.id === id);
@@ -64,7 +101,7 @@ export class NotificationService {
     }
 
     markAsUnread(id: number): Observable<Notification> {
-        return this.http.put<Notification>(`${this.apiUrl}${id}/unread`, {}).pipe(
+        return this.http.put<Notification>(`${this.apiUrl}/${id}/unread`, {}).pipe(
             tap(updated => {
                 const current = this.notificationsSubject.value;
                 const index = current.findIndex(n => n.id === id);

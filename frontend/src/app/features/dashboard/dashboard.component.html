@@ -112,7 +112,7 @@
                             <div class="circuit-best-times">
                                 <h4>Best Times</h4>
                                 <div class="circuit-time-list">
-                                    <div *ngFor="let circuit of stats.circuit_summary.best_times_per_circuit"
+                                    <div *ngFor="let circuit of stats.circuit_summary.best_times_per_circuit; trackBy: trackByCircuitName"
                                         class="circuit-time-item">
                                         <div class="circuit-time-name">
                                             <mat-icon>track_changes</mat-icon>
@@ -136,9 +136,9 @@
                     <mat-card-content>
                         <div class="chart-container">
                             <div class="bar-chart">
-                                <div *ngFor="let monthData of stats.monthly_costs" class="bar-column">
+                                <div *ngFor="let monthData of monthlyCostsWithHeight; trackBy: trackByMonth" class="bar-column">
                                     <div class="bar-wrapper">
-                                        <div class="bar" [style.height.%]="getBarHeight(monthData.cost)">
+                                        <div class="bar" [style.height.%]="monthData.barHeight">
                                             <span class="bar-label">{{ monthData.cost | number:'1.0-0' }}€</span>
                                         </div>
                                     </div>
@@ -164,7 +164,7 @@
                         <p>No recent activity</p>
                     </div>
                     <div class="activity-list" *ngIf="stats.recent_activity.length > 0">
-                        <div *ngFor="let activity of stats.recent_activity" class="activity-item">
+                        <div *ngFor="let activity of stats.recent_activity; trackBy: trackByActivityId" class="activity-item">
                             <div class="activity-icon">
                                 <mat-icon>build</mat-icon>
                             </div>

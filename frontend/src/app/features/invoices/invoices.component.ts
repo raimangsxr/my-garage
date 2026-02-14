@@ -9,8 +9,8 @@ import { MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -50,8 +50,15 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     suppliers: Supplier[] = [];
     vehicles: Vehicle[] = [];
     isLoading = false;
+    totalInvoices = 0;
+    pageSize = 25;
+    pageIndex = 0;
+    filterValue = '';
+    sortBy: 'date' | 'amount' | 'number' | 'status' | 'supplier' | 'vehicle' | 'id' = 'date';
+    sortDir: 'asc' | 'desc' = 'desc';
     displayedColumns: string[] = ['status', 'number', 'date', 'vehicle', 'supplier', 'amount', 'actions'];
     private pollSubscriptions: Subscription[] = [];
+    private filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     @ViewChild(MatSort) sort!: MatSort;
     @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -70,27 +77,17 @@ export class InvoicesComponent implements OnInit, OnDestroy {
 
     ngAfterViewInit() {
         this.dataSource.sort = this.sort;
-        this.dataSource.paginator = this.paginator;
 
-        // Custom sorting for supplier name and other fields
-        this.dataSource.sortingDataAccessor = (item, property) => {
-            switch (property) {
-                case 'supplier':
-                    return this.getSupplierName(item.supplier_id).toLowerCase();
-                case 'vehicle':
-                    return this.getVehicleName(item.vehicle_id).toLowerCase();
-                case 'date':
-                    return item.date ? new Date(item.date).getTime() : 0;
-                case 'amount':
-                    return item.amount || 0;
-                default:
-                    return (item as any)[property];
-            }
-        };
+        this.sort.sortChange.subscribe((sort: Sort) => {
+            this.onSortChange(sort);
+        });
     }
 
     ngOnDestroy(): void {
         this.pollSubscriptions.forEach(sub => sub.unsubscribe());
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
+        }
     }
 
     loadData(): void {
@@ -124,9 +121,17 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     }
 
     loadInvoices(): void {
-        this.invoiceService.getInvoices().subscribe({
-            next: (data) => {
-                this.dataSource.data = data;
+        const skip = this.pageIndex * this.pageSize;
+        this.invoiceService.getInvoicesPage({
+            skip,
+            limit: this.pageSize,
+            q: this.filterValue,
+            sortBy: this.sortBy,
+            sortDir: this.sortDir
+        }).subscribe({
+            next: (page) => {
+                this.dataSource.data = page.items;
+                this.totalInvoices = page.total;
                 this.checkPendingInvoices();
                 this.isLoading = false;
             },
@@ -138,13 +143,34 @@ export class InvoicesComponent implements OnInit, OnDestroy {
         });
     }
 
-    applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value;
-        this.dataSource.filter = filterValue.trim().toLowerCase();
+    onPageChange(event: PageEvent): void {
+        this.pageIndex = event.pageIndex;
+        this.pageSize = event.pageSize;
+        this.loadInvoices();
+    }
 
-        if (this.dataSource.paginator) {
-            this.dataSource.paginator.firstPage();
+    applyFilter(event: Event) {
+        this.filterValue = (event.target as HTMLInputElement).value.trim();
+        this.pageIndex = 0;
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
         }
+        this.filterDebounceTimer = setTimeout(() => this.loadInvoices(), 250);
+    }
+
+    onSortChange(sort: Sort): void {
+        const sortMap: Record<string, 'date' | 'amount' | 'number' | 'status' | 'supplier' | 'vehicle' | 'id'> = {
+            number: 'number',
+            date: 'date',
+            amount: 'amount',
+            status: 'status',
+            supplier: 'supplier',
+            vehicle: 'vehicle'
+        };
+        this.sortBy = sortMap[sort.active] || 'date';
+        this.sortDir = (sort.direction || 'desc') as 'asc' | 'desc';
+        this.pageIndex = 0;
+        this.loadInvoices();
     }
 
     checkPendingInvoices() {
@@ -233,6 +259,9 @@ export class InvoicesComponent implements OnInit, OnDestroy {
         if (confirm('Are you sure you want to delete this invoice?')) {
             this.invoiceService.deleteInvoice(id).subscribe({
                 next: () => {
+                    if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
+                        this.pageIndex -= 1;
+                    }
                     this.loadInvoices();
                     this.showSnackBar('Invoice deleted successfully');
                 },

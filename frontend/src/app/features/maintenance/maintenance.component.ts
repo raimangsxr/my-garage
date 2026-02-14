@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,8 +7,8 @@ import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
+import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -41,7 +41,7 @@ import { LoggerService } from '../../core/services/logger.service';
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
 })
-export class MaintenanceComponent implements OnInit {
+export class MaintenanceComponent implements OnInit, OnDestroy {
     private maintenanceService = inject(MaintenanceService);
     private vehicleService = inject(VehicleService);
     private supplierService = inject(SupplierService);
@@ -53,6 +53,13 @@ export class MaintenanceComponent implements OnInit {
     vehicles: Vehicle[] = [];
     suppliers: Supplier[] = [];
     isLoading = false;
+    totalMaintenances = 0;
+    pageSize = 25;
+    pageIndex = 0;
+    filterValue = '';
+    sortBy: 'date' | 'description' | 'cost' | 'mileage' | 'vehicle' | 'supplier' | 'id' = 'date';
+    sortDir: 'asc' | 'desc' = 'desc';
+    private filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
     displayedColumns: string[] = ['date', 'vehicle', 'description', 'supplier', 'parts', 'invoices', 'cost', 'actions'];
 
     @ViewChild(MatSort) sort!: MatSort;
@@ -64,44 +71,32 @@ export class MaintenanceComponent implements OnInit {
 
     ngAfterViewInit() {
         this.dataSource.sort = this.sort;
-        this.dataSource.paginator = this.paginator;
+        this.sort.sortChange.subscribe((sort: Sort) => {
+            this.onSortChange(sort);
+        });
+    }
 
-        // Custom sorting for nested properties
-        this.dataSource.sortingDataAccessor = (item, property) => {
-            switch (property) {
-                case 'vehicle':
-                    return this.getVehicleName(item.vehicle_id).toLowerCase();
-                case 'supplier':
-                    return this.getSupplierName(item.supplier_id).toLowerCase();
-                case 'date':
-                    return item.date ? new Date(item.date).getTime() : 0;
-                default:
-                    return (item as any)[property];
-            }
-        };
-
-        // Custom filter predicate to search across multiple fields including related data
-        this.dataSource.filterPredicate = (data: Maintenance, filter: string) => {
-            const searchStr = filter.toLowerCase();
-            const vehicleName = this.getVehicleName(data.vehicle_id).toLowerCase();
-            const supplierName = this.getSupplierName(data.supplier_id).toLowerCase();
-            const description = (data.description || '').toLowerCase();
-            const date = (data.date || '').toLowerCase();
-
-            return vehicleName.includes(searchStr) ||
-                supplierName.includes(searchStr) ||
-                description.includes(searchStr) ||
-                date.includes(searchStr);
-        };
+    ngOnDestroy(): void {
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
+        }
     }
 
     applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value;
-        this.dataSource.filter = filterValue.trim().toLowerCase();
-
-        if (this.dataSource.paginator) {
-            this.dataSource.paginator.firstPage();
+        this.filterValue = (event.target as HTMLInputElement).value.trim();
+        this.pageIndex = 0;
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
         }
+        this.filterDebounceTimer = setTimeout(() => this.loadMaintenances(), 250);
+    }
+
+    onSortChange(sort: Sort): void {
+        const allowed = new Set(['date', 'description', 'cost', 'mileage', 'vehicle', 'supplier']);
+        this.sortBy = (allowed.has(sort.active) ? sort.active : 'date') as 'date' | 'description' | 'cost' | 'mileage' | 'vehicle' | 'supplier' | 'id';
+        this.sortDir = (sort.direction || 'desc') as 'asc' | 'desc';
+        this.pageIndex = 0;
+        this.loadMaintenances();
     }
 
     loadData(): void {
@@ -132,9 +127,16 @@ export class MaintenanceComponent implements OnInit {
     }
 
     loadMaintenances(): void {
-        this.maintenanceService.getMaintenances().subscribe({
-            next: (data) => {
-                this.dataSource.data = data;
+        this.maintenanceService.getMaintenancesPage({
+            skip: this.pageIndex * this.pageSize,
+            limit: this.pageSize,
+            q: this.filterValue,
+            sortBy: this.sortBy,
+            sortDir: this.sortDir
+        }).subscribe({
+            next: (page) => {
+                this.dataSource.data = page.items;
+                this.totalMaintenances = page.total;
                 this.isLoading = false;
             },
             error: (err) => {
@@ -143,6 +145,12 @@ export class MaintenanceComponent implements OnInit {
                 this.isLoading = false;
             }
         });
+    }
+
+    onPageChange(event: PageEvent): void {
+        this.pageIndex = event.pageIndex;
+        this.pageSize = event.pageSize;
+        this.loadMaintenances();
     }
 
     getVehicleName(vehicleId?: number): string {
@@ -196,6 +204,7 @@ export class MaintenanceComponent implements OnInit {
     createMaintenance(maintenance: Maintenance): void {
         this.maintenanceService.createMaintenance(maintenance).subscribe({
             next: () => {
+                this.pageIndex = 0;
                 this.loadMaintenances();
                 this.showSnackBar('Maintenance record created successfully');
             },
@@ -223,6 +232,9 @@ export class MaintenanceComponent implements OnInit {
         if (confirm('Are you sure you want to delete this maintenance record?')) {
             this.maintenanceService.deleteMaintenance(id).subscribe({
                 next: () => {
+                    if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
+                        this.pageIndex -= 1;
+                    }
                     this.loadMaintenances();
                     this.showSnackBar('Maintenance record deleted successfully');
                 },

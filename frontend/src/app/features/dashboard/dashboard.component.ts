@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -21,15 +21,18 @@ import { Subscription } from 'rxjs';
         RouterModule
     ],
     templateUrl: './dashboard.component.html',
-    styleUrls: ['./dashboard.component.scss']
+    styleUrls: ['./dashboard.component.scss'],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DashboardComponent implements OnInit, OnDestroy {
     stats: DashboardStats | null = null;
+    monthlyCostsWithHeight: Array<{ month: string; cost: number; barHeight: number }> = [];
     loading = true;
     error: string | null = null;
 
     private dashboardService = inject(DashboardService);
     private logger = inject(LoggerService);
+    private cdr = inject(ChangeDetectorRef);
     private subscriptions = new Subscription();
 
     ngOnInit(): void {
@@ -46,24 +49,42 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.dashboardService.getStats().subscribe({
                 next: (data) => {
                     this.stats = data;
+                    this.monthlyCostsWithHeight = this.buildMonthlyCostsWithHeight(data);
                     this.loading = false;
+                    this.cdr.markForCheck();
                 },
                 error: (err) => {
                     this.logger.error('Error loading dashboard stats', err);
                     this.error = 'Failed to load dashboard data';
                     this.loading = false;
+                    this.cdr.markForCheck();
                 }
             })
         );
     }
 
-    getMaxMonthlyCost(): number {
-        if (!this.stats?.monthly_costs.length) return 0;
-        return Math.max(...this.stats.monthly_costs.map(m => m.cost));
+    trackByMonth(_: number, item: { month: string }): string {
+        return item.month;
     }
 
-    getBarHeight(cost: number): number {
-        const max = this.getMaxMonthlyCost();
-        return max > 0 ? (cost / max) * 100 : 0;
+    trackByActivityId(_: number, item: { id: number }): number {
+        return item.id;
+    }
+
+    trackByCircuitName(_: number, item: { circuit_name: string }): string {
+        return item.circuit_name;
+    }
+
+    private buildMonthlyCostsWithHeight(
+        stats: DashboardStats
+    ): Array<{ month: string; cost: number; barHeight: number }> {
+        const monthlyCosts = stats.monthly_costs ?? [];
+        const maxCost = monthlyCosts.length ? Math.max(...monthlyCosts.map(item => item.cost)) : 0;
+
+        return monthlyCosts.map(item => ({
+            month: item.month,
+            cost: item.cost,
+            barHeight: maxCost > 0 ? (item.cost / maxCost) * 100 : 0,
+        }));
     }
 }

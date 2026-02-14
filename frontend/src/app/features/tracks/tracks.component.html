@@ -31,14 +31,14 @@
                 <mat-icon matPrefix>search</mat-icon>
             </mat-form-field>
 
-            <div *ngIf="filteredTracks.length === 0" class="empty-state">
+            <div *ngIf="tracks.length === 0" class="empty-state">
                 <mat-icon>event_busy</mat-icon>
                 <p>No tracks registered</p>
                 <p class="hint">Add track records from the vehicles section</p>
             </div>
 
-            <div *ngIf="filteredTracks.length > 0" class="table-container">
-                <table mat-table [dataSource]="filteredTracks" matSort (matSortChange)="sortData($event)"
+            <div *ngIf="tracks.length > 0" class="table-container">
+                <table mat-table [dataSource]="tracks" matSort (matSortChange)="sortData($event)"
                     class="circuits-table">
                     <!-- Circuit Name Column -->
                     <ng-container matColumnDef="name">
@@ -116,6 +116,15 @@
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="circuit-row"
                         (click)="viewTrackDetail(row)"></tr>
                 </table>
+
+                <mat-paginator
+                    [length]="totalTracks"
+                    [pageSize]="pageSize"
+                    [pageIndex]="pageIndex"
+                    [pageSizeOptions]="[10, 25, 50, 100]"
+                    (page)="onPageChange($event)"
+                    aria-label="Select page of tracks">
+                </mat-paginator>
             </div>
         </mat-card-content>
     </mat-card>

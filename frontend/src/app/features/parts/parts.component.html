@@ -65,7 +65,14 @@
                     <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
                 </tr>
             </table>
-            <mat-paginator [pageSizeOptions]="[10, 25, 100]" aria-label="Select page of parts"></mat-paginator>
+            <mat-paginator
+                [length]="totalParts"
+                [pageSize]="pageSize"
+                [pageIndex]="pageIndex"
+                [pageSizeOptions]="[10, 25, 100]"
+                (page)="onPageChange($event)"
+                aria-label="Select page of parts">
+            </mat-paginator>
         </mat-card-content>
     </mat-card>
 </div>

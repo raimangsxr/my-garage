@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map, of, switchMap } from 'rxjs';
+import { buildApiUrl } from '../utils/api-url.util';
+import { PaginatedResponse, normalizePaginated } from '../models/paginated.model';
 
 export interface Vehicle {
     id?: number;
@@ -43,17 +45,25 @@ export interface TrackRecord {
     notes?: string;
 }
 
-import { environment } from '../../../environments/environment';
-
 @Injectable({
     providedIn: 'root'
 })
 export class VehicleService {
     private http = inject(HttpClient);
-    private apiUrl = `${environment.apiUrl}/vehicles/`;
+    private apiUrl = buildApiUrl('vehicles');
+
+    getVehiclesPage(skip = 0, limit = 100): Observable<PaginatedResponse<Vehicle>> {
+        const params = new HttpParams()
+            .set('skip', skip)
+            .set('limit', limit);
+
+        return this.http.get<Vehicle[] | PaginatedResponse<Vehicle>>(this.apiUrl, { params }).pipe(
+            map(response => normalizePaginated(response, skip, limit))
+        );
+    }
 
     getVehicles(): Observable<Vehicle[]> {
-        return this.http.get<Vehicle[]>(this.apiUrl);
+        return this.getAllVehicles(0, []);
     }
 
     createVehicle(vehicle: Vehicle): Observable<Vehicle> {
@@ -61,41 +71,54 @@ export class VehicleService {
     }
 
     updateVehicle(id: number, vehicle: Vehicle): Observable<Vehicle> {
-        return this.http.put<Vehicle>(`${this.apiUrl}${id}`, vehicle);
+        return this.http.put<Vehicle>(`${this.apiUrl}/${id}`, vehicle);
     }
 
     deleteVehicle(id: number): Observable<Vehicle> {
-        return this.http.delete<Vehicle>(`${this.apiUrl}${id}`);
+        return this.http.delete<Vehicle>(`${this.apiUrl}/${id}`);
     }
 
     uploadImage(id: number, file: File): Observable<any> {
         const formData = new FormData();
         formData.append('file', file);
-        return this.http.post(`${this.apiUrl}${id}/image`, formData);
+        return this.http.post(`${this.apiUrl}/${id}/image`, formData);
     }
 
     getVehicleDetails(id: number): Observable<any> {
-        return this.http.get(`${this.apiUrl}${id}/details`);
+        return this.http.get(`${this.apiUrl}/${id}/details`);
     }
 
     updateTorqueSpecs(id: number, specs: any[]): Observable<any> {
-        return this.http.put(`${this.apiUrl}${id}/specs/torque`, specs);
+        return this.http.put(`${this.apiUrl}/${id}/specs/torque`, specs);
     }
 
     // Track Records
     getTrackRecords(vehicleId: number): Observable<TrackRecord[]> {
-        return this.http.get<TrackRecord[]>(`${this.apiUrl}${vehicleId}/track-records`);
+        return this.http.get<TrackRecord[]>(`${this.apiUrl}/${vehicleId}/track-records`);
     }
 
     createTrackRecord(vehicleId: number, record: TrackRecord): Observable<TrackRecord> {
-        return this.http.post<TrackRecord>(`${this.apiUrl}${vehicleId}/track-records`, record);
+        return this.http.post<TrackRecord>(`${this.apiUrl}/${vehicleId}/track-records`, record);
     }
 
     updateTrackRecord(recordId: number, record: TrackRecord): Observable<TrackRecord> {
-        return this.http.put<TrackRecord>(`${this.apiUrl}track-records/${recordId}`, record);
+        return this.http.put<TrackRecord>(`${this.apiUrl}/track-records/${recordId}`, record);
     }
 
     deleteTrackRecord(recordId: number): Observable<TrackRecord> {
-        return this.http.delete<TrackRecord>(`${this.apiUrl}track-records/${recordId}`);
+        return this.http.delete<TrackRecord>(`${this.apiUrl}/track-records/${recordId}`);
+    }
+
+    private getAllVehicles(skip: number, acc: Vehicle[]): Observable<Vehicle[]> {
+        const pageSize = 200;
+        return this.getVehiclesPage(skip, pageSize).pipe(
+            switchMap(page => {
+                const merged = [...acc, ...page.items];
+                if (merged.length >= page.total) {
+                    return of(merged);
+                }
+                return this.getAllVehicles(skip + pageSize, merged);
+            })
+        );
     }
 }

@@ -106,8 +106,14 @@
                 <td class="mat-cell" colspan="8">No data matching the filter "{{input.value}}"</td>
             </tr>
         </table>
-        <mat-paginator [pageSizeOptions]="[10, 25, 100]"
-            aria-label="Select page of maintenance records"></mat-paginator>
+        <mat-paginator
+            [length]="totalMaintenances"
+            [pageSize]="pageSize"
+            [pageIndex]="pageIndex"
+            [pageSizeOptions]="[10, 25, 100]"
+            (page)="onPageChange($event)"
+            aria-label="Select page of maintenance records">
+        </mat-paginator>
 
         <div class="empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
             <mat-icon>build</mat-icon>

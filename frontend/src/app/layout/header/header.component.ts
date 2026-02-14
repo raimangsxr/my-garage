@@ -44,9 +44,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
             })
         );
 
-        // Initial fetch
-        this.subscriptions.add(this.userService.getMe().subscribe());
-        this.notificationService.loadNotifications();
+        this.subscriptions.add(
+            this.authService.isAuthenticated$.subscribe(isAuthenticated => {
+                const token = this.authService.getToken();
+                if (isAuthenticated && token) {
+                    if (!this.user) {
+                        this.subscriptions.add(this.userService.getMe().subscribe());
+                    }
+                    this.notificationService.loadNotifications();
+                    return;
+                }
+
+                this.user = null;
+                this.notificationService.loadNotifications();
+            })
+        );
     }
 
     ngOnDestroy() {

@@ -9,7 +9,7 @@ import { HeaderComponent } from './layout/header/header.component';
 import { SidenavComponent } from './layout/sidenav/sidenav.component';
 import { FooterComponent } from './layout/footer/footer.component';
 import { AuthService } from './core/services/auth.service';
-import { NotificationService } from './core/services/notification.service';
+import { UserService } from './core/services/user.service';
 
 @Component({
     selector: 'app-root',
@@ -32,7 +32,7 @@ export class AppComponent implements OnDestroy {
     private breakpointObserver = inject(BreakpointObserver);
     private authService = inject(AuthService);
     private router = inject(Router);
-    private notificationService = inject(NotificationService);
+    private userService = inject(UserService);
     private subscriptions = new Subscription();
 
     isAuthenticated$ = this.authService.isAuthenticated$;
@@ -44,6 +44,16 @@ export class AppComponent implements OnDestroy {
         );
 
     constructor() {
+        const token = this.authService.getToken();
+        if (token) {
+            this.subscriptions.add(
+                this.userService.getMe().subscribe({
+                    next: () => this.authService.setAuthenticatedState(true),
+                    error: () => this.authService.logout(),
+                })
+            );
+        }
+
         // Close sidenav on navigation on mobile
         this.subscriptions.add(
             this.router.events.pipe(
@@ -55,14 +65,6 @@ export class AppComponent implements OnDestroy {
             })
         );
 
-        // Check for notifications when authenticated
-        this.subscriptions.add(
-            this.isAuthenticated$.subscribe(isAuth => {
-                if (isAuth) {
-                    this.notificationService.checkNotifications();
-                }
-            })
-        );
     }
 
     ngOnDestroy(): void {

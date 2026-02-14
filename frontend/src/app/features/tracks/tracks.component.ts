@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSortModule, Sort } from '@angular/material/sort';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TracksService } from './tracks.service';
 import { TrackSummary } from './tracks.models';
 
@@ -25,19 +26,26 @@ import { TrackSummary } from './tracks.models';
         MatProgressSpinnerModule,
         MatFormFieldModule,
         MatInputModule,
-        MatSortModule
+        MatSortModule,
+        MatPaginatorModule
     ],
     templateUrl: './tracks.component.html',
     styleUrl: './tracks.component.scss'
 })
-export class TracksComponent implements OnInit {
+export class TracksComponent implements OnInit, OnDestroy {
     private tracksService = inject(TracksService);
     private router = inject(Router);
 
     tracks: TrackSummary[] = [];
-    filteredTracks: TrackSummary[] = [];
     loading = false;
     error: string | null = null;
+    totalTracks = 0;
+    pageSize = 25;
+    pageIndex = 0;
+    filterValue = '';
+    sortBy: 'name' | 'location' | 'length_meters' | 'total_sessions' | 'best_lap_time' | 'vehicle_count' | 'last_session_date' | 'id' = 'name';
+    sortDir: 'asc' | 'desc' = 'asc';
+    private filterDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
     displayedColumns: string[] = ['name', 'location', 'length_meters', 'total_sessions', 'best_lap_time', 'vehicle_count', 'last_session_date', 'actions'];
 
@@ -45,16 +53,27 @@ export class TracksComponent implements OnInit {
         this.loadTracks();
     }
 
+    ngOnDestroy(): void {
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
+        }
+    }
+
     loadTracks() {
         this.loading = true;
         this.error = null;
 
-        this.tracksService.getTracks().subscribe({
-            next: (tracks) => {
-                // Only show tracks with at least one session
-                const activeTracks = tracks.filter(t => t.total_sessions > 0);
-                this.tracks = activeTracks;
-                this.filteredTracks = activeTracks;
+        this.tracksService.getTracksPage({
+            skip: this.pageIndex * this.pageSize,
+            limit: this.pageSize,
+            q: this.filterValue,
+            onlyActive: true,
+            sortBy: this.sortBy,
+            sortDir: this.sortDir
+        }).subscribe({
+            next: (page) => {
+                this.tracks = page.items;
+                this.totalTracks = page.total;
                 this.loading = false;
             },
             error: (err) => {
@@ -66,43 +85,29 @@ export class TracksComponent implements OnInit {
     }
 
     applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value.toLowerCase();
-        this.filteredTracks = this.tracks.filter(track =>
-            track.name.toLowerCase().includes(filterValue)
-        );
+        this.filterValue = (event.target as HTMLInputElement).value.trim();
+        this.pageIndex = 0;
+        if (this.filterDebounceTimer) {
+            clearTimeout(this.filterDebounceTimer);
+        }
+        this.filterDebounceTimer = setTimeout(() => this.loadTracks(), 250);
     }
 
     sortData(sort: Sort) {
-        const data = this.filteredTracks.slice();
-        if (!sort.active || sort.direction === '') {
-            this.filteredTracks = data;
-            return;
-        }
+        const allowed = new Set(['name', 'location', 'length_meters', 'total_sessions', 'best_lap_time', 'vehicle_count', 'last_session_date']);
+        this.sortBy = (allowed.has(sort.active) ? sort.active : 'name') as 'name' | 'location' | 'length_meters' | 'total_sessions' | 'best_lap_time' | 'vehicle_count' | 'last_session_date' | 'id';
+        this.sortDir = (sort.direction || 'asc') as 'asc' | 'desc';
+        this.pageIndex = 0;
+        this.loadTracks();
+    }
 
-        this.filteredTracks = data.sort((a, b) => {
-            const isAsc = sort.direction === 'asc';
-            switch (sort.active) {
-                case 'name':
-                    return compare(a.name, b.name, isAsc);
-                case 'total_sessions':
-                    return compare(a.total_sessions, b.total_sessions, isAsc);
-                case 'best_lap_time':
-                    return compare(a.best_lap_time || '', b.best_lap_time || '', isAsc);
-                case 'vehicle_count':
-                    return compare(a.vehicle_count, b.vehicle_count, isAsc);
-                case 'last_session_date':
-                    return compare(a.last_session_date || '', b.last_session_date || '', isAsc);
-                default:
-                    return 0;
-            }
-        });
+    onPageChange(event: PageEvent): void {
+        this.pageIndex = event.pageIndex;
+        this.pageSize = event.pageSize;
+        this.loadTracks();
     }
 
     viewTrackDetail(track: TrackSummary) {
         this.router.navigate(['/tracks', track.id]);
     }
-}
-
-function compare(a: number | string, b: number | string, isAsc: boolean) {
-    return (a < b ? -1 : 1) * (isAsc ? 1 : -1);
 }

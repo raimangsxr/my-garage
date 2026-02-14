@@ -1,10 +1,10 @@
 import { Injectable, NgZone, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { tap } from 'rxjs/operators';
 import { AuthService } from './auth.service';
 import { LoggerService } from './logger.service';
+import { buildApiUrl } from '../utils/api-url.util';
 
 declare global {
     interface Window {
@@ -30,6 +30,7 @@ export class GoogleAuthService {
     private ngZone = inject(NgZone);
     private authService = inject(AuthService);
     private logger = inject(LoggerService);
+    private googleLoginUrl = buildApiUrl('auth/google/login');
 
     constructor() {
         this.loadStoredSession();
@@ -68,7 +69,7 @@ export class GoogleAuthService {
             this.logger.debug('Google Auth Response received');
 
             // Send token to backend for validation and session
-            this.http.post<any>(`${environment.apiUrl}/auth/google/login`, {
+            this.http.post<any>(this.googleLoginUrl, {
                 credential: response.credential
             }).subscribe({
                 next: (res) => {

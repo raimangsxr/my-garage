@@ -1,10 +1,18 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    const authService = inject(AuthService);
-    const token = authService.getToken();
+    const isAuthEndpoint =
+        req.url.includes('/auth/login/access-token') ||
+        req.url.includes('/auth/google/login');
+
+    if (isAuthEndpoint) {
+        return next(req);
+    }
+
+    const rawToken = localStorage.getItem('access_token');
+    const token = rawToken?.trim().startsWith('Bearer ')
+        ? rawToken.trim().slice(7).trim()
+        : rawToken?.trim();
 
     if (token) {
         const cloned = req.clone({

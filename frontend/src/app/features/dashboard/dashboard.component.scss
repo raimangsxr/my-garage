@@ -88,17 +88,16 @@
 
 .stat-card {
     background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
     border-radius: 20px !important;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     overflow: hidden;
 
     &:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.2) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
     }
 
     .stat-card-inner {
@@ -183,10 +182,9 @@
 .activity-card,
 .track-summary-card {
     background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(10px);
     border-radius: 20px !important;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08) !important;
 
     mat-card-header {
         padding: 1.5rem 1.5rem 0;
@@ -333,10 +331,9 @@
     gap: 0.875rem;
     padding: 1rem;
     background: rgba(255, 255, 255, 0.9);
-    backdrop-filter: blur(10px);
     border-radius: 14px;
     border: 1px solid rgba(102, 126, 234, 0.2);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
 
