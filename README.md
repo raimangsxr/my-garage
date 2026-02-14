@@ -29,7 +29,7 @@
 ## 🚀 Getting Started
 
 ### Prerequisites
-*   Node.js & npm
+*   Node.js 20 LTS & npm
 *   Python 3.10+
 *   PostgreSQL
 
@@ -64,4 +64,3 @@
 ## 🤝 Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
