@@ -1,93 +1,5 @@
-.maintenance-container {
-    padding: 1.5rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.maintenance-hero {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 1.25rem;
-
-    .hero-copy {
-        h1 {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0f172a;
-
-            mat-icon {
-                color: #0f766e;
-                width: 2rem;
-                height: 2rem;
-                font-size: 2rem;
-            }
-        }
-
-        p {
-            margin: 0.5rem 0 0;
-            color: #475569;
-            font-size: 0.95rem;
-        }
-    }
-
-    .hero-pills {
-        margin-top: 0.9rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .hero-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.65rem;
-        border-radius: 999px;
-        background: #ecfeff;
-        color: #155e75;
-        font-size: 0.78rem;
-        font-weight: 600;
-        border: 1px solid #bae6fd;
-
-        mat-icon {
-            font-size: 0.95rem;
-            width: 0.95rem;
-            height: 0.95rem;
-        }
-    }
-
-    .new-button {
-        min-height: 42px;
-        margin-top: 0.1rem;
-        box-shadow: 0 8px 20px rgba(15, 118, 110, 0.24);
-        display: inline-flex;
-        align-items: center;
-        gap: 0.35rem;
-        white-space: nowrap;
-    }
-}
-
-.toolbar {
-    margin-bottom: 1rem;
-}
-
-.filter-field {
-    width: 100%;
-    max-width: 520px;
-}
-
 .maintenance-list {
     position: relative;
-    border-radius: 16px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
-    overflow: hidden;
 }
 
 .loading-overlay {
@@ -108,39 +20,6 @@
 }
 
 .full-width-table {
-    width: 100%;
-
-    th.mat-header-cell {
-        background: #f8fafc;
-        color: #475569;
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-weight: 700;
-        border-bottom: 1px solid #e2e8f0;
-        padding: 0.85rem 1rem;
-    }
-
-    td.mat-cell {
-        padding: 0.95rem 1rem;
-        border-bottom: 1px solid #f1f5f9;
-        color: #334155;
-        font-size: 0.87rem;
-        vertical-align: middle;
-    }
-
-    tr.mat-row {
-        transition: background-color 0.16s ease;
-
-        &:hover {
-            background: #f8fafc;
-        }
-    }
-
-    .mat-column-description {
-        min-width: 260px;
-    }
-
     .mat-column-actions {
         width: 130px;
         white-space: nowrap;
@@ -358,15 +237,5 @@
         .mat-column-description {
             min-width: 150px;
         }
-    }
-
-    .vehicle-info {
-        .vehicle-name {
-            font-size: 0.84rem;
-        }
-    }
-
-    .description-cell {
-        -webkit-line-clamp: 3;
     }
 }

@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TracksService } from './tracks.service';
 import { TrackSummary } from './tracks.models';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
@@ -27,7 +28,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatFormFieldModule,
         MatInputModule,
         MatSortModule,
-        MatPaginatorModule
+        MatPaginatorModule,
+        MatTooltipModule
     ],
     templateUrl: './tracks.component.html',
     styleUrl: './tracks.component.scss'

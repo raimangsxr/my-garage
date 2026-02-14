@@ -1,36 +1,39 @@
-<div class="circuit-detail-container">
-    <div class="header-actions">
-        <button mat-icon-button (click)="goBack()" class="back-button">
-            <mat-icon>arrow_back</mat-icon>
-        </button>
+<div class="mg-page track-detail-page">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h1 class="mg-page-title">
+                <mat-icon>flag</mat-icon>
+                {{ trackDetail?.name || 'Track Detail' }}
+            </h1>
+            <p class="mg-page-subtitle">Detailed analytics, records and progression by vehicle.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-stroked-button color="primary" (click)="goBack()">
+                <mat-icon>arrow_back</mat-icon>
+                Back to Tracks
+            </button>
+        </div>
     </div>
 
-    <app-page-loader
-        *ngIf="loading"
-        icon="place"
-        message="Loading track details..."
-        minHeight="420px">
-    </app-page-loader>
+    <app-page-loader *ngIf="loading" icon="track_changes" message="Loading track detail..." minHeight="280px"></app-page-loader>
 
-    <div *ngIf="error" class="error-container">
+    <div *ngIf="!loading && error" class="mg-empty-state">
         <mat-icon>error_outline</mat-icon>
         <p>{{ error }}</p>
         <button mat-raised-button color="primary" (click)="goBack()">Back to Tracks</button>
     </div>
 
-    <div *ngIf="!loading && !error && trackDetail" class="circuit-content">
-        <!-- Track Hero Card -->
-        <mat-card class="track-hero-card">
+    <div *ngIf="!loading && !error && trackDetail" class="track-detail-content">
+        <mat-card class="mg-surface-card track-hero-card">
             <mat-card-content>
                 <div class="hero-layout">
-                    <!-- Left Column: Info -->
                     <div class="hero-info">
                         <div class="header-row">
                             <div class="track-icon">
                                 <mat-icon>place</mat-icon>
                             </div>
                             <div class="title-section">
-                                <h1>{{ trackDetail.name }}</h1>
+                                <h2>{{ trackDetail.name }}</h2>
                                 <div class="location-badge" *ngIf="trackDetail.location">
                                     <mat-icon>location_on</mat-icon>
                                     <span>{{ trackDetail.location }}</span>
@@ -47,8 +50,7 @@
                                 <span class="label">Length</span>
                                 <div class="value">
                                     <mat-icon>straighten</mat-icon>
-                                    <span>{{ trackDetail.length_meters ? (trackDetail.length_meters | number) + ' m' :
-                                        '-' }}</span>
+                                    <span>{{ trackDetail.length_meters ? (trackDetail.length_meters | number) + ' m' : '-' }}</span>
                                 </div>
                             </div>
                             <div class="stat-item">
@@ -75,7 +77,6 @@
                         </div>
                     </div>
 
-                    <!-- Right Column: Map -->
                     <div class="hero-map">
                         <div class="map-container" *ngIf="trackMapUrl; else mapUnavailableTpl">
                             <img
@@ -96,8 +97,7 @@
             </mat-card-content>
         </mat-card>
 
-        <!-- Session Evolution Chart -->
-        <mat-card class="chart-card" *ngIf="chartSeries.length > 0">
+        <mat-card class="mg-surface-card chart-card" *ngIf="chartSeries.length > 0">
             <mat-card-header>
                 <mat-card-title>
                     <mat-icon>timeline</mat-icon>
@@ -106,13 +106,11 @@
                 <mat-card-subtitle>Session = best lap of each day. Record = best historical lap for that vehicle on this circuit.</mat-card-subtitle>
             </mat-card-header>
             <mat-card-content>
-                <app-circuit-evolution-chart [data]="chartSeries" height="350px">
-                </app-circuit-evolution-chart>
+                <app-circuit-evolution-chart [data]="chartSeries" height="350px"></app-circuit-evolution-chart>
             </mat-card-content>
         </mat-card>
 
-        <!-- Vehicle Groups -->
-        <mat-card class="vehicles-card">
+        <mat-card class="mg-surface-card vehicles-card">
             <mat-card-header>
                 <mat-card-title>
                     <mat-icon>leaderboard</mat-icon>
@@ -123,8 +121,7 @@
                 <div class="vehicle-groups">
                     <div *ngFor="let group of trackDetail.vehicle_groups; let i = index" class="vehicle-group">
                         <div class="vehicle-header">
-                            <div class="position-badge" [class.gold]="i === 0" [class.silver]="i === 1"
-                                [class.bronze]="i === 2">
+                            <div class="position-badge" [class.gold]="i === 0" [class.silver]="i === 1" [class.bronze]="i === 2">
                                 #{{ i + 1 }}
                             </div>
                             <div class="vehicle-info-header">
@@ -137,19 +134,16 @@
                             <mat-chip class="session-count">{{ group.records.length }} sessions</mat-chip>
                         </div>
 
-                        <!-- Records Table for this vehicle -->
                         <div class="records-table-container">
-                            <table mat-table [dataSource]="group.records" class="records-table">
+                            <table mat-table [dataSource]="group.records" class="mg-table records-table">
                                 <ng-container matColumnDef="date_achieved">
                                     <th mat-header-cell *matHeaderCellDef>Date</th>
-                                    <td mat-cell *matCellDef="let record">{{ record.date_achieved | date:'dd/MM/yyyy' }}
-                                    </td>
+                                    <td mat-cell *matCellDef="let record">{{ record.date_achieved | date:'dd/MM/yyyy' }}</td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="best_lap_time">
                                     <th mat-header-cell *matHeaderCellDef>Time</th>
-                                    <td mat-cell *matCellDef="let record" class="time-cell">{{ record.best_lap_time }}
-                                    </td>
+                                    <td mat-cell *matCellDef="let record" class="time-cell">{{ record.best_lap_time }}</td>
                                 </ng-container>
 
                                 <ng-container matColumnDef="weather_conditions">

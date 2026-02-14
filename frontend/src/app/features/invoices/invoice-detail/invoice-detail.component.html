@@ -1,10 +1,15 @@
-<div class="container" *ngIf="!loading; else loadingTpl">
-    <div class="header">
-        <div class="title-group">
-            <button mat-icon-button routerLink="/invoices">
-                <mat-icon>arrow_back</mat-icon>
-            </button>
-            <h2>Invoice Details</h2>
+<div class="mg-page" *ngIf="!loading; else loadingTpl">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <button mat-icon-button routerLink="/invoices" aria-label="Back to invoices">
+                    <mat-icon>arrow_back</mat-icon>
+                </button>
+                Invoice Details
+            </h2>
+            <p class="mg-page-subtitle">Review extracted information, maintenance lines and invoice image.</p>
+        </div>
+        <div class="mg-page-actions">
             <mat-chip-set>
                 <mat-chip [color]="getStatusColor(invoice?.status || '')" selected>
                     {{invoice?.status | uppercase}}
@@ -14,10 +19,8 @@
     </div>
 
     <div class="content-grid">
-        <!-- Left Column: Details -->
         <div class="details-column">
-            <!-- Basic Info -->
-            <mat-card>
+            <mat-card class="mg-surface-card">
                 <mat-card-header>
                     <mat-card-title>General Information</mat-card-title>
                 </mat-card-header>
@@ -45,8 +48,7 @@
                 </mat-card-content>
             </mat-card>
 
-            <!-- Supplier -->
-            <mat-card *ngIf="extractedData?.supplier_name">
+            <mat-card *ngIf="extractedData?.supplier_name" class="mg-surface-card">
                 <mat-card-header>
                     <mat-card-title>Supplier</mat-card-title>
                 </mat-card-header>
@@ -66,8 +68,7 @@
                 </mat-card-content>
             </mat-card>
 
-            <!-- Vehicle -->
-            <mat-card *ngIf="extractedData?.vehicle_plate || extractedData?.vehicle_vin || extractedData?.mileage">
+            <mat-card *ngIf="extractedData?.vehicle_plate || extractedData?.vehicle_vin || extractedData?.mileage" class="mg-surface-card">
                 <mat-card-header>
                     <mat-card-title>Vehicle Information</mat-card-title>
                 </mat-card-header>
@@ -87,9 +88,8 @@
                 </mat-card-content>
             </mat-card>
 
-            <!-- Maintenances (from database for approved invoices, from extracted data for review) -->
             <ng-container *ngIf="invoice?.status === 'approved'">
-                <mat-card *ngFor="let maintenance of maintenances">
+                <mat-card *ngFor="let maintenance of maintenances" class="mg-surface-card">
                     <mat-card-header>
                         <mat-card-title>Maintenance: {{maintenance.description}}</mat-card-title>
                     </mat-card-header>
@@ -117,15 +117,14 @@
             </ng-container>
 
             <ng-container *ngIf="invoice?.status === 'review'">
-                <mat-card *ngFor="let maintenance of extractedData?.maintenances">
+                <mat-card *ngFor="let maintenance of extractedData?.maintenances" class="mg-surface-card">
                     <mat-card-header>
                         <mat-card-title>Maintenance: {{maintenance.description}}</mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
                         <div class="info-row" *ngIf="maintenance.labor_cost">
                             <span class="label">Labor Cost:</span>
-                            <span class="value"
-                                [matTooltip]="'With Tax: ' + (getAmountAfterTax(maintenance.labor_cost) | currency:'EUR')">
+                            <span class="value" [matTooltip]="'With Tax: ' + (getAmountAfterTax(maintenance.labor_cost) | currency:'EUR')">
                                 {{maintenance.labor_cost | currency:'EUR'}}
                             </span>
                         </div>
@@ -147,8 +146,7 @@
                 </mat-card>
             </ng-container>
 
-            <!-- Parts Only (from database for approved invoices, from extracted data for review) -->
-            <mat-card *ngIf="invoice?.status === 'approved' && getPartsOnly().length > 0">
+            <mat-card *ngIf="invoice?.status === 'approved' && getPartsOnly().length > 0" class="mg-surface-card">
                 <mat-card-header>
                     <mat-card-title>Parts Purchase</mat-card-title>
                 </mat-card-header>
@@ -168,7 +166,7 @@
                 </mat-card-content>
             </mat-card>
 
-            <mat-card *ngIf="invoice?.status === 'review' && extractedData?.parts_only?.length">
+            <mat-card *ngIf="invoice?.status === 'review' && extractedData?.parts_only?.length" class="mg-surface-card">
                 <mat-card-header>
                     <mat-card-title>Parts Purchase</mat-card-title>
                 </mat-card-header>
@@ -189,9 +187,8 @@
             </mat-card>
         </div>
 
-        <!-- Right Column: Preview -->
         <div class="preview-column">
-            <mat-card class="preview-card">
+            <mat-card class="mg-surface-card preview-card">
                 <mat-card-header>
                     <mat-card-title>Invoice Image</mat-card-title>
                     <mat-card-subtitle>Click to enlarge</mat-card-subtitle>

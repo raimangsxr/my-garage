@@ -1,20 +1,26 @@
-<div class="container">
-    <div class="header">
-        <h2>Notifications</h2>
+<div class="mg-page notifications-page">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>notifications</mat-icon>
+                Notifications
+            </h2>
+            <p class="mg-page-subtitle">Review reminders and system alerts related to your garage.</p>
+        </div>
     </div>
 
-    <mat-card class="notifications-card">
+    <mat-card class="mg-surface-card notifications-card">
         <mat-card-content>
             <mat-list>
-                <div *ngIf="notifications.length === 0" class="empty-state">
+                <div *ngIf="notifications.length === 0" class="mg-empty-state">
                     <mat-icon>notifications_off</mat-icon>
                     <p>No notifications</p>
+                    <span>New alerts will appear here.</span>
                 </div>
 
                 <mat-list-item *ngFor="let notification of notifications" [class.read]="notification.is_read"
                     [class.unread]="!notification.is_read" (click)="markAsRead(notification)" class="notification-item">
-                    <mat-icon matListItemIcon [ngClass]="getClass(notification.type)">{{ getIcon(notification.type)
-                        }}</mat-icon>
+                    <mat-icon matListItemIcon [ngClass]="getClass(notification.type)">{{ getIcon(notification.type) }}</mat-icon>
                     <div matListItemTitle class="notification-title">
                         {{ notification.title }}
                         <span class="date">{{ notification.created_at | date:'short' }}</span>

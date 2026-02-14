@@ -1,13 +1,19 @@
-<div class="settings-container">
-    <div class="header">
-        <h1>Settings</h1>
-        <p class="subtitle">Manage your application preferences</p>
+<div class="mg-page settings-page">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h1 class="mg-page-title">
+                <mat-icon>settings</mat-icon>
+                Settings
+            </h1>
+            <p class="mg-page-subtitle">Manage your application preferences and API integrations.</p>
+        </div>
     </div>
 
-    <mat-card class="settings-card">
+    <mat-card class="mg-form-card settings-card">
         <mat-card-content>
-            <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
+            <app-page-loader *ngIf="isLoading" icon="settings" message="Loading settings..." minHeight="180px"></app-page-loader>
 
+            <form *ngIf="!isLoading" [formGroup]="settingsForm" (ngSubmit)="onSubmit()">
                 <div class="section-title">General</div>
 
                 <div class="form-row">
@@ -27,9 +33,7 @@
                             <mat-option value="GBP">British Pound (£)</mat-option>
                         </mat-select>
                     </mat-form-field>
-                </div>
 
-                <div class="form-row">
                     <mat-form-field appearance="outline">
                         <mat-label>Theme</mat-label>
                         <mat-select formControlName="theme">
@@ -72,12 +76,10 @@
                 </div>
 
                 <div class="actions">
-                    <button mat-raised-button color="primary" type="submit"
-                        [disabled]="isLoading || settingsForm.invalid">
-                        {{ isLoading ? 'Saving...' : 'Save Changes' }}
+                    <button mat-raised-button color="primary" type="submit" [disabled]="settingsForm.invalid">
+                        Save Changes
                     </button>
                 </div>
-
             </form>
         </mat-card-content>
     </mat-card>

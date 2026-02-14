@@ -24,6 +24,7 @@ import { TrackRecordsComponent } from '../components/track-records/track-records
 import { EntityColumnComponent } from '../../../shared/components/entity-column/entity-column.component';
 import { EntityCardComponent } from '../../../shared/components/entity-card/entity-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PageLoaderComponent } from '../../../shared/components/page-loader/page-loader.component';
 
 import { UniquePipe } from '../../../shared/pipes/unique.pipe';
 
@@ -46,6 +47,7 @@ import { UniquePipe } from '../../../shared/pipes/unique.pipe';
         EntityColumnComponent,
         EntityCardComponent,
         EmptyStateComponent,
+        PageLoaderComponent,
         UniquePipe
     ],
     templateUrl: './vehicle-detail.component.html',

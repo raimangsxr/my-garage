@@ -19,6 +19,7 @@ import { VehicleService, Vehicle } from '../../../core/services/vehicle.service'
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ImageDialogComponent } from '../../../shared/components/image-dialog/image-dialog.component';
+import { PageLoaderComponent } from '../../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-invoice-review',
@@ -39,7 +40,8 @@ import { ImageDialogComponent } from '../../../shared/components/image-dialog/im
         MatDividerModule,
         MatSelectModule,
         MatDialogModule,
-        MatTooltipModule
+        MatTooltipModule,
+        PageLoaderComponent
     ],
     templateUrl: './invoice-review.component.html',
     styleUrls: ['./invoice-review.component.scss']

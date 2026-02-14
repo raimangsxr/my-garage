@@ -1,74 +1,83 @@
-<div class="container">
-    <div class="header">
-        <h2>Parts Inventory</h2>
-        <button mat-raised-button color="primary" (click)="openPartDialog()">
-            <mat-icon>add</mat-icon> Add Part
-        </button>
+<div class="container mg-page">
+    <div class="header mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>extension</mat-icon>
+                Parts Inventory
+            </h2>
+            <p class="mg-page-subtitle">Manage parts, stock and pricing across your garage.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-raised-button color="primary" (click)="openPartDialog()">
+                <mat-icon>add</mat-icon> Add Part
+            </button>
+        </div>
     </div>
 
-    <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil filter, brake pads..." #input>
-        <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <div class="mg-toolbar">
+        <mat-form-field appearance="outline" class="filter-field mg-filter-field">
+            <mat-label>Search parts</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil filter, brake pads..." #input>
+            <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+    </div>
 
-    <mat-card class="parts-card">
+    <mat-card class="parts-card mg-surface-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <app-page-loader
-                    icon="extension"
-                    message="Loading parts inventory..."
-                    minHeight="260px">
-                </app-page-loader>
+                <app-page-loader icon="extension" message="Loading parts..." minHeight="260px"></app-page-loader>
             </div>
 
-            <table mat-table [dataSource]="dataSource" matSort class="parts-table">
-                <!-- Name Column -->
-                <ng-container matColumnDef="name">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
-                    <td mat-cell *matCellDef="let part"> {{part.name}} </td>
-                </ng-container>
+            <div class="mg-table-shell">
+                <table mat-table [dataSource]="dataSource" matSort class="parts-table mg-table">
+                    <!-- Name Column -->
+                    <ng-container matColumnDef="name">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
+                        <td mat-cell *matCellDef="let part"> {{part.name}} </td>
+                    </ng-container>
 
-                <!-- Reference Column -->
-                <ng-container matColumnDef="reference">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Reference </th>
-                    <td mat-cell *matCellDef="let part"> {{part.reference || '-'}} </td>
-                </ng-container>
+                    <!-- Reference Column -->
+                    <ng-container matColumnDef="reference">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Reference </th>
+                        <td mat-cell *matCellDef="let part"> {{part.reference || '-'}} </td>
+                    </ng-container>
 
-                <!-- Price Column -->
-                <ng-container matColumnDef="price">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Price </th>
-                    <td mat-cell *matCellDef="let part"> {{part.price | currency:'EUR'}} </td>
-                </ng-container>
+                    <!-- Price Column -->
+                    <ng-container matColumnDef="price">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Price </th>
+                        <td mat-cell *matCellDef="let part"> {{part.price | currency:'EUR'}} </td>
+                    </ng-container>
 
-                <!-- Quantity Column -->
-                <ng-container matColumnDef="quantity">
-                    <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantity </th>
-                    <td mat-cell *matCellDef="let part"> {{part.quantity}} </td>
-                </ng-container>
+                    <!-- Quantity Column -->
+                    <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef mat-sort-header> Quantity </th>
+                        <td mat-cell *matCellDef="let part"> {{part.quantity}} </td>
+                    </ng-container>
 
-                <!-- Actions Column -->
-                <ng-container matColumnDef="actions">
-                    <th mat-header-cell *matHeaderCellDef class="align-left"> Actions </th>
-                    <td mat-cell *matCellDef="let part">
-                        <div class="action-buttons">
-                            <button mat-icon-button color="primary" (click)="openPartDialog(part)" matTooltip="Edit">
-                                <mat-icon>edit</mat-icon>
-                            </button>
-                            <button mat-icon-button color="warn" (click)="deletePart(part.id!)" matTooltip="Delete">
-                                <mat-icon>delete</mat-icon>
-                            </button>
-                        </div>
-                    </td>
-                </ng-container>
+                    <!-- Actions Column -->
+                    <ng-container matColumnDef="actions">
+                        <th mat-header-cell *matHeaderCellDef class="align-left"> Actions </th>
+                        <td mat-cell *matCellDef="let part">
+                            <div class="action-buttons">
+                                <button mat-icon-button color="primary" (click)="openPartDialog(part)" matTooltip="Edit">
+                                    <mat-icon>edit</mat-icon>
+                                </button>
+                                <button mat-icon-button color="warn" (click)="deletePart(part.id!)" matTooltip="Delete">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+                    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
 
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
-                </tr>
-            </table>
+                    <tr class="mat-row" *matNoDataRow>
+                        <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
+                    </tr>
+                </table>
+            </div>
+
             <mat-paginator
                 [length]="totalParts"
                 [pageSize]="pageSize"

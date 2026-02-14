@@ -10,8 +10,8 @@ import { MatIconModule } from '@angular/material/icon';
     styleUrl: './page-loader.component.scss'
 })
 export class PageLoaderComponent {
-    @Input() icon = 'add_road';
+    @Input() icon = 'hourglass_top';
     @Input() message = 'Loading...';
-    @Input() minHeight = '300px';
+    @Input() minHeight = '260px';
     @Input() fullscreen = false;
 }
