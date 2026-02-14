@@ -1,0 +1,36 @@
+.loading-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #999;
+    width: 100%;
+
+    &.fullscreen {
+        min-height: 100vh;
+    }
+
+    mat-icon {
+        font-size: 64px;
+        width: 64px;
+        height: 64px;
+        margin-bottom: 16px;
+        animation: pulse 2s infinite;
+    }
+
+    p {
+        margin: 0;
+        font-size: 1.125rem;
+    }
+}
+
+@keyframes pulse {
+    0%,
+    100% {
+        opacity: 0.3;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}

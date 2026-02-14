@@ -15,7 +15,11 @@
     <mat-card class="parts-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <mat-spinner diameter="50"></mat-spinner>
+                <app-page-loader
+                    icon="extension"
+                    message="Loading parts inventory..."
+                    minHeight="260px">
+                </app-page-loader>
             </div>
 
             <table mat-table [dataSource]="dataSource" matSort class="parts-table">

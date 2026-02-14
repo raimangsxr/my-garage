@@ -15,7 +15,11 @@
     <mat-card class="invoice-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <mat-spinner diameter="50"></mat-spinner>
+                <app-page-loader
+                    icon="receipt_long"
+                    message="Loading invoices..."
+                    minHeight="260px">
+                </app-page-loader>
             </div>
 
             <table mat-table [dataSource]="dataSource" matSort class="invoice-table">

@@ -5,13 +5,13 @@ import { MatCardModule } from '@angular/material/card';
 import { MatTableModule } from '@angular/material/table';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { TracksService } from './tracks.service';
 import { TrackSummary } from './tracks.models';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-tracks',
@@ -23,7 +23,7 @@ import { TrackSummary } from './tracks.models';
         MatTableModule,
         MatIconModule,
         MatButtonModule,
-        MatProgressSpinnerModule,
+        PageLoaderComponent,
         MatFormFieldModule,
         MatInputModule,
         MatSortModule,

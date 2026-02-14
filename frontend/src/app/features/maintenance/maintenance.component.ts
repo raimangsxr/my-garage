@@ -12,12 +12,12 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MaintenanceService, Maintenance } from '../../core/services/maintenance.service';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
 import { LoggerService } from '../../core/services/logger.service';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-maintenance',
@@ -36,7 +36,7 @@ import { LoggerService } from '../../core/services/logger.service';
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        MatProgressSpinnerModule
+        PageLoaderComponent
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
