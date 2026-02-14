@@ -7,9 +7,12 @@
         <p class="subtitle">Overview of your garage</p>
     </div>
 
-    <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-    </div>
+    <app-page-loader
+        *ngIf="loading"
+        icon="dashboard"
+        message="Loading dashboard data..."
+        minHeight="320px">
+    </app-page-loader>
 
     <div *ngIf="error" class="error-container">
         <mat-icon>error_outline</mat-icon>

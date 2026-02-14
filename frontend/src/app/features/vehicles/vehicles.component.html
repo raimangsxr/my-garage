@@ -3,9 +3,12 @@
         <h2>My Vehicles</h2>
     </div>
 
-    <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner diameter="50"></mat-spinner>
-    </div>
+    <app-page-loader
+        *ngIf="isLoading"
+        icon="directions_car"
+        message="Loading vehicles..."
+        minHeight="420px">
+    </app-page-loader>
 
     <div class="vehicles-grid" *ngIf="!isLoading">
         <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card" (click)="viewVehicleDetails(vehicle.id!)">

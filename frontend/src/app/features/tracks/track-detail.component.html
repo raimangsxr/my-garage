@@ -5,9 +5,12 @@
         </button>
     </div>
 
-    <div *ngIf="loading" class="loading-container">
-        <mat-spinner diameter="50"></mat-spinner>
-    </div>
+    <app-page-loader
+        *ngIf="loading"
+        icon="place"
+        message="Loading track details..."
+        minHeight="420px">
+    </app-page-loader>
 
     <div *ngIf="error" class="error-container">
         <mat-icon>error_outline</mat-icon>

@@ -216,7 +216,9 @@
 </div>
 
 <ng-template #loadingTpl>
-    <div class="loading-container">
-        <p>Loading invoice details...</p>
-    </div>
+    <app-page-loader
+        icon="receipt_long"
+        message="Loading invoice details..."
+        minHeight="300px">
+    </app-page-loader>
 </ng-template>

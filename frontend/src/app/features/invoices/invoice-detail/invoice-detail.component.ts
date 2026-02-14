@@ -12,6 +12,7 @@ import { InvoiceService, Invoice, InvoiceExtractedData } from '../../../core/ser
 import { Maintenance, MaintenanceService } from '../../../core/services/maintenance.service';
 import { Part, PartService } from '../../../core/services/part.service';
 import { ImageDialogComponent } from '../../../shared/components/image-dialog/image-dialog.component';
+import { PageLoaderComponent } from '../../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-invoice-detail',
@@ -25,7 +26,8 @@ import { ImageDialogComponent } from '../../../shared/components/image-dialog/im
         MatDividerModule,
         MatChipsModule,
         MatDialogModule,
-        MatTooltipModule
+        MatTooltipModule,
+        PageLoaderComponent
     ],
     templateUrl: './invoice-detail.component.html',
     styleUrls: ['./invoice-detail.component.scss']

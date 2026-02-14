@@ -20,6 +20,7 @@ import { Supplier, SupplierService } from '../../core/services/supplier.service'
 import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { Subscription } from 'rxjs';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-invoices',
@@ -39,7 +40,8 @@ import { Subscription } from 'rxjs';
         MatPaginatorModule,
         MatInputModule,
         MatFormFieldModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        PageLoaderComponent
     ],
     templateUrl: './invoices.component.html',
     styleUrls: ['./invoices.component.scss']

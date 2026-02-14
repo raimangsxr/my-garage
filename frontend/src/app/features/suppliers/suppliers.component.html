@@ -15,7 +15,11 @@
     <mat-card class="supplier-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <mat-spinner diameter="50"></mat-spinner>
+                <app-page-loader
+                    icon="store"
+                    message="Loading suppliers..."
+                    minHeight="260px">
+                </app-page-loader>
             </div>
 
             <table mat-table [dataSource]="dataSource" matSort class="supplier-table">

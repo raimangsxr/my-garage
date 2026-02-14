@@ -15,7 +15,11 @@
 
     <div class="maintenance-list">
         <div *ngIf="isLoading" class="loading-overlay">
-            <mat-spinner diameter="50"></mat-spinner>
+            <app-page-loader
+                icon="build_circle"
+                message="Loading maintenance records..."
+                minHeight="260px">
+            </app-page-loader>
         </div>
 
         <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
