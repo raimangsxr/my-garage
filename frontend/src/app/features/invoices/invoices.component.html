@@ -25,7 +25,11 @@
     <mat-card class="invoice-card mg-surface-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <app-page-loader icon="receipt_long" message="Loading invoices..." minHeight="260px"></app-page-loader>
+                <app-page-loader
+                    icon="receipt_long"
+                    message="Loading invoices..."
+                    minHeight="260px">
+                </app-page-loader>
             </div>
 
             <div class="mg-table-shell">

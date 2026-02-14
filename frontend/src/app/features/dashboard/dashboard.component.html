@@ -12,7 +12,12 @@
         </div>
     </div>
 
-    <app-page-loader *ngIf="loading" icon="dashboard" message="Loading dashboard..." minHeight="280px"></app-page-loader>
+    <app-page-loader
+        *ngIf="loading"
+        icon="dashboard"
+        message="Loading dashboard data..."
+        minHeight="320px">
+    </app-page-loader>
 
     <div *ngIf="!loading && error" class="mg-empty-state">
         <mat-icon>error_outline</mat-icon>

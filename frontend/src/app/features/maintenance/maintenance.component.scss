@@ -2,19 +2,27 @@
     position: relative;
 }
 
+.loading-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 15;
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(2px);
+}
 
+.table-shell {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &.is-loading {
+        filter: saturate(0.8);
+    }
+}
 
 .full-width-table {
     .mat-column-actions {
+        width: 130px;
         white-space: nowrap;
-        width: 150px;
-        text-align: right;
-
-        .action-buttons {
-            display: flex;
-            gap: 8px;
-            justify-content: flex-end;
-        }
     }
 }
 
@@ -23,13 +31,14 @@
 }
 
 .date-badge {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    background: #e5e7eb;
-    color: #374151;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.56rem;
+    border-radius: 999px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: #e2e8f0;
+    color: #334155;
 
     &.recent {
         background: #dcfce7;
@@ -42,49 +51,94 @@
     }
 
     &.old {
-        background: #f3f4f6;
-        color: #6b7280;
+        background: #f1f5f9;
+        color: #64748b;
     }
 }
 
 .vehicle-info {
     display: flex;
     flex-direction: column;
+    gap: 0.15rem;
 
     .vehicle-name {
-        font-weight: 500;
-        color: #111827;
+        font-weight: 600;
+        color: #0f172a;
     }
 
     .license-plate {
-        font-size: 12px;
-        color: #6b7280;
+        font-size: 0.72rem;
+        color: #64748b;
+        font-family: 'Roboto Mono', monospace;
+    }
+}
+
+.description-cell {
+    color: #334155;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.supplier-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #334155;
+
+    mat-icon {
+        color: #64748b;
+        font-size: 1rem;
+        width: 1rem;
+        height: 1rem;
     }
 }
 
 .count-badge {
     display: inline-flex;
     align-items: center;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 500;
-    background: #eff6ff;
-    color: #1d4ed8;
+    padding: 0.18rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: #e0f2fe;
+    color: #0369a1;
 
     &.invoice {
-        background: #fff7ed;
-        color: #c2410c;
+        background: #ffedd5;
+        color: #9a3412;
     }
 }
 
 .cost {
-    font-weight: 600;
-    color: #111827;
+    font-weight: 700;
+    color: #0f172a;
 }
 
 .empty-text {
-    color: #9ca3af;
+    color: #94a3b8;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.35rem;
+    white-space: nowrap;
+}
+
+.action-btn {
+    border-radius: 8px;
+    background: #f8fafc;
+}
+
+.no-data-cell {
+    text-align: center;
+    color: #64748b;
+    padding: 1.25rem !important;
 }
 
 .empty-state {
@@ -92,20 +146,96 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 64px 24px;
-    text-align: center;
-    color: #6b7280;
+    gap: 0.5rem;
+    padding: 2.8rem 1.2rem 3.2rem;
+    color: #64748b;
 
     mat-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        margin-bottom: 16px;
-        opacity: 0.5;
+        font-size: 2.4rem;
+        width: 2.4rem;
+        height: 2.4rem;
+        color: #94a3b8;
     }
 
     p {
         margin: 0;
-        font-size: 16px;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #334155;
+    }
+
+    span {
+        font-size: 0.84rem;
+        color: #64748b;
+    }
+}
+
+@media (max-width: 900px) {
+    .maintenance-container {
+        padding: 1rem;
+    }
+
+    .maintenance-hero {
+        flex-direction: column;
+        align-items: stretch;
+
+        .new-button {
+            width: 100%;
+        }
+
+        .hero-copy h1 {
+            font-size: 1.5rem;
+        }
+    }
+}
+
+@media (max-width: 1200px) {
+    .full-width-table {
+        .mat-column-parts,
+        .mat-column-invoices {
+            display: none;
+        }
+    }
+}
+
+@media (max-width: 980px) {
+    .full-width-table {
+        .mat-column-supplier,
+        .mat-column-cost {
+            display: none;
+        }
+
+        .mat-column-date {
+            min-width: 94px;
+        }
+
+        .mat-column-actions {
+            width: 88px;
+        }
+    }
+}
+
+@media (max-width: 680px) {
+    .maintenance-container {
+        padding: 0.75rem;
+    }
+
+    .full-width-table {
+        th.mat-header-cell,
+        td.mat-cell {
+            padding: 0.65rem 0.5rem;
+        }
+
+        th.mat-header-cell {
+            font-size: 0.66rem;
+        }
+
+        td.mat-cell {
+            font-size: 0.82rem;
+        }
+
+        .mat-column-description {
+            min-width: 150px;
+        }
     }
 }
