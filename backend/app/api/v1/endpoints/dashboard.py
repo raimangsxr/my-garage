@@ -10,6 +10,7 @@ from app.models.vehicle import Vehicle
 from app.models.maintenance import Maintenance
 from app.models.invoice import Invoice
 from app.models.supplier import Supplier
+from app.models.track_record import TrackRecord
 
 router = APIRouter()
 
@@ -55,26 +56,31 @@ def get_dashboard_stats(
             "mileage": m.mileage
         })
     
-    # Monthly costs for last 6 months
+    # Monthly costs for last 6 months (single aggregated query)
     monthly_costs = []
+    month_cursor = datetime.now() - relativedelta(months=5)
+    first_month_start = date(month_cursor.year, month_cursor.month, 1)
+
+    monthly_totals_stmt = (
+        select(
+            func.extract("year", Maintenance.date).label("year"),
+            func.extract("month", Maintenance.date).label("month"),
+            func.coalesce(func.sum(Maintenance.cost), 0.0).label("total"),
+        )
+        .where(Maintenance.date >= first_month_start)
+        .group_by("year", "month")
+    )
+    monthly_totals_rows = db.exec(monthly_totals_stmt).all()
+    monthly_totals_map = {
+        (int(year), int(month)): float(total)
+        for year, month, total in monthly_totals_rows
+    }
+
     for i in range(5, -1, -1):
         month_date = datetime.now() - relativedelta(months=i)
         month_start = date(month_date.year, month_date.month, 1)
-        
-        if i == 0:
-            month_end = date.today()
-        else:
-            next_month = month_start + relativedelta(months=1)
-            month_end = next_month - relativedelta(days=1)
-        
-        month_total_result = db.exec(
-            select(func.sum(Maintenance.cost))
-            .where(Maintenance.date >= month_start)
-            .where(Maintenance.date <= month_end)
-        ).one()
-        
-        month_total = month_total_result if month_total_result else 0.0
-        
+        month_total = monthly_totals_map.get((month_start.year, month_start.month), 0.0)
+
         monthly_costs.append({
             "month": month_start.strftime("%b %Y"),
             "cost": month_total
@@ -83,37 +89,29 @@ def get_dashboard_stats(
     # Total suppliers
     total_suppliers = db.exec(select(func.count(Supplier.id))).one()
     
-    # Circuit summary statistics
-    from app.models.track_record import TrackRecord
-    
-    # Get all track records with circuit information
-    track_records = db.exec(select(TrackRecord)).all()
-    
-    # Calculate circuit statistics
-    circuit_data = {}
-    for record in track_records:
-        circuit_name = record.circuit_name
-        if circuit_name not in circuit_data:
-            circuit_data[circuit_name] = []
-        circuit_data[circuit_name].append(record.best_lap_time)
-    
-    # Get best time for each circuit
-    best_times_per_circuit = []
-    for circuit_name, times in circuit_data.items():
-        # Sort times to get the best (minimum) time
-        sorted_times = sorted(times)
-        best_times_per_circuit.append({
-            "circuit_name": circuit_name,
-            "best_time": sorted_times[0] if sorted_times else None
-        })
-    
-    # Sort by circuit name for consistent display
-    best_times_per_circuit.sort(key=lambda x: x["circuit_name"])
-    
+    # Circuit summary statistics (single grouped query)
+    circuit_rows = db.exec(
+        select(
+            TrackRecord.circuit_name,
+            func.min(TrackRecord.best_lap_time),
+            func.count(TrackRecord.id),
+        )
+        .where(TrackRecord.circuit_name.is_not(None))
+        .group_by(TrackRecord.circuit_name)
+        .order_by(TrackRecord.circuit_name)
+    ).all()
+
+    best_times_per_circuit = [
+        {"circuit_name": circuit_name, "best_time": best_time}
+        for circuit_name, best_time, _ in circuit_rows
+    ]
+
+    total_track_days = db.exec(select(func.count(TrackRecord.id))).one()
+
     circuit_summary = {
-        "total_circuits": len(circuit_data),
+        "total_circuits": len(circuit_rows),
         "best_times_per_circuit": best_times_per_circuit,
-        "total_track_days": len(track_records)
+        "total_track_days": total_track_days
     }
     
     return {

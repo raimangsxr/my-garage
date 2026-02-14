@@ -7,8 +7,7 @@ from app.core.config import settings
 
 PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
-# TODO: Move to env var
-SECRET_KEY = "CHANGE_THIS_TO_A_SECURE_SECRET_KEY_IN_PRODUCTION" 
+SECRET_KEY = settings.SECRET_KEY
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return PWD_CONTEXT.verify(plain_password, hashed_password)

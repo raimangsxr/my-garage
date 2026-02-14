@@ -1,30 +1,90 @@
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlmodel import Session, select, func
 
 from sqlalchemy.orm import selectinload
+from pydantic import BaseModel
+from sqlalchemy import or_, asc, desc
 from app.api import deps
 from app.models.maintenance import Maintenance, MaintenanceBase
 from app.models.part import Part
+from app.models.supplier import Supplier
+from app.models.vehicle import Vehicle
 from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/")
+
+class MaintenanceListResponse(BaseModel):
+    items: List[dict]
+    total: int
+    skip: int
+    limit: int
+
+@router.get("", response_model=MaintenanceListResponse, include_in_schema=False)
+@router.get("/", response_model=MaintenanceListResponse)
 def read_maintenances(
-    skip: int = 0,
-    limit: int = 100,
+    response: Response,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    q: str | None = Query(default=None, min_length=1, max_length=120),
+    sort_by: str = Query(default="date"),
+    sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
     session: Session = Depends(deps.get_session),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve maintenance records with optimized eager loading.
     """
-    statement = select(Maintenance).options(
+    filters = []
+    if q:
+        q_like = f"%{q.strip()}%"
+        filters.append(
+            or_(
+                Maintenance.description.ilike(q_like),
+                Vehicle.brand.ilike(q_like),
+                Vehicle.model.ilike(q_like),
+                Vehicle.license_plate.ilike(q_like),
+                Supplier.name.ilike(q_like),
+            )
+        )
+
+    order_field_map = {
+        "date": Maintenance.date,
+        "description": Maintenance.description,
+        "cost": Maintenance.cost,
+        "mileage": Maintenance.mileage,
+        "vehicle": Vehicle.brand,
+        "supplier": Supplier.name,
+        "id": Maintenance.id,
+    }
+    order_field = order_field_map.get(sort_by, Maintenance.date)
+    order_expr = asc(order_field) if sort_dir == "asc" else desc(order_field)
+
+    total_stmt = (
+        select(func.count(Maintenance.id))
+        .select_from(Maintenance)
+        .outerjoin(Vehicle, Maintenance.vehicle_id == Vehicle.id)
+        .outerjoin(Supplier, Maintenance.supplier_id == Supplier.id)
+    )
+    if filters:
+        total_stmt = total_stmt.where(*filters)
+    total = session.exec(total_stmt).one()
+    response.headers["X-Total-Count"] = str(total)
+
+    statement = (
+        select(Maintenance)
+        .outerjoin(Vehicle, Maintenance.vehicle_id == Vehicle.id)
+        .outerjoin(Supplier, Maintenance.supplier_id == Supplier.id)
+        .options(
         selectinload(Maintenance.vehicle),
         selectinload(Maintenance.parts).selectinload(Part.supplier),
         selectinload(Maintenance.supplier)
-    ).offset(skip).limit(limit).order_by(Maintenance.date.desc())
+        )
+    )
+    if filters:
+        statement = statement.where(*filters)
+    statement = statement.order_by(order_expr).offset(skip).limit(limit)
     maintenances = session.exec(statement).all()
     
     # Manually serialize to include relationships
@@ -36,7 +96,7 @@ def read_maintenances(
         maintenance_dict['parts'] = [p.model_dump() for p in m.parts]
         result.append(maintenance_dict)
     
-    return result
+    return MaintenanceListResponse(items=result, total=total, skip=skip, limit=limit)
 
 @router.get("/{id}")
 def read_maintenance(
@@ -65,6 +125,7 @@ def read_maintenance(
     
     return result
 
+@router.post("", response_model=Maintenance, include_in_schema=False)
 @router.post("/", response_model=Maintenance)
 def create_maintenance(
     *,

@@ -1,25 +1,65 @@
 from typing import List, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Form
-from sqlmodel import Session, select
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, Form, Query, Response
+from sqlmodel import Session, select, func
 from pydantic import BaseModel
+from sqlalchemy import or_, asc, desc
 
 from app.api import deps
-from app.models import Invoice, InvoiceStatus, User, GoogleAuthToken
+from app.models import Invoice, InvoiceStatus, User, Supplier, Vehicle
 from app.schemas.invoice_processing import InvoiceExtractedData
 from app.core.storage import StorageService
 from app.core.gemini_service import GeminiService
 from app.core.invoice_processor import InvoiceProcessor
 from app.core.exceptions import InvoiceProcessingError
+from app.services.invoice_approval_service import InvoiceApprovalService
+from app.services.invoice_workflow_service import InvoiceWorkflowService
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+
+class InvoiceListVehicle(BaseModel):
+    id: int
+    brand: Optional[str] = None
+    model: Optional[str] = None
+    license_plate: Optional[str] = None
+
+
+class InvoiceListSupplier(BaseModel):
+    id: int
+    name: str
+
+
+class InvoiceListItem(BaseModel):
+    id: int
+    number: Optional[str] = None
+    date: Optional[str] = None
+    amount: Optional[float] = None
+    tax_amount: Optional[float] = None
+    file_url: str
+    file_name: Optional[str] = None
+    status: str
+    error_message: Optional[str] = None
+    vehicle_id: Optional[int] = None
+    supplier_id: Optional[int] = None
+    vehicle: Optional[InvoiceListVehicle] = None
+    supplier: Optional[InvoiceListSupplier] = None
+
+
+class InvoiceListResponse(BaseModel):
+    items: List[InvoiceListItem]
+    total: int
+    skip: int
+    limit: int
+
 # Instancias de servicios
 storage_service = StorageService()
 gemini_service = GeminiService()
 invoice_processor = InvoiceProcessor(gemini_service)
+invoice_approval_service = InvoiceApprovalService()
+invoice_workflow_service = InvoiceWorkflowService()
 
 
 async def process_invoice_background(
@@ -79,10 +119,16 @@ async def process_invoice_background(
             )
 
 
-@router.get("/")
+@router.get("", response_model=InvoiceListResponse, include_in_schema=False)
+@router.get("/", response_model=InvoiceListResponse)
 def read_invoices(
-    skip: int = 0,
-    limit: int = 100,
+    response: Response,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    q: Optional[str] = Query(default=None, min_length=1, max_length=120),
+    status: Optional[str] = Query(default=None),
+    sort_by: str = Query(default="date"),
+    sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
     session: Session = Depends(deps.get_session),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -90,28 +136,87 @@ def read_invoices(
     Retrieve invoices with optimized eager loading.
     """
     from sqlalchemy.orm import selectinload
-    
-    statement = select(Invoice).options(
+
+    filters = []
+    if status:
+        filters.append(Invoice.status == status)
+    if q:
+        q_like = f"%{q.strip()}%"
+        filters.append(
+            or_(
+                Invoice.number.ilike(q_like),
+                Invoice.file_name.ilike(q_like),
+                Invoice.error_message.ilike(q_like),
+            )
+        )
+
+    order_field_map = {
+        "date": Invoice.date,
+        "amount": Invoice.amount,
+        "number": Invoice.number,
+        "status": Invoice.status,
+        "supplier": Supplier.name,
+        "vehicle": Vehicle.brand,
+        "id": Invoice.id,
+    }
+    order_field = order_field_map.get(sort_by, Invoice.date)
+    order_expr = asc(order_field) if sort_dir == "asc" else desc(order_field)
+
+    total_stmt = select(func.count(Invoice.id))
+    if filters:
+        total_stmt = total_stmt.where(*filters)
+    total = session.exec(total_stmt).one()
+    response.headers["X-Total-Count"] = str(total)
+
+    statement = (
+        select(Invoice)
+        .outerjoin(Supplier, Invoice.supplier_id == Supplier.id)
+        .outerjoin(Vehicle, Invoice.vehicle_id == Vehicle.id)
+        .options(
         selectinload(Invoice.vehicle),
         selectinload(Invoice.supplier)
-    ).offset(skip).limit(limit).order_by(Invoice.date.desc())
+        )
+    )
+    if filters:
+        statement = statement.where(*filters)
+    statement = statement.order_by(order_expr).offset(skip).limit(limit)
     invoices = session.exec(statement).all()
     
     # Convert to dict with nested relationships
     result = []
     for invoice in invoices:
-        invoice_dict = invoice.model_dump()
+        invoice_dict = {
+            "id": invoice.id,
+            "number": invoice.number,
+            "date": invoice.date.isoformat() if invoice.date else None,
+            "amount": invoice.amount,
+            "tax_amount": invoice.tax_amount,
+            "file_url": invoice.file_url,
+            "file_name": invoice.file_name,
+            "status": invoice.status,
+            "error_message": invoice.error_message,
+            "vehicle_id": invoice.vehicle_id,
+            "supplier_id": invoice.supplier_id,
+        }
         if invoice.vehicle:
-            invoice_dict["vehicle"] = invoice.vehicle.model_dump(exclude={'image_binary'})
+            invoice_dict["vehicle"] = {
+                "id": invoice.vehicle.id,
+                "brand": invoice.vehicle.brand,
+                "model": invoice.vehicle.model,
+                "license_plate": invoice.vehicle.license_plate,
+            }
         else:
             invoice_dict["vehicle"] = None
         if invoice.supplier:
-            invoice_dict["supplier"] = invoice.supplier.model_dump()
+            invoice_dict["supplier"] = {
+                "id": invoice.supplier.id,
+                "name": invoice.supplier.name,
+            }
         else:
             invoice_dict["supplier"] = None
-        result.append(invoice_dict)
+        result.append(InvoiceListItem(**invoice_dict))
     
-    return result
+    return InvoiceListResponse(items=result, total=total, skip=skip, limit=limit)
 
 
 @router.post("/upload", response_model=Invoice)
@@ -150,12 +255,7 @@ async def upload_invoice(
     logger.info(f"Invoice created with ID: {invoice.id}")
     
     # 3. Procesar en background con Gemini
-    from app.core.config import settings
-    
-    # Determine API Key: User's setting > Server env
-    gemini_key = settings.GEMINI_API_KEY
-    if current_user.settings and current_user.settings.gemini_api_key:
-        gemini_key = current_user.settings.gemini_api_key
+    gemini_key = invoice_workflow_service.resolve_gemini_api_key(current_user)
         
     background_tasks.add_task(
         process_invoice_background,
@@ -267,41 +367,24 @@ async def reject_invoice(
     """
     Rechaza la extracción actual y solicita un re-procesamiento detallado.
     """
-    invoice = session.get(Invoice, id)
-    if not invoice:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    
-    if invoice.status != InvoiceStatus.REVIEW.value:
-        raise HTTPException(
-            status_code=400,
-            detail="Can only reject invoices in REVIEW status"
+    try:
+        job = invoice_workflow_service.reject_for_reprocess(
+            session=session,
+            invoice_id=id,
+            current_user=current_user,
         )
-    
-    # Cambiar estado a PENDING para indicar que se va a procesar de nuevo
-    invoice.status = InvoiceStatus.PENDING.value
-    session.add(invoice)
-    session.commit()
-    
-    # Obtener ruta del archivo
-    import os
-    relative_path = invoice.file_url.lstrip("/")
-    file_path = os.path.join(os.getcwd(), relative_path)
-    
-    # Lanzar re-procesamiento en background con detailed_mode=True
-    from app.core.config import settings
-    
-    # Determine API Key: User's setting > Server env
-    gemini_key = settings.GEMINI_API_KEY
-    if current_user.settings and current_user.settings.gemini_api_key:
-        gemini_key = current_user.settings.gemini_api_key
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
     background_tasks.add_task(
         process_invoice_background,
-        invoice.id,
-        file_path,
-        gemini_key,  # Usar API Key determinada
+        job["invoice_id"],
+        job["file_path"],
+        job["gemini_api_key"],  # Usar API Key determinada
         None,
-        True # detailed_mode = True
+        job["detailed_mode"],
     )
     
     return {"msg": "Invoice rejected. Re-processing started."}
@@ -318,43 +401,24 @@ async def retry_invoice(
     """
     Reintenta el procesamiento de una factura fallida.
     """
-    invoice = session.get(Invoice, id)
-    if not invoice:
-        raise HTTPException(status_code=404, detail="Invoice not found")
-    
-    if invoice.status != InvoiceStatus.FAILED.value:
-        raise HTTPException(
-            status_code=400,
-            detail="Can only retry invoices in FAILED status"
+    try:
+        job = invoice_workflow_service.retry_failed(
+            session=session,
+            invoice_id=id,
+            current_user=current_user,
         )
-    
-    # Cambiar estado a PENDING
-    invoice.status = InvoiceStatus.PENDING.value
-    invoice.error_message = None # Limpiar error previo
-    session.add(invoice)
-    session.commit()
-    
-    # Obtener ruta del archivo
-    import os
-    relative_path = invoice.file_url.lstrip("/")
-    file_path = os.path.join(os.getcwd(), relative_path)
-    
-    # Lanzar procesamiento en background (modo normal, no detallado necesariamente, o podríamos usar detallado si falló)
-    # Vamos a usar modo normal por defecto para reintentos simples (ej. cuota)
-    from app.core.config import settings
-    
-    # Determine API Key: User's setting > Server env
-    gemini_key = settings.GEMINI_API_KEY
-    if current_user.settings and current_user.settings.gemini_api_key:
-        gemini_key = current_user.settings.gemini_api_key
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
     background_tasks.add_task(
         process_invoice_background,
-        invoice.id,
-        file_path,
-        gemini_key,  # Usar API Key determinada
+        job["invoice_id"],
+        job["file_path"],
+        job["gemini_api_key"],  # Usar API Key determinada
         None,
-        False # detailed_mode = False
+        job["detailed_mode"],
     )
     
     return {"msg": "Invoice retry started."}
@@ -370,9 +434,6 @@ async def approve_invoice(
     """
     Aprueba los datos extraídos y crea mantenimientos/piezas automáticamente.
     """
-    from app.models import Maintenance, Part, Supplier, Vehicle
-    from datetime import datetime
-    
     invoice = session.get(Invoice, id)
     if not invoice:
         raise HTTPException(status_code=404, detail="Invoice not found")
@@ -383,126 +444,11 @@ async def approve_invoice(
             detail="Can only approve invoices in REVIEW status"
         )
     
-    # Parsear datos extraídos
     try:
-        extracted_data = InvoiceExtractedData.model_validate_json(invoice.extracted_data)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error parsing extracted data: {e}")
-    
-    created_items = {
-        "maintenances": [],
-        "parts": [],
-        "supplier": None
-    }
-    
-    # 1. Crear o encontrar proveedor
-    supplier = None
-    if extracted_data.supplier_name:
-        supplier = session.query(Supplier).filter(
-            Supplier.name == extracted_data.supplier_name
-        ).first()
-        
-        if not supplier:
-            supplier = Supplier(
-                name=extracted_data.supplier_name,
-                address=extracted_data.supplier_address,
-                tax_id=extracted_data.supplier_tax_id
-            )
-            session.add(supplier)
-            session.commit()
-            session.refresh(supplier)
-        
-        invoice.supplier_id = supplier.id
-        created_items["supplier"] = {"id": supplier.id, "name": supplier.name}
-    
-    # 2. Obtener vehículo
-    vehicle = None
-    if invoice.vehicle_id:
-        vehicle = session.get(Vehicle, invoice.vehicle_id)
-    elif extracted_data.vehicle_plate:
-        # Intentar encontrar vehículo por matrícula
-        vehicle = session.query(Vehicle).filter(
-            Vehicle.license_plate == extracted_data.vehicle_plate
-        ).first()
-        if vehicle:
-            invoice.vehicle_id = vehicle.id
-    
-    # 3. Crear mantenimientos y piezas
-    for maint_data in extracted_data.maintenances:
-        # Permitir crear mantenimiento sin vehículo (se asignará después o quedará huérfano de vehículo pero ligado a factura)
-        if not vehicle:
-            logger.warning("Creating maintenance without vehicle assigned")
-        
-        # Calcular costo total
-        total_cost = maint_data.labor_cost or 0
-        for part in maint_data.parts:
-            total_cost += part.total_price
-        
-        # Determinar kilometraje: dato extraído > vehículo actual > 0
-        mileage = extracted_data.mileage
-        if mileage is None and vehicle:
-            mileage = vehicle.kilometers
-        if mileage is None:
-            mileage = 0
+        created_items = invoice_approval_service.approve(session=session, invoice=invoice)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-        # Crear mantenimiento
-        maintenance = Maintenance(
-            date=extracted_data.invoice_date or datetime.now().date(),
-            description=maint_data.description,
-            mileage=mileage,
-            cost=total_cost,
-            vehicle_id=vehicle.id if vehicle else None,
-            supplier_id=supplier.id if supplier else None
-        )
-        session.add(maintenance)
-        session.commit()
-        session.refresh(maintenance)
-        
-        created_items["maintenances"].append({
-            "id": maintenance.id,
-            "description": maintenance.description
-        })
-        
-        # Crear piezas asociadas al mantenimiento
-        for part_data in maint_data.parts:
-            part = Part(
-                name=part_data.name,
-                reference=part_data.reference,
-                price=part_data.unit_price,
-                quantity=part_data.quantity,
-                maintenance_id=maintenance.id,
-                supplier_id=supplier.id if supplier else None,
-                invoice_id=invoice.id
-            )
-            session.add(part)
-            created_items["parts"].append({
-                "name": part.name,
-                "quantity": part.quantity
-            })
-    
-    # 4. Crear piezas sin mantenimiento (solo compras)
-    for part_data in extracted_data.parts_only:
-        part = Part(
-            name=part_data.name,
-            reference=part_data.reference,
-            price=part_data.unit_price,
-            quantity=part_data.quantity,
-            supplier_id=supplier.id if supplier else None,
-            invoice_id=invoice.id,
-            maintenance_id=None  # Sin mantenimiento asociado
-        )
-        session.add(part)
-        created_items["parts"].append({
-            "name": part.name,
-            "quantity": part.quantity
-        })
-    
-    # 5. Marcar factura como aprobada
-    invoice.status = InvoiceStatus.APPROVED.value
-    invoice.tax_amount = extracted_data.tax_amount
-    session.add(invoice)
-    session.commit()
-    
     logger.info(f"Invoice {id} approved and processed successfully")
     
     return {

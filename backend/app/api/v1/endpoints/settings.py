@@ -8,6 +8,7 @@ from app.models.user import User
 
 router = APIRouter()
 
+@router.get("", response_model=SettingsRead, include_in_schema=False)
 @router.get("/", response_model=SettingsRead)
 def read_settings(
     session: Session = Depends(deps.get_session),
@@ -27,6 +28,7 @@ def read_settings(
         return settings
     return current_user.settings
 
+@router.put("", response_model=SettingsRead, include_in_schema=False)
 @router.put("/", response_model=SettingsRead)
 def update_settings(
     *,

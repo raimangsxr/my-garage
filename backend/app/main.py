@@ -15,10 +15,30 @@ app.add_middleware(RequestIDMiddleware)
 app.add_exception_handler(exceptions.AppException, exception_handler.app_exception_handler)
 app.add_exception_handler(Exception, exception_handler.generic_exception_handler)
 
-if settings.BACKEND_CORS_ORIGINS:
+cors_origins = list(settings.BACKEND_CORS_ORIGINS)
+if not cors_origins and settings.ENVIRONMENT.lower() == "development":
+    cors_origins = [
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ]
+
+cors_origin_regex = settings.BACKEND_CORS_ORIGIN_REGEX or None
+if settings.ENVIRONMENT.lower() == "development" and not cors_origin_regex:
+    cors_origin_regex = (
+        r"^https?://("
+        r"localhost|127\.0\.0\.1|0\.0\.0\.0|"
+        r"192\.168\.\d{1,3}\.\d{1,3}|"
+        r"10\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+        r")(:\d+)?$"
+    )
+
+if cors_origins or cors_origin_regex:
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in settings.BACKEND_CORS_ORIGINS],
+        allow_origins=cors_origins,
+        allow_origin_regex=cors_origin_regex,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

@@ -1,38 +1,34 @@
 import asyncio
 import os
+import pytest
 from dotenv import load_dotenv
+
 from app.core.gemini_service import GeminiService
-from app.schemas.invoice_processing import InvoiceExtractedData
-import logging
 
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
-async def test_processing():
+def test_processing():
+    """
+    Optional integration test for Gemini invoice extraction.
+    Run only when explicitly enabled:
+    ENABLE_GEMINI_INTEGRATION_TEST=true pytest -q
+    """
+    if os.getenv("ENABLE_GEMINI_INTEGRATION_TEST", "").lower() != "true":
+        pytest.skip("Set ENABLE_GEMINI_INTEGRATION_TEST=true to run this integration test.")
+
     load_dotenv()
-    
+
     api_key = os.getenv("GEMINI_API_KEY")
+    image_path = os.getenv("GEMINI_TEST_IMAGE_PATH")
+
     if not api_key:
-        print("Error: GEMINI_API_KEY not found in .env")
-        return
+        pytest.skip("GEMINI_API_KEY is not configured.")
+    if not image_path:
+        pytest.skip("GEMINI_TEST_IMAGE_PATH is not configured.")
+    if not os.path.exists(image_path):
+        pytest.skip(f"Image path not found: {image_path}")
 
     service = GeminiService(api_key=api_key)
-    
-    # Path to the user provided image
-    image_path = "/Users/rromanit/.gemini/antigravity/brain/4dfce37e-c5c0-4fff-b5f4-a01d6a1ac7b8/uploaded_image_1763951452593.jpg"
-    
-    print(f"Processing image: {image_path}")
-    
-    try:
-        result = await service.extract_invoice_data(image_path)
-        print("\n--- Extraction Success ---")
-        print(result.model_dump_json(indent=2))
-        print("--------------------------")
-    except Exception as e:
-        print(f"\n--- Extraction Failed ---")
-        print(f"Error: {e}")
-        print("-------------------------")
+    result = asyncio.run(service.extract_invoice_data(image_path))
 
-if __name__ == "__main__":
-    asyncio.run(test_processing())
+    assert result is not None
+    assert getattr(result, "items", None) is not None

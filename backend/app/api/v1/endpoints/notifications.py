@@ -1,7 +1,9 @@
 from typing import List, Any
-from datetime import date, timedelta, datetime
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from datetime import date, datetime, timedelta
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlmodel import Session, select, func
+from sqlalchemy import and_, or_
+from pydantic import BaseModel
 
 from app.api import deps
 from app.models.notification import Notification, NotificationCreate, NotificationRead, NotificationUpdate
@@ -10,19 +12,33 @@ from app.models.vehicle import Vehicle
 
 router = APIRouter()
 
-@router.get("/", response_model=List[NotificationRead])
+
+class NotificationListResponse(BaseModel):
+    items: List[NotificationRead]
+    total: int
+    skip: int
+    limit: int
+
+@router.get("", response_model=NotificationListResponse, include_in_schema=False)
+@router.get("/", response_model=NotificationListResponse)
 def read_notifications(
-    skip: int = 0,
-    limit: int = 100,
+    response: Response,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
     session: Session = Depends(deps.get_session),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve notifications.
     """
+    total = session.exec(
+        select(func.count(Notification.id)).where(Notification.user_id == current_user.id)
+    ).one()
+    response.headers["X-Total-Count"] = str(total)
+
     statement = select(Notification).where(Notification.user_id == current_user.id).order_by(Notification.created_at.desc()).offset(skip).limit(limit)
     notifications = session.exec(statement).all()
-    return notifications
+    return NotificationListResponse(items=notifications, total=total, skip=skip, limit=limit)
 
 @router.put("/{id}/read", response_model=NotificationRead)
 def mark_as_read(
@@ -77,19 +93,29 @@ def check_notifications(
     """
     Check for upcoming vehicle events and generate notifications.
     """
-    vehicles = session.exec(select(Vehicle)).all() # In real app, filter by user ownership if applicable, but here vehicles are global or we assume single user context for simplicity or we should add user_id to Vehicle. 
-    # Assuming vehicles are linked to user or we just check all for now (demo). 
-    # Wait, Vehicle doesn't have user_id in the model I saw earlier. 
-    # Let's assume for this "My Garage" single-user-ish or shared DB demo we just check all, 
-    # BUT notifications must be assigned to current_user.
-    
-    # Refinement: We should probably only check vehicles relevant to the user. 
-    # Since Vehicle model doesn't have user_id, I'll assume all vehicles are "mine" for this user context 
-    # or that we are just generating notifications for the current user based on ALL vehicles (shared garage).
-    
     today = date.today()
     warning_days = 30
-    
+    warning_limit = today + timedelta(days=warning_days)
+
+    vehicles_stmt = select(Vehicle).where(
+        or_(
+            and_(Vehicle.next_itv_date.is_not(None), Vehicle.next_itv_date >= today, Vehicle.next_itv_date <= warning_limit),
+            and_(Vehicle.next_insurance_date.is_not(None), Vehicle.next_insurance_date >= today, Vehicle.next_insurance_date <= warning_limit),
+            and_(Vehicle.next_road_tax_date.is_not(None), Vehicle.next_road_tax_date >= today, Vehicle.next_road_tax_date <= warning_limit),
+        )
+    )
+    vehicles = session.exec(vehicles_stmt).all()
+
+    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    existing_titles = set(
+        session.exec(
+            select(Notification.title).where(
+                Notification.user_id == current_user.id,
+                Notification.created_at >= today_start,
+            )
+        ).all()
+    )
+
     generated_count = 0
 
     for vehicle in vehicles:
@@ -97,58 +123,48 @@ def check_notifications(
         if vehicle.next_itv_date:
             days_until = (vehicle.next_itv_date - today).days
             if 0 <= days_until <= warning_days:
-                create_notification_if_not_exists(
-                    session, current_user.id, 
-                    f"ITV Due Soon: {vehicle.brand} {vehicle.model}",
-                    f"ITV for {vehicle.license_plate} is due on {vehicle.next_itv_date}",
-                    "ITV"
-                )
-                generated_count += 1
+                title = f"ITV Due Soon: {vehicle.brand} {vehicle.model}"
+                if title not in existing_titles:
+                    session.add(Notification(
+                        user_id=current_user.id,
+                        title=title,
+                        message=f"ITV for {vehicle.license_plate} is due on {vehicle.next_itv_date}",
+                        type="ITV",
+                    ))
+                    existing_titles.add(title)
+                    generated_count += 1
 
         # Check Insurance
         if vehicle.next_insurance_date:
             days_until = (vehicle.next_insurance_date - today).days
             if 0 <= days_until <= warning_days:
-                create_notification_if_not_exists(
-                    session, current_user.id,
-                    f"Insurance Renewal: {vehicle.brand} {vehicle.model}",
-                    f"Insurance for {vehicle.license_plate} expires on {vehicle.next_insurance_date}",
-                    "INSURANCE"
-                )
-                generated_count += 1
+                title = f"Insurance Renewal: {vehicle.brand} {vehicle.model}"
+                if title not in existing_titles:
+                    session.add(Notification(
+                        user_id=current_user.id,
+                        title=title,
+                        message=f"Insurance for {vehicle.license_plate} expires on {vehicle.next_insurance_date}",
+                        type="INSURANCE",
+                    ))
+                    existing_titles.add(title)
+                    generated_count += 1
 
         # Check Road Tax
         if vehicle.next_road_tax_date:
             days_until = (vehicle.next_road_tax_date - today).days
             if 0 <= days_until <= warning_days:
-                create_notification_if_not_exists(
-                    session, current_user.id,
-                    f"Road Tax Due: {vehicle.brand} {vehicle.model}",
-                    f"Road tax for {vehicle.license_plate} is due on {vehicle.next_road_tax_date}",
-                    "TAX"
-                )
-                generated_count += 1
+                title = f"Road Tax Due: {vehicle.brand} {vehicle.model}"
+                if title not in existing_titles:
+                    session.add(Notification(
+                        user_id=current_user.id,
+                        title=title,
+                        message=f"Road tax for {vehicle.license_plate} is due on {vehicle.next_road_tax_date}",
+                        type="TAX",
+                    ))
+                    existing_titles.add(title)
+                    generated_count += 1
+
+    if generated_count:
+        session.commit()
 
     return {"message": f"Check complete. Generated {generated_count} notifications."}
-
-def create_notification_if_not_exists(session: Session, user_id: int, title: str, message: str, type: str):
-    # Simple de-duplication: check if a notification with same title exists for this user created today
-    # This prevents spamming every time we check.
-    today_start = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    
-    statement = select(Notification).where(
-        Notification.user_id == user_id,
-        Notification.title == title,
-        Notification.created_at >= today_start
-    )
-    existing = session.exec(statement).first()
-    
-    if not existing:
-        notification = Notification(
-            user_id=user_id,
-            title=title,
-            message=message,
-            type=type
-        )
-        session.add(notification)
-        session.commit()

@@ -1,4 +1,4 @@
-from typing import Generator, Optional
+from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import jwt, JWTError
@@ -8,8 +8,9 @@ from sqlmodel import Session
 from app.database import get_session
 from app.models import User, GoogleAuthToken
 from app.core.security import ALGORITHM, SECRET_KEY
+from sqlmodel import select
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/login/access-token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login/access-token")
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -32,7 +33,7 @@ def get_current_user(
     except JWTError:
         raise credentials_exception
     
-    user = session.query(User).filter(User.email == token_data.username).first()
+    user = session.exec(select(User).where(User.email == token_data.username)).first()
     if user is None:
         raise credentials_exception
     return user
@@ -52,8 +53,8 @@ def get_google_auth_token(
     Obtiene el token de Google del usuario actual.
     Se requiere para usar la API de Gemini.
     """
-    google_token = session.query(GoogleAuthToken).filter(
-        GoogleAuthToken.user_id == current_user.id
+    google_token = session.exec(
+        select(GoogleAuthToken).where(GoogleAuthToken.user_id == current_user.id)
     ).first()
     
     if not google_token:

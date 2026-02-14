@@ -1,6 +1,8 @@
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlmodel import Session, select, func
+from pydantic import BaseModel
+from sqlalchemy import or_, asc, desc
 
 from app.api import deps
 from app.models.supplier import Supplier, SupplierBase, SupplierRead
@@ -8,20 +10,65 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/", response_model=List[SupplierRead])
+
+class SupplierListResponse(BaseModel):
+    items: List[SupplierRead]
+    total: int
+    skip: int
+    limit: int
+
+@router.get("", response_model=SupplierListResponse, include_in_schema=False)
+@router.get("/", response_model=SupplierListResponse)
 def read_suppliers(
-    skip: int = 0,
-    limit: int = 100,
+    response: Response,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
+    q: str | None = Query(default=None, min_length=1, max_length=120),
+    sort_by: str = Query(default="name"),
+    sort_dir: str = Query(default="asc", pattern="^(asc|desc)$"),
     session: Session = Depends(deps.get_session),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
     Retrieve suppliers (basic info only, no relationships).
     """
-    statement = select(Supplier).offset(skip).limit(limit)
-    suppliers = session.exec(statement).all()
-    return suppliers
+    filters = []
+    if q:
+        q_like = f"%{q.strip()}%"
+        filters.append(
+            or_(
+                Supplier.name.ilike(q_like),
+                Supplier.email.ilike(q_like),
+                Supplier.phone.ilike(q_like),
+                Supplier.address.ilike(q_like),
+                Supplier.tax_id.ilike(q_like),
+            )
+        )
 
+    order_field_map = {
+        "name": Supplier.name,
+        "email": Supplier.email,
+        "phone": Supplier.phone,
+        "address": Supplier.address,
+        "id": Supplier.id,
+    }
+    order_field = order_field_map.get(sort_by, Supplier.name)
+    order_expr = asc(order_field) if sort_dir == "asc" else desc(order_field)
+
+    total_stmt = select(func.count(Supplier.id))
+    if filters:
+        total_stmt = total_stmt.where(*filters)
+    total = session.exec(total_stmt).one()
+    response.headers["X-Total-Count"] = str(total)
+
+    statement = select(Supplier)
+    if filters:
+        statement = statement.where(*filters)
+    statement = statement.order_by(order_expr).offset(skip).limit(limit)
+    suppliers = session.exec(statement).all()
+    return SupplierListResponse(items=suppliers, total=total, skip=skip, limit=limit)
+
+@router.post("", response_model=Supplier, include_in_schema=False)
 @router.post("/", response_model=Supplier)
 def create_supplier(
     *,

@@ -41,7 +41,7 @@ def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests
     """
-    user = session.query(User).filter(User.email == form_data.username).first()
+    user = session.exec(select(User).where(User.email == form_data.username)).first()
     
     if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
@@ -137,7 +137,7 @@ def google_login(
         picture = idinfo.get('picture')
         
         # Buscar o crear usuario
-        user = session.query(User).filter(User.email == email).first()
+        user = session.exec(select(User).where(User.email == email)).first()
         
         if not user:
             # Crear nuevo usuario
@@ -153,8 +153,8 @@ def google_login(
             session.refresh(user)
         
         # Buscar o crear token de Google
-        google_token = session.query(GoogleAuthToken).filter(
-            GoogleAuthToken.google_id == google_id
+        google_token = session.exec(
+            select(GoogleAuthToken).where(GoogleAuthToken.google_id == google_id)
         ).first()
         
         # Token expira en 1 hora (estándar de Google)
@@ -211,7 +211,7 @@ def recover_password(email: str, session: Session = Depends(get_session)) -> Any
     """
     Password Recovery
     """
-    user = session.query(User).filter(User.email == email).first()
+    user = session.exec(select(User).where(User.email == email)).first()
     
     if not user:
         raise HTTPException(

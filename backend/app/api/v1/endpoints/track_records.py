@@ -1,12 +1,13 @@
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import Session, select
+from sqlmodel import Session
 from app.api import deps
 from app.models.track_record import TrackRecord, TrackRecordCreate, TrackRecordRead, TrackRecordUpdate
-from app.models.vehicle import Vehicle
 from app.models.user import User
+from app.services.track_records_service import TrackRecordsService
 
 router = APIRouter()
+track_records_service = TrackRecordsService()
 
 @router.get("/{vehicle_id}/track-records", response_model=List[TrackRecordRead])
 def get_track_records(
@@ -18,13 +19,11 @@ def get_track_records(
     """
     Get all track records for a vehicle.
     """
-    vehicle = db.get(Vehicle, vehicle_id)
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    
-    statement = select(TrackRecord).where(TrackRecord.vehicle_id == vehicle_id)
-    records = db.exec(statement).all()
-    
+    try:
+        records = track_records_service.list_for_vehicle(session=db, vehicle_id=vehicle_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
     return [TrackRecordRead(**record.model_dump()) for record in records]
 
 @router.post("/{vehicle_id}/track-records", response_model=TrackRecordRead)
@@ -38,33 +37,15 @@ def create_track_record(
     """
     Create new track record for a vehicle.
     """
-    vehicle = db.get(Vehicle, vehicle_id)
-    if not vehicle:
-        raise HTTPException(status_code=404, detail="Vehicle not found")
-    
-    # Handle track resolution
-    track_id = record_in.track_id
-    if not track_id and record_in.circuit_name:
-        # Find or create track by name
-        from app.models.track import Track
-        statement = select(Track).where(Track.name == record_in.circuit_name)
-        track = db.exec(statement).first()
-        if not track:
-            track = Track(name=record_in.circuit_name)
-            db.add(track)
-            db.commit()
-            db.refresh(track)
-        track_id = track.id
-    
-    record_data = record_in.model_dump()
-    if track_id:
-        record_data['track_id'] = track_id
-        
-    record = TrackRecord(vehicle_id=vehicle_id, **record_data)
-    db.add(record)
-    db.commit()
-    db.refresh(record)
-    
+    try:
+        record = track_records_service.create_for_vehicle(
+            session=db,
+            vehicle_id=vehicle_id,
+            payload=record_in,
+        )
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
     return TrackRecordRead(**record.model_dump())
 
 @router.put("/track-records/{record_id}", response_model=TrackRecordRead)
@@ -78,18 +59,11 @@ def update_track_record(
     """
     Update a track record.
     """
-    record = db.get(TrackRecord, record_id)
-    if not record:
-        raise HTTPException(status_code=404, detail="Track record not found")
-    
-    record_data = record_in.model_dump(exclude_unset=True)
-    for key, value in record_data.items():
-        setattr(record, key, value)
-    
-    db.add(record)
-    db.commit()
-    db.refresh(record)
-    
+    try:
+        record = track_records_service.update(session=db, record_id=record_id, payload=record_in)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
     return TrackRecordRead(**record.model_dump())
 
 @router.delete("/track-records/{record_id}", response_model=TrackRecordRead)
@@ -102,12 +76,9 @@ def delete_track_record(
     """
     Delete a track record.
     """
-    record = db.get(TrackRecord, record_id)
-    if not record:
-        raise HTTPException(status_code=404, detail="Track record not found")
-    
-    record_dict = record.model_dump()
-    db.delete(record)
-    db.commit()
-    
-    return TrackRecordRead(**record_dict)
+    try:
+        record = track_records_service.delete(session=db, record_id=record_id)
+    except LookupError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+    return TrackRecordRead(**record.model_dump())

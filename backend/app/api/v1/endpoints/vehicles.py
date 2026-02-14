@@ -1,7 +1,8 @@
 from typing import List, Any
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
-from fastapi.responses import Response
-from sqlmodel import Session, select
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Response
+from fastapi.responses import Response as BinaryResponse
+from sqlmodel import Session, select, func
+from pydantic import BaseModel
 from app.api import deps
 from app.models.vehicle import Vehicle, VehicleRead, VehicleBase, VehicleCreate, VehicleUpdate
 from app.models.user import User
@@ -9,11 +10,20 @@ import base64
 
 router = APIRouter()
 
-@router.get("/", response_model=List[VehicleRead])
+
+class VehicleListResponse(BaseModel):
+    items: List[VehicleRead]
+    total: int
+    skip: int
+    limit: int
+
+@router.get("", response_model=VehicleListResponse, include_in_schema=False)
+@router.get("/", response_model=VehicleListResponse)
 def read_vehicles(
+    response: Response,
     db: Session = Depends(deps.get_db),
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(default=0, ge=0),
+    limit: int = Query(default=100, ge=1, le=200),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -21,6 +31,9 @@ def read_vehicles(
     """
     from sqlalchemy.orm import selectinload
     
+    total = db.exec(select(func.count(Vehicle.id))).one()
+    response.headers["X-Total-Count"] = str(total)
+
     statement = select(Vehicle).options(selectinload(Vehicle.specs)).offset(skip).limit(limit)
     vehicles = db.exec(statement).all()
     
@@ -38,7 +51,7 @@ def read_vehicles(
             
         result.append(VehicleRead(**vehicle_dict))
     
-    return result
+    return VehicleListResponse(items=result, total=total, skip=skip, limit=limit)
 
 @router.post("/", response_model=VehicleRead)
 def create_vehicle(
@@ -183,7 +196,7 @@ def get_vehicle_image(
     if not vehicle or not vehicle.image_binary:
         raise HTTPException(status_code=404, detail="Image not found")
     
-    return Response(content=vehicle.image_binary, media_type="image/jpeg")
+    return BinaryResponse(content=vehicle.image_binary, media_type="image/jpeg")
 
 @router.get("/proxy-image")
 def proxy_image(url: str) -> Any:
@@ -194,7 +207,7 @@ def proxy_image(url: str) -> Any:
     try:
         response = requests.get(url, timeout=10)
         response.raise_for_status()
-        return Response(content=response.content, media_type=response.headers.get('content-type', 'image/jpeg'))
+        return BinaryResponse(content=response.content, media_type=response.headers.get('content-type', 'image/jpeg'))
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch image: {str(e)}")
 
