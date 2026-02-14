@@ -6,10 +6,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.component';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-vehicles',
@@ -21,7 +21,7 @@ import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.componen
         MatIconModule,
         MatMenuModule,
         MatDialogModule,
-        MatProgressSpinnerModule,
+        PageLoaderComponent,
         MatPaginatorModule
     ],
     templateUrl: './vehicles.component.html',

@@ -11,9 +11,9 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-suppliers',
@@ -31,7 +31,7 @@ import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.compo
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        MatProgressSpinnerModule
+        PageLoaderComponent
     ],
     templateUrl: './suppliers.component.html',
     styleUrls: ['./suppliers.component.scss']

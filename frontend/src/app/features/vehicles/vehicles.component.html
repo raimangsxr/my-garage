@@ -1,14 +1,24 @@
-<div class="vehicles-container">
-    <div class="header">
-        <h2>My Vehicles</h2>
+<div class="mg-page vehicles-page">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>directions_car</mat-icon>
+                My Vehicles
+            </h2>
+            <p class="mg-page-subtitle">Manage your fleet, upcoming paperwork and key dates.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-raised-button color="primary" (click)="openVehicleDialog()">
+                <mat-icon>add</mat-icon>
+                New Vehicle
+            </button>
+        </div>
     </div>
 
-    <div class="loading-container" *ngIf="isLoading">
-        <mat-spinner diameter="50"></mat-spinner>
-    </div>
+    <app-page-loader *ngIf="isLoading" icon="directions_car" message="Loading vehicles..." minHeight="260px"></app-page-loader>
 
     <div class="vehicles-grid" *ngIf="!isLoading">
-        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card" (click)="viewVehicleDetails(vehicle.id!)">
+        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card mg-surface-card" (click)="viewVehicleDetails(vehicle.id!)">
             <div class="vehicle-image"
                 [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
                 <div class="usage-type-badge" [attr.data-usage]="vehicle.usage_type || 'street'">
@@ -50,7 +60,7 @@
             </mat-card-content>
 
             <div class="card-actions" (click)="$event.stopPropagation()">
-                <button mat-icon-button [matMenuTriggerFor]="menu">
+                <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Vehicle options">
                     <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #menu="matMenu">
@@ -67,6 +77,12 @@
         </mat-card>
     </div>
 
+    <div *ngIf="!isLoading && vehicles.length === 0" class="mg-empty-state">
+        <mat-icon>directions_car</mat-icon>
+        <p>No vehicles yet</p>
+        <span>Add your first vehicle to start tracking maintenance and costs.</span>
+    </div>
+
     <mat-paginator
         [length]="totalVehicles"
         [pageSize]="pageSize"
@@ -76,7 +92,7 @@
         aria-label="Select page of vehicles">
     </mat-paginator>
 
-    <button mat-fab color="primary" class="add-button" (click)="openVehicleDialog()">
+    <button mat-fab color="primary" class="add-button" (click)="openVehicleDialog()" aria-label="Add vehicle">
         <mat-icon>add</mat-icon>
     </button>
 </div>

@@ -1,34 +1,8 @@
-.container {
-    padding: 20px;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.header h2 {
-    margin: 0;
-    font-size: 24px;
-}
-
-.filter-field {
-    width: 100%;
-    margin-bottom: 20px;
-}
-
 .supplier-card {
     position: relative;
-    overflow: hidden;
 }
 
-
-
 .supplier-table {
-    width: 100%;
-
     .mat-column-actions {
         white-space: nowrap;
         width: 150px;

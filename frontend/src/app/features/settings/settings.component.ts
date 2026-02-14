@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { SettingsService } from '../../core/services/settings.service';
 import { Settings } from '../../core/models/settings.model';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-settings',
@@ -25,7 +26,8 @@ import { Settings } from '../../core/models/settings.model';
         MatSlideToggleModule,
         MatButtonModule,
         MatIconModule,
-        MatSnackBarModule
+        MatSnackBarModule,
+        PageLoaderComponent
     ],
     templateUrl: './settings.component.html',
     styleUrls: ['./settings.component.scss']

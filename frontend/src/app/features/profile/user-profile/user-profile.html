@@ -1,46 +1,50 @@
-<div class="profile-container">
-    <h2>Edit Profile</h2>
-
-    <div class="current-profile">
-        <img [src]="form.get('image_url')?.value || 'assets/images/default-avatar.png'" class="profile-preview"
-            alt="Profile">
+<div class="mg-page profile-page">
+    <div class="mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>person</mat-icon>
+                Edit Profile
+            </h2>
+            <p class="mg-page-subtitle">Update your avatar and personal information.</p>
+        </div>
     </div>
 
-    <form [formGroup]="form" (ngSubmit)="onSubmit()">
-
-        <!-- Image Selection Section -->
-        <div class="image-section">
-            <h3>Profile Image</h3>
-
-            <!-- Pre-defined Avatars -->
-            <div class="avatars-grid">
-                <img *ngFor="let avatar of avatars" [src]="avatar" (click)="selectAvatar(avatar)"
-                    [class.selected]="form.get('image_url')?.value === avatar" class="avatar-option">
+    <mat-card class="mg-form-card profile-card">
+        <mat-card-content>
+            <div class="current-profile">
+                <img [src]="form.get('image_url')?.value || 'assets/images/default-avatar.png'" class="profile-preview" alt="Profile">
             </div>
 
-            <app-image-cropper (imageCropped)="onImageCropped($event)">
-            </app-image-cropper>
-        </div>
+            <form [formGroup]="form" (ngSubmit)="onSubmit()">
+                <div class="image-section">
+                    <h3>Profile Image</h3>
+                    <div class="avatars-grid">
+                        <img *ngFor="let avatar of avatars" [src]="avatar" (click)="selectAvatar(avatar)"
+                            [class.selected]="form.get('image_url')?.value === avatar" class="avatar-option">
+                    </div>
+                    <app-image-cropper (imageCropped)="onImageCropped($event)"></app-image-cropper>
+                </div>
 
-        <!-- User Details -->
-        <div class="details-section">
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Full Name</mat-label>
-                <input matInput formControlName="full_name">
-                <mat-error *ngIf="form.get('full_name')?.hasError('required')">Full name is required</mat-error>
-            </mat-form-field>
+                <div class="details-section">
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Full Name</mat-label>
+                        <input matInput formControlName="full_name">
+                        <mat-error *ngIf="form.get('full_name')?.hasError('required')">Full name is required</mat-error>
+                    </mat-form-field>
 
-            <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Email</mat-label>
-                <input matInput [value]="user?.email" disabled>
-                <mat-hint>Email cannot be changed</mat-hint>
-            </mat-form-field>
-        </div>
+                    <mat-form-field appearance="outline" class="full-width">
+                        <mat-label>Email</mat-label>
+                        <input matInput [value]="user?.email" disabled>
+                        <mat-hint>Email cannot be changed</mat-hint>
+                    </mat-form-field>
+                </div>
 
-        <div class="actions">
-            <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
-                Save Changes
-            </button>
-        </div>
-    </form>
+                <div class="actions">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </mat-card-content>
+    </mat-card>
 </div>

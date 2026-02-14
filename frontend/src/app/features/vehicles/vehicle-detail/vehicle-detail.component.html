@@ -148,7 +148,4 @@
     </div>
 </div>
 
-<div *ngIf="loading" class="loading-container">
-    <mat-icon>add_road</mat-icon>
-    <p>Loading vehicle details...</p>
-</div>
+<app-page-loader *ngIf="loading" icon="add_road" message="Loading vehicle details..." minHeight="280px"></app-page-loader>

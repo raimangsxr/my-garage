@@ -1,24 +1,35 @@
-<div class="container">
-    <div class="header">
-        <h2>Suppliers</h2>
-        <button mat-raised-button color="primary" (click)="openSupplierDialog()">
-            <mat-icon>add</mat-icon> Add Supplier
-        </button>
+<div class="container mg-page">
+    <div class="header mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>store</mat-icon>
+                Suppliers
+            </h2>
+            <p class="mg-page-subtitle">Manage your suppliers and their contact information.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-raised-button color="primary" (click)="openSupplierDialog()">
+                <mat-icon>add</mat-icon> Add Supplier
+            </button>
+        </div>
     </div>
 
-    <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Amazon, email, phone..." #input>
-        <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <div class="mg-toolbar">
+        <mat-form-field appearance="outline" class="filter-field mg-filter-field">
+            <mat-label>Search suppliers</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Amazon, email, phone..." #input>
+            <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+    </div>
 
-    <mat-card class="supplier-card">
+    <mat-card class="supplier-card mg-surface-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <mat-spinner diameter="50"></mat-spinner>
+                <app-page-loader icon="store" message="Loading suppliers..." minHeight="260px"></app-page-loader>
             </div>
 
-            <table mat-table [dataSource]="dataSource" matSort class="supplier-table">
+            <div class="mg-table-shell">
+            <table mat-table [dataSource]="dataSource" matSort class="supplier-table mg-table">
                 <!-- Name Column -->
                 <ng-container matColumnDef="name">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header> Name </th>
@@ -75,6 +86,7 @@
                 (page)="onPageChange($event)"
                 aria-label="Select page of suppliers">
             </mat-paginator>
+            </div>
         </mat-card-content>
     </mat-card>
 </div>

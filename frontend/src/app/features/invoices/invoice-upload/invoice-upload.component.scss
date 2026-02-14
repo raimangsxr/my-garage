@@ -1,131 +1,109 @@
-.upload-container {
-    display: flex;
-    justify-content: center;
-    padding: 2rem;
-}
-
 .upload-card {
-    width: 100%;
-    max-width: 600px;
+    max-width: 760px;
 }
 
 .auth-section {
     text-align: center;
-    padding: 2rem 0;
+    padding: 1rem 0;
 
     p {
-        margin-bottom: 1rem;
-        color: #666;
+        margin: 0 0 0.8rem;
+        color: #475569;
     }
 }
 
 .drop-zone {
-    border: 2px dashed #ccc;
-    border-radius: 8px;
-    padding: 2rem;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.25rem;
     text-align: center;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 1.5rem 0;
-    background-color: #fafafa;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    margin: 1rem 0;
+    background-color: #f8fafc;
     min-height: 200px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 
-    &.dragging {
-        border-color: #3f51b5;
-        background-color: #e8eaf6;
-    }
-
+    &.dragging,
     &:hover {
-        border-color: #3f51b5;
+        border-color: #1d4ed8;
+        background-color: #eff6ff;
     }
 }
 
 .placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-
     .upload-icon {
-        font-size: 48px;
-        width: 48px;
-        height: 48px;
-        color: #999;
-        margin-bottom: 1rem;
+        font-size: 42px;
+        width: 42px;
+        height: 42px;
+        color: #64748b;
+        margin-bottom: 0.75rem;
     }
 
     h3 {
-        margin: 0 0 0.5rem;
-        font-weight: 500;
+        margin: 0 0 0.35rem;
+        color: #0f172a;
+        font-size: 1rem;
     }
 
     p {
-        margin: 0 0 0.5rem;
-        color: #666;
+        margin: 0 0 0.35rem;
+        color: #64748b;
     }
 
     .file-types {
-        font-size: 0.8rem;
-        color: #999;
+        font-size: 0.78rem;
+        color: #64748b;
     }
 }
 
 .file-preview {
     width: 100%;
+}
+
+.preview-wrapper {
+    position: relative;
+}
+
+.remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.file-info {
+    margin-top: 0.5rem;
     display: flex;
     flex-direction: column;
     align-items: center;
 
-    img {
-        max-width: 100%;
-        max-height: 200px;
-        border-radius: 4px;
-        margin-bottom: 1rem;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    .filename {
+        font-weight: 600;
+        color: #0f172a;
+        word-break: break-word;
     }
 
-    .pdf-icon {
-        font-size: 64px;
-        width: 64px;
-        height: 64px;
-        color: #d32f2f;
-        margin-bottom: 1rem;
-    }
-
-    .file-info {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 1rem;
-
-        .filename {
-            font-weight: 500;
-            word-break: break-all;
-        }
-
-        .filesize {
-            font-size: 0.8rem;
-            color: #666;
-        }
+    .filesize {
+        font-size: 0.78rem;
+        color: #64748b;
     }
 }
 
 .progress-section {
-    margin: 1rem 0;
-    text-align: center;
+    margin: 0.8rem 0;
 
     p {
-        margin-top: 0.5rem;
-        font-size: 0.9rem;
-        color: #666;
+        margin-top: 0.4rem;
+        text-align: center;
+        color: #475569;
     }
 }
 
 .actions {
     display: flex;
     justify-content: flex-end;
-    margin-top: 1rem;
 }

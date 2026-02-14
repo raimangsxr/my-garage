@@ -1,24 +1,35 @@
-<div class="maintenance-container">
-    <div class="header-actions">
-        <h1>Maintenance Records</h1>
-        <button mat-raised-button color="primary" (click)="openMaintenanceDialog()">
-            <mat-icon>add</mat-icon>
-            New Maintenance
-        </button>
+<div class="maintenance-container mg-page">
+    <div class="header-actions mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h1 class="mg-page-title">
+                <mat-icon>build_circle</mat-icon>
+                Maintenance Records
+            </h1>
+            <p class="mg-page-subtitle">Track services, associated parts, invoices and historical costs.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-raised-button color="primary" (click)="openMaintenanceDialog()">
+                <mat-icon>add</mat-icon>
+                New Maintenance
+            </button>
+        </div>
     </div>
 
-    <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil change, Audi, Amazon..." #input>
-        <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <div class="mg-toolbar">
+        <mat-form-field appearance="outline" class="filter-field mg-filter-field">
+            <mat-label>Search maintenance</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Oil change, Audi, Amazon..." #input>
+            <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+    </div>
 
-    <div class="maintenance-list">
+    <mat-card class="maintenance-list mg-surface-card">
         <div *ngIf="isLoading" class="loading-overlay">
-            <mat-spinner diameter="50"></mat-spinner>
+            <app-page-loader icon="build_circle" message="Loading maintenance..." minHeight="260px"></app-page-loader>
         </div>
 
-        <table mat-table [dataSource]="dataSource" matSort class="full-width-table">
+        <div class="mg-table-shell">
+        <table mat-table [dataSource]="dataSource" matSort class="full-width-table mg-table">
             <!-- Date Column -->
             <ng-container matColumnDef="date">
                 <th mat-header-cell *matHeaderCellDef mat-sort-header> Date </th>
@@ -114,10 +125,12 @@
             (page)="onPageChange($event)"
             aria-label="Select page of maintenance records">
         </mat-paginator>
+        </div>
 
-        <div class="empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
+        <div class="empty-state mg-empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
             <mat-icon>build</mat-icon>
             <p>No maintenance records found</p>
+            <span>Create your first entry to start tracking service history.</span>
         </div>
-    </div>
+    </mat-card>
 </div>

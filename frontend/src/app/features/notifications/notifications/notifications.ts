@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatListModule } from '@angular/material/list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { Notification, NotificationService } from '../../../core/services/notification.service';
 
 @Component({
@@ -16,7 +17,8 @@ import { Notification, NotificationService } from '../../../core/services/notifi
     MatButtonModule,
     MatIconModule,
     MatListModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatTooltipModule
   ],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss'

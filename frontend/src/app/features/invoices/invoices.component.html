@@ -1,24 +1,35 @@
-<div class="container">
-    <div class="header">
-        <h2>Invoices</h2>
-        <button mat-raised-button color="primary" (click)="uploadInvoice()">
-            <mat-icon>cloud_upload</mat-icon> Upload Invoice
-        </button>
+<div class="container mg-page">
+    <div class="header mg-page-header">
+        <div class="mg-page-title-wrap">
+            <h2 class="mg-page-title">
+                <mat-icon>receipt_long</mat-icon>
+                Invoices
+            </h2>
+            <p class="mg-page-subtitle">Review extraction status, amounts and linked entities.</p>
+        </div>
+        <div class="mg-page-actions">
+            <button mat-raised-button color="primary" (click)="uploadInvoice()">
+                <mat-icon>cloud_upload</mat-icon> Upload Invoice
+            </button>
+        </div>
     </div>
 
-    <mat-form-field appearance="outline" class="filter-field">
-        <mat-label>Filter</mat-label>
-        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Amazon, 12345..." #input>
-        <mat-icon matSuffix>search</mat-icon>
-    </mat-form-field>
+    <div class="mg-toolbar">
+        <mat-form-field appearance="outline" class="filter-field mg-filter-field">
+            <mat-label>Search invoices</mat-label>
+            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. Amazon, 12345..." #input>
+            <mat-icon matSuffix>search</mat-icon>
+        </mat-form-field>
+    </div>
 
-    <mat-card class="invoice-card">
+    <mat-card class="invoice-card mg-surface-card">
         <mat-card-content>
             <div *ngIf="isLoading" class="loading-overlay">
-                <mat-spinner diameter="50"></mat-spinner>
+                <app-page-loader icon="receipt_long" message="Loading invoices..." minHeight="260px"></app-page-loader>
             </div>
 
-            <table mat-table [dataSource]="dataSource" matSort class="invoice-table">
+            <div class="mg-table-shell">
+            <table mat-table [dataSource]="dataSource" matSort class="invoice-table mg-table">
 
                 <!-- Status Column -->
                 <ng-container matColumnDef="status">
@@ -119,6 +130,7 @@
                 (page)="onPageChange($event)"
                 aria-label="Select page of invoices">
             </mat-paginator>
+            </div>
         </mat-card-content>
     </mat-card>
 </div>

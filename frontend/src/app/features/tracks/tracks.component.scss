@@ -1,189 +1,42 @@
-.circuits-container {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.circuits-header {
-    margin-bottom: 2rem;
-
-    h1 {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 2rem;
-        font-weight: 700;
-        color: #333;
-        margin: 0 0 0.5rem 0;
-
-        .header-icon {
-            font-size: 2rem;
-            width: 2rem;
-            height: 2rem;
-            color: #667eea;
-        }
-    }
-
-    .subtitle {
-        color: #666;
-        font-size: 1rem;
-        margin: 0;
-    }
-}
-
-.error-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    min-height: 400px;
-
-    mat-icon {
-        font-size: 4rem;
-        width: 4rem;
-        height: 4rem;
-        color: #667eea;
-    }
-
-    p {
-        font-size: 1.2rem;
-        margin: 0;
-        color: #666;
-    }
-}
-
-.circuits-card {
-    mat-card-header {
-        padding: 1.5rem 1.5rem 0;
-
-        mat-card-title {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: #333;
-
-            mat-icon {
-                color: #667eea;
-            }
-        }
-    }
-
-    mat-card-content {
-        padding: 1.5rem;
-    }
-}
-
-.filter-field {
-    width: 100%;
-    max-width: 500px;
-    margin-bottom: 1.5rem;
-}
-
-.empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-    padding: 3rem 1rem;
-    color: #999;
-
-    mat-icon {
-        font-size: 3rem;
-        width: 3rem;
-        height: 3rem;
-    }
-
-    p {
-        margin: 0;
-        font-size: 1rem;
-
-        &.hint {
-            font-size: 0.875rem;
-            color: #aaa;
-        }
-    }
-}
-
-.table-container {
-    overflow-x: auto;
-}
-
-.circuits-table {
-    width: 100%;
-    border-collapse: collapse;
-
-    th {
-        background-color: #f5f5f5;
-        font-weight: 600;
-        color: #333;
-        vertical-align: middle;
-        padding: 1rem;
-    }
-
-    td {
-        vertical-align: middle;
-        padding: 1rem;
-        border-bottom: 1px solid #e0e0e0;
-    }
-
+.tracks-table {
     .circuit-name {
-        font-weight: 500;
-        color: #667eea;
+        font-weight: 700;
+        color: #0f172a;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+    }
 
-        .circuit-icon {
-            color: #667eea;
-            font-size: 20px;
-            width: 20px;
-            height: 20px;
-        }
+    .circuit-icon,
+    .small-icon,
+    .trophy-icon {
+        width: 16px;
+        height: 16px;
+        font-size: 16px;
+    }
+
+    .small-icon {
+        color: #64748b;
+    }
+
+    .trophy-icon {
+        color: #d97706;
+    }
+
+    .location-cell,
+    .length-cell,
+    .best-time {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
     }
 
     .best-time {
-        font-weight: 600;
-        color: #4a5568;
-
-        .trophy-icon {
-            color: #f5a623;
-            font-size: 18px;
-            width: 18px;
-            height: 18px;
-        }
+        font-weight: 700;
+        color: #0f172a;
     }
 
     .circuit-row {
         cursor: pointer;
-        transition: background-color 0.2s;
-
-        &:hover {
-            background-color: #f9fafb;
-        }
-
-        &:last-child td {
-            border-bottom: none;
-        }
-    }
-}
-
-@media (max-width: 768px) {
-    .circuits-container {
-        padding: 1rem;
-    }
-
-    .circuits-header h1 {
-        font-size: 1.5rem;
-
-        .header-icon {
-            font-size: 1.5rem;
-            width: 1.5rem;
-            height: 1.5rem;
-        }
-    }
-
-    .filter-field {
-        max-width: 100%;
     }
 }

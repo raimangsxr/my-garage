@@ -11,12 +11,12 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Part, PartService } from '../../core/services/part.service';
 import { PartDialogComponent } from './part-dialog/part-dialog.component';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { Invoice, InvoiceService } from '../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
+import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 
 @Component({
     selector: 'app-parts',
@@ -34,7 +34,7 @@ import { Maintenance, MaintenanceService } from '../../core/services/maintenance
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        MatProgressSpinnerModule
+        PageLoaderComponent
     ],
     templateUrl: './parts.component.html',
     styleUrls: ['./parts.component.scss']
