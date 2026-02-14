@@ -40,6 +40,15 @@
                 </td>
             </ng-container>
 
+                <ng-container matColumnDef="vehicle">
+                    <th mat-header-cell *matHeaderCellDef mat-sort-header>Vehicle</th>
+                    <td mat-cell *matCellDef="let element">
+                        <div class="vehicle-cell">
+                            {{ getVehicleName(element.vehicle_id) }}
+                        </div>
+                    </td>
+                </ng-container>
+
                 <ng-container matColumnDef="description">
                     <th mat-header-cell *matHeaderCellDef mat-sort-header>Description</th>
                     <td mat-cell *matCellDef="let element">
@@ -119,7 +128,6 @@
             (page)="onPageChange($event)"
             aria-label="Select page of maintenance records">
         </mat-paginator>
-        </div>
 
         <div class="empty-state mg-empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
             <mat-icon>build</mat-icon>
