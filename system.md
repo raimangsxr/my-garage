@@ -137,3 +137,40 @@ Un módulo se considera homogenizado cuando:
 ## 13. Gobernanza
 - Cualquier pantalla nueva debe implementarse contra este `system.md`.
 - Si se necesita una excepción, debe documentarse explícitamente en el PR con justificación.
+
+## 14. Patrones específicos de comparación en circuito
+Estas reglas consolidan el contenido anterior de `.interface-design/system.md`.
+
+### 14.1 Dirección visual
+- Contexto: UI de producto orientada a datos (analítica de circuito y vehículo).
+- Enfoque: comparación competitiva y claridad operativa.
+- Priorizar señales que representen rendimiento real; evitar decoración sin función.
+
+### 14.2 Estrategia de profundidad
+- Usar capas suaves con borde y contraste de superficie.
+- Reservar sombras intensas para hover/focus.
+- Evitar pilas de sombra agresivas en tablas y modales de datos.
+
+### 14.3 Gráfico de comparación de vueltas
+- Modo por defecto: **record step line** + **session line**.
+- Línea de récord: más gruesa y prioritaria.
+- Línea de sesión: más fina y secundaria (dash).
+- Eje Y: tiempos más rápidos arriba.
+- Tooltip mínimo: vehículo, tiempo, fecha.
+
+### 14.4 Controles de comparación
+- Modos explícitos:
+  - Record + Sessions
+  - Record only
+  - Sessions only
+- Controles compactos, accesibles por teclado y con estados claros.
+
+### 14.5 Formato de datos
+- Vueltas en `M:SS.mmm`.
+- Mejoras en segundos con 3 decimales.
+- Fechas cortas y legibles en densidad alta.
+
+### 14.6 Mobile en analítica de circuito
+- No ocultar el gráfico principal en móvil.
+- Reducir densidad de etiquetas antes de eliminar información.
+- Mantener tamaños táctiles adecuados para leyendas y marcadores.

@@ -75,7 +75,10 @@ export class TrackRecordsComponent {
     const circuitRecords = this.records.filter(r => r.circuit_name === record.circuit_name);
 
     const dialogRef = this.dialog.open(CircuitHistoryDialogComponent, {
-      width: '800px',
+      width: '920px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      panelClass: 'circuit-history-dialog',
       data: {
         circuitName: record.circuit_name,
         records: circuitRecords
