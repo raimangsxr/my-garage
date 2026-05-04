@@ -37,7 +37,7 @@
         <!-- Maintenances Column -->
         <app-entity-column title="Maintenance" icon="history" [count]="vehicleDetails.maintenances.length">
             <div header-actions class="torque-actions">
-                <button mat-icon-button (click)="maintenanceTimeline.toggleSearchMode()"
+                <button mat-icon-button aria-label="Toggle maintenance search" (click)="maintenanceTimeline.toggleSearchMode()"
                     [color]="maintenanceTimeline.isSearchMode ? 'accent' : ''" title="Search maintenance">
                     <mat-icon>search</mat-icon>
                 </button>
@@ -50,7 +50,7 @@
         <!-- Parts Column -->
         <app-entity-column title="Parts" icon="extension" [count]="parts.length">
             <div header-actions class="torque-actions">
-                <button mat-icon-button (click)="partsList.toggleSearchMode()"
+                <button mat-icon-button aria-label="Toggle parts search" (click)="partsList.toggleSearchMode()"
                     [color]="partsList.isSearchMode ? 'accent' : ''" title="Search parts">
                     <mat-icon>search</mat-icon>
                 </button>
@@ -62,7 +62,7 @@
         <!-- Invoices Column -->
         <app-entity-column title="Invoices" icon="receipt" [count]="vehicleDetails.invoices?.length || 0">
             <div header-actions class="torque-actions">
-                <button mat-icon-button (click)="openInvoiceUpload()" title="Upload Invoice">
+                <button mat-icon-button aria-label="Upload invoice" (click)="openInvoiceUpload()" title="Upload Invoice">
                     <mat-icon>cloud_upload</mat-icon>
                 </button>
             </div>
@@ -92,19 +92,19 @@
             [count]="vehicleDetails.specs?.torque_specs?.length || 6">
 
             <div header-actions class="torque-actions">
-                <button mat-icon-button (click)="torqueSpecs.toggleSearchMode()" *ngIf="!torqueSpecs.isEditMode"
+                <button mat-icon-button aria-label="Toggle torque specs search" (click)="torqueSpecs.toggleSearchMode()" *ngIf="!torqueSpecs.isEditMode"
                     [color]="torqueSpecs.isSearchMode ? 'accent' : ''" title="Search specs">
                     <mat-icon>search</mat-icon>
                 </button>
-                <button mat-icon-button (click)="torqueSpecs.toggleEditMode()" *ngIf="!torqueSpecs.isEditMode"
+                <button mat-icon-button aria-label="Edit torque specs" (click)="torqueSpecs.toggleEditMode()" *ngIf="!torqueSpecs.isEditMode"
                     title="Edit specs">
                     <mat-icon>edit</mat-icon>
                 </button>
                 <div class="edit-actions" *ngIf="torqueSpecs.isEditMode">
-                    <button mat-icon-button (click)="torqueSpecs.toggleEditMode()" title="Cancel">
+                    <button mat-icon-button aria-label="Cancel torque specs editing" (click)="torqueSpecs.toggleEditMode()" title="Cancel">
                         <mat-icon>close</mat-icon>
                     </button>
-                    <button mat-icon-button (click)="torqueSpecs.save()" title="Save">
+                    <button mat-icon-button aria-label="Save torque specs" (click)="torqueSpecs.save()" title="Save">
                         <mat-icon>check</mat-icon>
                     </button>
                 </div>

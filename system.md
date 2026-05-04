@@ -137,6 +137,9 @@ Un módulo se considera homogenizado cuando:
 ## 13. Gobernanza
 - Cualquier pantalla nueva debe implementarse contra este `system.md`.
 - Si se necesita una excepción, debe documentarse explícitamente en el PR con justificación.
+- Todo PR de UI debe citar las secciones de este documento que aplica.
+- Todo componente nuevo debe declarar si reutiliza, extiende o reemplaza un patrón existente.
+- Si dos componentes resuelven el mismo problema, debe mantenerse uno solo o documentarse una variante explícita.
 
 ## 14. Patrones específicos de comparación en circuito
 Estas reglas consolidan el contenido anterior de `.interface-design/system.md`.
@@ -174,3 +177,174 @@ Estas reglas consolidan el contenido anterior de `.interface-design/system.md`.
 - No ocultar el gráfico principal en móvil.
 - Reducir densidad de etiquetas antes de eliminar información.
 - Mantener tamaños táctiles adecuados para leyendas y marcadores.
+
+## 15. Matriz de componentes obligatoria
+
+Antes de crear un componente visual nuevo, revisar esta matriz.
+
+| Necesidad | Patrón obligatorio | Extender cuando | No crear |
+| --- | --- | --- | --- |
+| Página de módulo | `mg-page` + `mg-page-header` + `mg-page-actions` | La pantalla necesita hero o layout analítico | Contenedores locales tipo `container`, `header`, `page-wrapper` sin motivo |
+| Card/superficie | `mg-surface-card` o `mg-form-card` | La card necesita variante compacta, media o métrica | Cards locales con sombras/radios/colores propios |
+| Tabla/listado denso | `mg-table` dentro de `mg-table-shell` | Necesita columnas responsive o acciones | Tablas con estilos propios para CRUD repetidos |
+| Lista de entidades | `app-entity-card` o componente compartido derivado | Necesita slots, leading icon, meta o actions | Divs clicables con estilos propios |
+| Estado vacío | `app-empty-state` | Necesita variante compacta o CTA | `.empty-state` local con icono/copy propio |
+| Carga de pantalla | `app-page-loader` | Necesita modo sección o inline | `mat-spinner` como estado principal de pantalla |
+| Formulario/dialog | `mg-form-card` y patrón de dialog compartido | Necesita layout por pasos o columnas | Acciones, paddings y validaciones inconsistentes por diálogo |
+
+Regla: si un patrón no cubre el caso, se amplía el patrón compartido antes de crear una solución local.
+
+## 16. Componentes interactivos y accesibilidad
+
+### 16.1 Botones de icono
+
+- Todo botón icon-only debe tener `aria-label`.
+- `matTooltip` no sustituye `aria-label`.
+- El label debe expresar la acción: `Edit part`, `Delete invoice`, `Search maintenance`.
+- Usar `title` solo como fallback, no como contrato accesible principal.
+- Acciones destructivas requieren confirmación o undo window.
+
+### 16.2 Semántica clickable
+
+- Navegación: usar link/routerLink.
+- Acción: usar button.
+- Card clickable: debe ser accesible por teclado. Preferir que el componente compartido renderice semántica adecuada.
+- Evitar `div` con `(click)` salvo que tenga rol, tabindex, handler de teclado y justificación.
+
+### 16.3 Focus
+
+- Todo control interactivo debe tener foco visible.
+- No usar `outline: none` sin reemplazo `:focus-visible`.
+- Los grupos compuestos pueden usar `:focus-within` para elevar la superficie.
+
+## 17. Tokens ampliados y uso de color
+
+Los módulos no deben introducir hex sueltos salvo al ampliar tokens globales.
+
+### 17.1 Jerarquía recomendada
+
+- Texto:
+  - `--text-primary`
+  - `--text-secondary`
+  - `--text-muted`
+  - `--text-inverse`
+- Superficies:
+  - `--surface-color`
+  - `--surface-muted`
+  - `--surface-selected`
+  - `--surface-hover`
+- Bordes:
+  - `--border-soft`
+  - `--border-muted`
+  - `--border-strong`
+- Semánticos:
+  - `--success-color`
+  - `--warning-color`
+  - `--danger-color`
+  - `--info-color`
+- Interacción:
+  - `--focus-ring`
+  - `--hover-shadow`
+
+### 17.2 Color de dominio
+
+My Garage puede usar señales del mundo automoción/taller/pista, pero con función:
+
+- índigo: navegación, estructura principal, marca;
+- teal: acción positiva/progreso;
+- ámbar: mantenimiento/advertencia;
+- rojo: destructivo/caducado/error;
+- verde: correcto/aprobado/mejora;
+- azul: información/circuito/analytics.
+
+No usar gradientes decorativos en módulos operativos salvo hero o visualización justificada.
+
+## 18. Movimiento e interacción
+
+- Prohibido `transition: all`.
+- Listar propiedades: `background-color`, `border-color`, `box-shadow`, `transform`, `color`, `opacity`.
+- Animar solo `transform` y `opacity` cuando haya movimiento.
+- Mantener transiciones entre `120ms` y `220ms` para microinteracciones.
+- Respetar `prefers-reduced-motion` en animaciones no esenciales.
+
+## 19. Tablas, listas y cards
+
+### 19.1 Tabla estándar
+
+Una tabla de CRUD debe tener:
+
+- shell con scroll horizontal controlado;
+- header visual uniforme;
+- columna de acciones de ancho fijo;
+- labels accesibles en acciones;
+- empty state dentro del mismo contenedor;
+- loading state de sección;
+- paginador si hay paginación;
+- responsive por ocultación progresiva de columnas secundarias.
+
+### 19.2 Lista de entidad
+
+Usar listas/cards cuando:
+
+- hay poco ancho;
+- el contenido es narrativo o visual;
+- la entidad requiere hero/media;
+- el usuario compara pocos elementos.
+
+Usar tabla cuando:
+
+- el usuario compara muchas filas;
+- hay sorting/paginación;
+- las columnas son homogéneas.
+
+### 19.3 Cards
+
+- Cards repetidas no deben redefinir sombra/radio/color.
+- Si una card es interactiva, su hover/focus debe ser visible y consistente.
+- No meter cards dentro de cards salvo contenido realmente anidado y justificado.
+
+## 20. Estados
+
+### 20.1 Loading
+
+- Página completa: `app-page-loader`.
+- Zona dentro de una card: variante section de loader o patrón equivalente.
+- Celda/fila concreta: `mat-spinner` inline permitido.
+- Los textos de loading deben terminar con `…`.
+
+### 20.2 Empty
+
+Todo estado vacío debe tener:
+
+- icono contextual;
+- mensaje principal;
+- texto secundario o CTA cuando ayude a avanzar;
+- variante compacta cuando está dentro de una card densa.
+
+### 20.3 Error
+
+Todo error recuperable debe tener:
+
+- icono;
+- mensaje con siguiente paso;
+- acción primaria de recuperación;
+- logging técnico fuera de la UI.
+
+## 21. Formularios y diálogos
+
+- Formularios con `mat-form-field` deben tener labels visibles.
+- Inputs deben usar `type`, `autocomplete` e `inputmode` cuando aplique.
+- Errores deben mostrarse junto al campo.
+- Acciones de diálogo: secundaria a la izquierda, primaria a la derecha.
+- Botón primario específico: `Save Vehicle`, `Approve Invoice`, `Save API Key`; evitar `Continue` genérico.
+- Si hay cambios sin guardar en formularios largos, añadir confirmación de salida.
+
+## 22. Excepciones
+
+Una excepción visual es válida solo si cumple:
+
+- cita sección de `system.md` que no cubre el caso;
+- explica por qué el patrón compartido no sirve;
+- define si la excepción es temporal o permanente;
+- incluye screenshot o nota visual en PR;
+- si la excepción se repite dos veces, debe convertirse en patrón compartido.

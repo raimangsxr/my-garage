@@ -10,7 +10,7 @@
         <mat-form-field appearance="outline" class="url-input">
             <mat-label>Or Image URL</mat-label>
             <input matInput #urlInput (blur)="onUrlInput(urlInput.value)" placeholder="https://...">
-            <button mat-icon-button matSuffix (click)="onUrlInput(urlInput.value)">
+            <button mat-icon-button aria-label="Use image URL" matSuffix (click)="onUrlInput(urlInput.value)">
                 <mat-icon>check</mat-icon>
             </button>
         </mat-form-field>

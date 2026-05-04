@@ -11,7 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
     template: `
     <div class="image-dialog-container">
       <div class="actions">
-        <button mat-icon-button mat-dialog-close>
+        <button mat-icon-button aria-label="Close image preview" mat-dialog-close>
           <mat-icon>close</mat-icon>
         </button>
       </div>

@@ -26,7 +26,7 @@
                         <span class="date">{{ notification.created_at | date:'short' }}</span>
                     </div>
                     <div matListItemLine>{{ notification.message }}</div>
-                    <button mat-icon-button matListItemMeta (click)="markAsUnread($event, notification)"
+                    <button mat-icon-button aria-label="Mark notification as unread" matListItemMeta (click)="markAsUnread($event, notification)"
                         *ngIf="notification.is_read" matTooltip="Mark as unread">
                         <mat-icon>mark_email_unread</mat-icon>
                     </button>

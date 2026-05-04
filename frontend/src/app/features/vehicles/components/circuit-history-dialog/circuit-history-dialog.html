@@ -17,7 +17,7 @@
                 </div>
             </div>
 
-            <button mat-icon-button (click)="closeDialog()" class="close-btn">
+            <button mat-icon-button aria-label="Close circuit history" (click)="closeDialog()" class="close-btn">
                 <mat-icon>close</mat-icon>
             </button>
         </div>
@@ -173,10 +173,10 @@
                     </div>
 
                     <div class="col-actions">
-                        <button mat-icon-button (click)="editRecord(record)" class="action-btn edit" matTooltip="Edit">
+                        <button mat-icon-button aria-label="Edit track record" (click)="editRecord(record)" class="action-btn edit" matTooltip="Edit">
                             <mat-icon>edit</mat-icon>
                         </button>
-                        <button mat-icon-button (click)="deleteRecord(record)" class="action-btn delete"
+                        <button mat-icon-button aria-label="Delete track record" (click)="deleteRecord(record)" class="action-btn delete"
                             matTooltip="Delete">
                             <mat-icon>delete</mat-icon>
                         </button>

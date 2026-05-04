@@ -6,6 +6,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | --- | --- | --- | --- | --- |
 | [Institucionalizar SDD](./2026-05-04-institutionalize-sdd/spec.md) | Implemented | docs/process | 2026-05-04 | Hace obligatorio SDD para cualquier feature o cambio relevante. |
 | [Documentar Features Legacy](./2026-05-04-document-legacy-features/spec.md) | Implemented | docs/process | 2026-05-04 | Crea baseline SDD retrospectiva de capacidades existentes. |
+| [Homogeneizar Interfaz y Sistema de Diseño](./2026-05-04-interface-system-homogenization/spec.md) | In Progress | docs/refactor-ui | 2026-05-04 | Audita UI, amplía `system.md` y define fases de homogeneización. |
 
 ## Baseline Actual
 

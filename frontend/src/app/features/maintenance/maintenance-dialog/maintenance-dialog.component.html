@@ -71,7 +71,7 @@
             <div class="section">
                 <div class="section-header">
                     <h3>Parts</h3>
-                    <button mat-icon-button color="primary" (click)="addPart()" [disabled]="!isEditMode"
+                    <button mat-icon-button aria-label="Add part to maintenance" color="primary" (click)="addPart()" [disabled]="!isEditMode"
                         matTooltip="Save maintenance first to add parts">
                         <mat-icon>add</mat-icon>
                     </button>
@@ -84,7 +84,7 @@
                         </div>
                         <div class="item-actions">
                             <span class="item-price">{{ part.price | number:'1.2-2' }}€</span>
-                            <button mat-icon-button color="warn" (click)="deletePart(part.id!)"
+                            <button mat-icon-button aria-label="Delete maintenance part" color="warn" (click)="deletePart(part.id!)"
                                 matTooltip="Delete part">
                                 <mat-icon>remove_circle</mat-icon>
                             </button>
