@@ -4,6 +4,14 @@ El objetivo principal de este proyecto es mantener un control de versiones estri
 
 ## REGLAS DE EJECUCIÓN DEL AGENTE:
 
+0.  **SDD antes de implementar:**
+    * **No se implementa código antes de crear o actualizar la spec SDD**, salvo hotfix urgente con spec mínima previa.
+    * Para cualquier cambio funcional, visual, de datos o integración, crea o actualiza una especificación en `docs/sdd/specs/<fecha-descripcion>/` usando las plantillas de `docs/sdd/specs/_template/`.
+    * La especificación debe incluir criterios de aceptación verificables antes de escribir código.
+    * El plan técnico debe declarar impacto en Frontend, Backend, datos, seguridad, UX y pruebas cuando aplique.
+    * El PR debe enlazar la especificación, el plan, las tareas y cualquier ADR relacionado.
+    * Mantén actualizado `docs/sdd/specs/index.md` con el estado de la iniciativa.
+
 1.  **Inicio y Branching:**
     * **SIEMPRE** se debe hacer `git checkout main` y `git pull` antes de comenzar cualquier trabajo nuevo.
     * En función del tipo de tarea debe crearse la rama de una de las siguientes formas:
@@ -24,4 +32,6 @@ El objetivo principal de este proyecto es mantener un control de versiones estri
 
 5.  **Pull Request (PR):**
     * **SIEMPRE** crea un *Pull Request* desde la rama de característica o hotfix (`feature/<...> o hotfix/<...>)` de vuelta a la rama **`main`**.
-    * El PR debe incluir un resumen de los cambios y un enlace a los **Artefactos** de Antigravity generados (Planes, capturas de pantalla, etc.) para su revisión humana.
+    * El PR debe incluir un resumen de los cambios y enlaces a los artefactos SDD: spec, plan, tasks y ADRs si existen.
+    * Si hubo cambios de UI, el PR debe incluir capturas o notas de validación visual y responsive.
+    * Si hubo migraciones, el PR debe explicar impacto de datos, validación y rollback o mitigación.
