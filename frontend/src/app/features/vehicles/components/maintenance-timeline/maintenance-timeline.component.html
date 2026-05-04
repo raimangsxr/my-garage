@@ -4,7 +4,7 @@
         <mat-form-field appearance="outline" class="search-field">
             <mat-icon matPrefix>search</mat-icon>
             <input matInput #searchInput [(ngModel)]="searchQuery" placeholder="Search maintenance...">
-            <button mat-icon-button matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
+            <button mat-icon-button aria-label="Clear maintenance search" matSuffix *ngIf="searchQuery" (click)="searchQuery=''">
                 <mat-icon>close</mat-icon>
             </button>
         </mat-form-field>

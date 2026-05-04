@@ -5,7 +5,7 @@
             <span class="record-count">{{ uniqueCircuits.length }} circuits</span>
         </div>
         <div class="header-actions">
-            <button mat-icon-button (click)="toggleSort()"
+            <button mat-icon-button [attr.aria-label]="sortBy === 'circuit' ? 'Sort track records by time' : 'Sort track records by circuit'" (click)="toggleSort()"
                 [matTooltip]="sortBy === 'circuit' ? 'Sorted by Circuit' : 'Sorted by Time'">
                 <mat-icon>{{ sortBy === 'circuit' ? 'place' : 'timer' }}</mat-icon>
             </button>

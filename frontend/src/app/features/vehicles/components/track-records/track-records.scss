@@ -78,7 +78,7 @@
         padding: 20px;
         border-bottom: 1px solid #f3f4f6;
         cursor: pointer;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease;
         align-items: center;
 
         &:last-child {
@@ -217,7 +217,7 @@
 
     .chevron-icon {
         color: #9ca3af;
-        transition: all 0.2s ease;
+        transition: color 0.2s ease, transform 0.2s ease;
     }
 }
 

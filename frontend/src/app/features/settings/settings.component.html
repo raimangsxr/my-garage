@@ -59,8 +59,8 @@
                         <mat-label>Gemini API Key</mat-label>
                         <input matInput [type]="hideGeminiKey ? 'password' : 'text'" formControlName="gemini_api_key"
                             placeholder="Enter Gemini API Key">
-                        <button mat-icon-button matSuffix (click)="hideGeminiKey = !hideGeminiKey"
-                            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hideGeminiKey">
+                        <button mat-icon-button [attr.aria-label]="hideGeminiKey ? 'Show Gemini API key' : 'Hide Gemini API key'" matSuffix (click)="hideGeminiKey = !hideGeminiKey"
+                            [attr.aria-pressed]="hideGeminiKey">
                             <mat-icon>{{hideGeminiKey ? 'visibility_off' : 'visibility'}}</mat-icon>
                         </button>
                         <mat-hint>Required for invoice processing</mat-hint>

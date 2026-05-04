@@ -90,7 +90,7 @@
                     <ng-container matColumnDef="actions">
                         <th mat-header-cell *matHeaderCellDef>Actions</th>
                         <td mat-cell *matCellDef="let circuit">
-                            <button mat-icon-button color="primary" (click)="viewTrackDetail(circuit)" matTooltip="View details">
+                            <button mat-icon-button aria-label="View track details" color="primary" (click)="viewTrackDetail(circuit)" matTooltip="View details">
                                 <mat-icon>visibility</mat-icon>
                             </button>
                         </td>
