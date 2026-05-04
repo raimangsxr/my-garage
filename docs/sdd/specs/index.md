@@ -5,6 +5,62 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | Spec | Estado | Tipo | Fecha | Resumen |
 | --- | --- | --- | --- | --- |
 | [Institucionalizar SDD](./2026-05-04-institutionalize-sdd/spec.md) | Implemented | docs/process | 2026-05-04 | Hace obligatorio SDD para cualquier feature o cambio relevante. |
+| [Documentar Features Legacy](./2026-05-04-document-legacy-features/spec.md) | Implemented | docs/process | 2026-05-04 | Crea baseline SDD retrospectiva de capacidades existentes. |
+
+## Baseline Actual
+
+Estas specs describen comportamiento ya implementado. Úsalas como contexto inicial antes de crear specs futuras.
+
+### Platform
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Backend Platform](./baseline/platform/backend-platform/spec.md) | Baseline | FastAPI, configuración, DB, CORS, errores, request id, JWT, uploads y Alembic. |
+| [App Shell y Navegación](./baseline/platform/app-shell-navigation/spec.md) | Baseline | Rutas Angular, shell, sidenav, layout y rutas protegidas. |
+| [Shared UI System](./baseline/platform/shared-ui-system/spec.md) | Baseline | `system.md`, estilos globales, componentes compartidos y patrones UI. |
+
+### Identity
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Auth and Session](./baseline/identity/auth-and-session/spec.md) | Baseline | Login local, JWT, guard, interceptores y sesión frontend. |
+| [Google Auth](./baseline/identity/google-auth/spec.md) | Baseline | Login Google OAuth, validación de credencial y token federado. |
+| [Profile Management](./baseline/identity/profile-management/spec.md) | Baseline | Perfil, avatar y cambio de contraseña. |
+| [Settings Management](./baseline/identity/settings-management/spec.md) | Baseline | Ajustes por usuario e integraciones Google/Gemini. |
+
+### Vehicles
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Vehicles Management](./baseline/vehicles/vehicles-management/spec.md) | Baseline | CRUD, listado, imagen, datos legales y specs básicas. |
+| [Vehicle Detail Street](./baseline/vehicles/vehicle-detail-street/spec.md) | Baseline | Detalle street con mantenimientos, piezas, facturas y torque. |
+| [Vehicle Specs and Torque](./baseline/vehicles/vehicle-specs-and-torque/spec.md) | Baseline | Especificaciones técnicas y pares de apriete. |
+| [Vehicle Track Mode](./baseline/vehicles/vehicle-track-mode/spec.md) | Baseline | Modo track por vehículo y registros de pista. |
+
+### Operations
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Dashboard](./baseline/operations/dashboard/spec.md) | Baseline | KPIs, gastos mensuales, actividad reciente y resumen de circuitos. |
+| [Maintenance Management](./baseline/operations/maintenance-management/spec.md) | Baseline | CRUD/listado de mantenimientos con búsqueda y relaciones. |
+| [Parts Inventory](./baseline/operations/parts-inventory/spec.md) | Baseline | Inventario de piezas, referencias, cantidades y relaciones. |
+| [Suppliers Management](./baseline/operations/suppliers-management/spec.md) | Baseline | CRUD/listado de proveedores y datos fiscales/contacto. |
+| [Notifications and Reminders](./baseline/operations/notifications-reminders/spec.md) | Baseline | Avisos de ITV, seguro e impuesto de circulación. |
+
+### Invoices
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Invoice Management](./baseline/invoices/invoice-management/spec.md) | Baseline | Listado, filtros, detalle, estados y borrado de facturas. |
+| [Invoice AI Processing](./baseline/invoices/invoice-ai-processing/spec.md) | Baseline | Upload, Gemini, extracción y estados de procesamiento. |
+| [Invoice Review and Approval](./baseline/invoices/invoice-review-approval/spec.md) | Baseline | Revisión manual, corrección, aprobación y creación de registros. |
+
+### Tracks
+
+| Spec | Estado | Resumen |
+| --- | --- | --- |
+| [Tracks and Circuits](./baseline/tracks/tracks-and-circuits/spec.md) | Baseline | Tracks normalizados, circuitos legacy, rankings y detalle. |
+| [Track Records](./baseline/tracks/track-records/spec.md) | Baseline | CRUD de registros de pista, organizadores y campos de sesión. |
 
 ## Estados
 
@@ -12,6 +68,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 - `Ready`: lista para implementar.
 - `In Progress`: implementación activa.
 - `Implemented`: implementada y pendiente de aceptación/revisión.
+- `Baseline`: comportamiento existente documentado retrospectivamente.
 - `Accepted`: aceptada tras PR/revisión.
 - `Superseded`: reemplazada por otra spec.
 - `Abandoned`: descartada.
