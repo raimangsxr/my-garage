@@ -64,3 +64,9 @@
 ## 🤝 Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## 📐 Spec-Driven Development
+
+This project uses SDD for all planned product and engineering work. Start with [docs/sdd/README.md](docs/sdd/README.md), follow [docs/sdd/governance.md](docs/sdd/governance.md), and create or update a spec folder under `docs/sdd/specs/` before implementing any behavior change.
+
+Automated agents must also follow [AGENTS.md](AGENTS.md).
