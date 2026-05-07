@@ -27,7 +27,7 @@ def read_parts(
     q: str | None = Query(default=None, min_length=1, max_length=120),
     sort_by: str = Query(default="name"),
     sort_dir: str = Query(default="asc", pattern="^(asc|desc)$"),
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -83,7 +83,7 @@ def read_parts(
 @router.post("/", response_model=Part)
 def create_part(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     part_in: PartBase,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -99,7 +99,7 @@ def create_part(
 @router.put("/{id}", response_model=Part)
 def update_part(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     part_in: PartBase,
     current_user: User = Depends(deps.get_current_active_user),
@@ -121,7 +121,7 @@ def update_part(
 @router.delete("/{id}", response_model=Part)
 def delete_part(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:

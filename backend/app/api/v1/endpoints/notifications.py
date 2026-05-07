@@ -25,7 +25,7 @@ def read_notifications(
     response: Response,
     skip: int = Query(default=0, ge=0),
     limit: int = Query(default=100, ge=1, le=200),
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -43,7 +43,7 @@ def read_notifications(
 @router.put("/{id}/read", response_model=NotificationRead)
 def mark_as_read(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -65,7 +65,7 @@ def mark_as_read(
 @router.put("/{id}/unread", response_model=NotificationRead)
 def mark_as_unread(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -87,7 +87,7 @@ def mark_as_unread(
 @router.post("/check", response_model=dict)
 def check_notifications(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """

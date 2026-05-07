@@ -6,8 +6,9 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | --- | --- | --- | --- | --- |
 | [Institucionalizar SDD](./2026-05-04-institutionalize-sdd/spec.md) | Implemented | docs/process | 2026-05-04 | Hace obligatorio SDD para cualquier feature o cambio relevante. |
 | [Documentar Features Legacy](./2026-05-04-document-legacy-features/spec.md) | Implemented | docs/process | 2026-05-04 | Crea baseline SDD retrospectiva de capacidades existentes. |
-| [Homogeneizar Interfaz y Sistema de Diseño](./2026-05-04-interface-system-homogenization/spec.md) | In Progress | docs/refactor-ui | 2026-05-04 | Audita UI, amplía `system.md` y define fases de homogeneización. |
-| [Remediar Gaps de Estandarización](./2026-05-05-standardization-gap-remediation/spec.md) | In Progress | refactor/ui | 2026-05-05 | Ejecuta la primera fase foundation contra los gaps detectados: tokens y confirmaciones compartidas. |
+| [Homogeneizar Interfaz y Sistema de Diseño](./2026-05-04-interface-system-homogenization/spec.md) | Implemented | docs/refactor-ui | 2026-05-04 | Audita UI, amplía `system.md` y define fases de homogeneización. |
+| [Remediar Gaps de Estandarización](./2026-05-05-standardization-gap-remediation/spec.md) | Implemented | refactor/ui | 2026-05-05 | Ejecuta la fase principal de estandarización de tokens, accesibilidad y patrones compartidos. |
+| [Cerrar Segunda Ronda de Estandarización](./2026-05-07-standardization-round-2/spec.md) | Implemented | refactor | 2026-05-07 | Cierra consistencia backend, accesibilidad residual y estados documentales SDD. |
 
 ## Baseline Actual
 

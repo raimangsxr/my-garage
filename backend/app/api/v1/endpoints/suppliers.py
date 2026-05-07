@@ -26,7 +26,7 @@ def read_suppliers(
     q: str | None = Query(default=None, min_length=1, max_length=120),
     sort_by: str = Query(default="name"),
     sort_dir: str = Query(default="asc", pattern="^(asc|desc)$"),
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -72,7 +72,7 @@ def read_suppliers(
 @router.post("/", response_model=Supplier)
 def create_supplier(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     supplier_in: SupplierBase,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -88,7 +88,7 @@ def create_supplier(
 @router.put("/{id}", response_model=Supplier)
 def update_supplier(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     supplier_in: SupplierBase,
     current_user: User = Depends(deps.get_current_active_user),
@@ -110,7 +110,7 @@ def update_supplier(
 @router.delete("/{id}", response_model=Supplier)
 def delete_supplier(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:

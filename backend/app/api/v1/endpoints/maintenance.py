@@ -30,7 +30,7 @@ def read_maintenances(
     q: str | None = Query(default=None, min_length=1, max_length=120),
     sort_by: str = Query(default="date"),
     sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -101,7 +101,7 @@ def read_maintenances(
 @router.get("/{id}")
 def read_maintenance(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -129,7 +129,7 @@ def read_maintenance(
 @router.post("/", response_model=Maintenance)
 def create_maintenance(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     maintenance_in: MaintenanceBase,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -145,7 +145,7 @@ def create_maintenance(
 @router.put("/{id}", response_model=Maintenance)
 def update_maintenance(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     maintenance_in: MaintenanceBase,
     current_user: User = Depends(deps.get_current_active_user),
@@ -167,7 +167,7 @@ def update_maintenance(
 @router.delete("/{id}", response_model=Maintenance)
 def delete_maintenance(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:

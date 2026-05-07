@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("", response_model=SettingsRead, include_in_schema=False)
 @router.get("/", response_model=SettingsRead)
 def read_settings(
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -32,7 +32,7 @@ def read_settings(
 @router.put("/", response_model=SettingsRead)
 def update_settings(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     settings_in: SettingsUpdate,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:

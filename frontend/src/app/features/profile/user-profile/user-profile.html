@@ -19,8 +19,16 @@
                 <div class="image-section">
                     <h3>Profile Image</h3>
                     <div class="avatars-grid">
-                        <img *ngFor="let avatar of avatars" [src]="avatar" (click)="selectAvatar(avatar)"
-                            [class.selected]="form.get('image_url')?.value === avatar" class="avatar-option">
+                        <button
+                            *ngFor="let avatar of avatars; let i = index"
+                            type="button"
+                            class="avatar-option"
+                            [class.selected]="form.get('image_url')?.value === avatar"
+                            [attr.aria-label]="'Select avatar ' + (i + 1)"
+                            [attr.aria-pressed]="form.get('image_url')?.value === avatar"
+                            (click)="selectAvatar(avatar)">
+                            <img [src]="avatar" alt="">
+                        </button>
                     </div>
                     <app-image-cropper (imageCropped)="onImageCropped($event)"></app-image-cropper>
                 </div>
