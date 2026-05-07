@@ -2,11 +2,14 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './auth/login/login.component';
 
 import { AuthGuard } from './core/guards/auth.guard';
+import { PublicOnlyGuard } from './core/guards/public-only.guard';
 
 export const routes: Routes = [
     {
         path: 'login',
-        component: LoginComponent
+        component: LoginComponent,
+        canActivate: [PublicOnlyGuard],
+        canMatch: [PublicOnlyGuard]
     },
     {
         path: '',
