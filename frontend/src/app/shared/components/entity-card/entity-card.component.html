@@ -1,15 +1,11 @@
-<button
-    *ngIf="clickable; else staticCard"
-    type="button"
-    class="entity-card entity-card--button clickable"
+<div
+    class="entity-card"
+    [class.entity-card--button]="clickable"
+    [class.clickable]="clickable"
+    [attr.role]="clickable ? 'button' : null"
+    [attr.tabindex]="clickable ? '0' : null"
     (click)="onClick()"
     (keydown.enter)="onKeyActivate($event)"
     (keydown.space)="onKeyActivate($event)">
     <ng-content></ng-content>
-</button>
-
-<ng-template #staticCard>
-    <div class="entity-card">
-        <ng-content></ng-content>
-    </div>
-</ng-template>
+</div>

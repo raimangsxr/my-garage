@@ -1,4 +1,4 @@
-<ng-container *ngIf="isAuthenticated$ | async; else publicLayout">
+<ng-container *ngIf="showAppShell$ | async; else publicLayout">
   <div class="app-layout">
     <app-header (menuToggle)="drawer.toggle()"></app-header>
 

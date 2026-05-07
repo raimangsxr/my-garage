@@ -3,7 +3,7 @@ import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatSidenav, MatSidenavModule } from '@angular/material/sidenav';
 import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
-import { Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, combineLatest } from 'rxjs';
 import { map, shareReplay, filter } from 'rxjs/operators';
 import { HeaderComponent } from './layout/header/header.component';
 import { SidenavComponent } from './layout/sidenav/sidenav.component';
@@ -34,8 +34,15 @@ export class AppComponent implements OnDestroy {
     private router = inject(Router);
     private userService = inject(UserService);
     private subscriptions = new Subscription();
+    private isPublicRouteSubject = new BehaviorSubject<boolean>(this.isPublicRoute(this.router.url));
 
     isAuthenticated$ = this.authService.isAuthenticated$;
+    showAppShell$ = combineLatest([
+        this.isAuthenticated$,
+        this.isPublicRouteSubject.asObservable()
+    ]).pipe(
+        map(([isAuthenticated, isPublicRoute]) => isAuthenticated && !isPublicRoute)
+    );
 
     isHandset$: Observable<boolean> = this.breakpointObserver.observe(Breakpoints.Handset)
         .pipe(
@@ -59,12 +66,17 @@ export class AppComponent implements OnDestroy {
             this.router.events.pipe(
                 filter(event => event instanceof NavigationEnd)
             ).subscribe(() => {
+                this.isPublicRouteSubject.next(this.isPublicRoute(this.router.url));
                 if (this.drawer && this.drawer.mode === 'over') {
                     this.drawer.close();
                 }
             })
         );
 
+    }
+
+    private isPublicRoute(url: string): boolean {
+        return url === '/login' || url.startsWith('/login?');
     }
 
     ngOnDestroy(): void {

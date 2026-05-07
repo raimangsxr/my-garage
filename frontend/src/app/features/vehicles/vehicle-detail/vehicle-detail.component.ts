@@ -10,6 +10,7 @@ import { VehicleService, TrackRecord } from '../../../core/services/vehicle.serv
 import { Supplier, SupplierService } from '../../../core/services/supplier.service';
 import { Invoice, InvoiceService } from '../../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../../core/services/maintenance.service';
+import { PartService } from '../../../core/services/part.service';
 import { MaintenanceDialogComponent } from '../../maintenance/maintenance-dialog/maintenance-dialog.component';
 import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
 import { LoggerService } from '../../../core/services/logger.service';
@@ -60,6 +61,7 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
     private supplierService = inject(SupplierService);
     private invoiceService = inject(InvoiceService);
     private maintenanceService = inject(MaintenanceService);
+    private partService = inject(PartService);
     private dialog = inject(MatDialog);
     private logger = inject(LoggerService);
     private subscriptions = new Subscription();
@@ -123,6 +125,14 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
         this.subscriptions.add(this.maintenanceService.getMaintenances().subscribe(data => this.maintenances = data));
     }
 
+    private refreshVehicleDetails(): void {
+        if (!this.vehicleDetails?.vehicle?.id) {
+            return;
+        }
+
+        this.loadVehicleDetails(this.vehicleDetails.vehicle.id);
+    }
+
     goBack() {
         this.router.navigate(['/vehicles']);
     }
@@ -177,16 +187,31 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
     }
 
     openPartDialog(part: any) {
-        this.dialog.open(PartDialogComponent, {
+        const dialogRef = this.dialog.open(PartDialogComponent, {
             width: '500px',
             data: {
                 part: part,
-                readOnly: true,
                 suppliers: this.suppliers,
                 invoices: this.invoices,
                 maintenances: this.maintenances
             }
         });
+
+        this.subscriptions.add(
+            dialogRef.afterClosed().subscribe(result => {
+                if (result && part?.id) {
+                    this.subscriptions.add(
+                        this.partService.updatePart(part.id, result).subscribe({
+                            next: () => {
+                                this.refreshVehicleDetails();
+                                this.logger.info('Part updated successfully from vehicle detail');
+                            },
+                            error: (err) => this.logger.error('Error updating part from vehicle detail', err)
+                        })
+                    );
+                }
+            })
+        );
     }
 
     openInvoiceUpload() {
