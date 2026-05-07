@@ -10,6 +10,8 @@ import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/p
 import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { VehicleDialogComponent } from './vehicle-dialog/vehicle-dialog.component';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-vehicles',
@@ -22,7 +24,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatMenuModule,
         MatDialogModule,
         PageLoaderComponent,
-        MatPaginatorModule
+        MatPaginatorModule,
+        EmptyStateComponent
     ],
     templateUrl: './vehicles.component.html',
     styleUrls: ['./vehicles.component.scss']
@@ -31,6 +34,7 @@ export class VehiclesComponent implements OnInit {
     private vehicleService = inject(VehicleService);
     private dialog = inject(MatDialog);
     private router = inject(Router);
+    private confirmDialog = inject(ConfirmDialogService);
 
     vehicles: Vehicle[] = [];
     isLoading = false;
@@ -85,14 +89,21 @@ export class VehiclesComponent implements OnInit {
     }
 
     deleteVehicle(id: number) {
-        if (confirm('Are you sure you want to delete this vehicle?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Vehicle',
+            message: 'This vehicle and its linked garage data will be permanently removed.',
+            confirmText: 'Delete Vehicle',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.vehicleService.deleteVehicle(id).subscribe(() => {
                 if (this.vehicles.length === 1 && this.pageIndex > 0) {
                     this.pageIndex -= 1;
                 }
                 this.loadVehicles();
             });
-        }
+        });
     }
 
     isItvExpired(dateStr?: string): boolean {

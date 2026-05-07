@@ -22,14 +22,14 @@ h3 {
     margin: 16px 0 8px;
     font-size: 16px;
     font-weight: 500;
-    color: #374151;
+    color: var(--slate-soft);
 }
 
 .usage-type-section {
-    background: #f9fafb;
+    background: var(--surface-muted);
     padding: 16px;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    border: var(--border-soft);
 
     h3 {
         margin-top: 0;
@@ -63,10 +63,10 @@ h3 {
 }
 
 .image-upload-section {
-    background: #f9fafb;
+    background: var(--surface-muted);
     padding: 16px;
     border-radius: 8px;
-    border: 1px solid #e5e7eb;
+    border: var(--border-soft);
     margin-bottom: 16px;
 
     h3 {
@@ -89,7 +89,7 @@ h3 {
     margin-top: 16px;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #e5e7eb;
+    border: var(--border-soft);
 
     img {
         width: 100%;
@@ -109,7 +109,7 @@ h3 {
     mat-expansion-panel {
         margin-bottom: 8px;
         box-shadow: none;
-        border: 1px solid #e5e7eb;
+        border: var(--border-soft);
 
         &.mat-expanded {
             margin-bottom: 16px;

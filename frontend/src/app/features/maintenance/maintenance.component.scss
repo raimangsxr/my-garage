@@ -1,4 +1,12 @@
 .maintenance-list {
+    --maintenance-badge-bg: var(--border-muted);
+    --maintenance-badge-text: var(--slate-soft);
+    --maintenance-badge-recent-bg: var(--success-surface-strong);
+    --maintenance-badge-recent-text: var(--success-color);
+    --maintenance-badge-moderate-bg: var(--warning-surface);
+    --maintenance-badge-moderate-text: var(--warning-text-strong);
+    --maintenance-badge-old-bg: var(--surface-muted);
+
     position: relative;
 }
 
@@ -37,22 +45,22 @@
     border-radius: 999px;
     font-size: 0.74rem;
     font-weight: 700;
-    background: #e2e8f0;
-    color: #334155;
+    background: var(--maintenance-badge-bg);
+    color: var(--maintenance-badge-text);
 
     &.recent {
-        background: #dcfce7;
-        color: #166534;
+        background: var(--maintenance-badge-recent-bg);
+        color: var(--maintenance-badge-recent-text);
     }
 
     &.moderate {
-        background: #fef3c7;
-        color: #92400e;
+        background: var(--maintenance-badge-moderate-bg);
+        color: var(--maintenance-badge-moderate-text);
     }
 
     &.old {
-        background: #f1f5f9;
-        color: #64748b;
+        background: var(--maintenance-badge-old-bg);
+        color: var(--text-secondary);
     }
 }
 
@@ -63,18 +71,18 @@
 
     .vehicle-name {
         font-weight: 600;
-        color: #0f172a;
+        color: var(--slate-strong);
     }
 
     .license-plate {
         font-size: 0.72rem;
-        color: #64748b;
+        color: var(--text-secondary);
         font-family: 'Roboto Mono', monospace;
     }
 }
 
 .description-cell {
-    color: #334155;
+    color: var(--slate-soft);
     line-height: 1.35;
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -88,10 +96,10 @@
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: #334155;
+    color: var(--slate-soft);
 
     mat-icon {
-        color: #64748b;
+        color: var(--text-secondary);
         font-size: 1rem;
         width: 1rem;
         height: 1rem;
@@ -105,22 +113,22 @@
     border-radius: 999px;
     font-size: 0.72rem;
     font-weight: 700;
-    background: #e0f2fe;
-    color: #0369a1;
+    background: var(--info-surface-strong);
+    color: var(--info-color);
 
     &.invoice {
-        background: #ffedd5;
-        color: #9a3412;
+        background: var(--warning-surface-strong);
+        color: var(--warning-color);
     }
 }
 
 .cost {
     font-weight: 700;
-    color: #0f172a;
+    color: var(--slate-strong);
 }
 
 .empty-text {
-    color: #94a3b8;
+    color: var(--text-muted);
 }
 
 .action-buttons {
@@ -132,12 +140,12 @@
 
 .action-btn {
     border-radius: 8px;
-    background: #f8fafc;
+    background: var(--surface-muted);
 }
 
 .no-data-cell {
     text-align: center;
-    color: #64748b;
+    color: var(--text-secondary);
     padding: 1.25rem !important;
 }
 
@@ -148,25 +156,25 @@
     justify-content: center;
     gap: 0.5rem;
     padding: 2.8rem 1.2rem 3.2rem;
-    color: #64748b;
+    color: var(--text-secondary);
 
     mat-icon {
         font-size: 2.4rem;
         width: 2.4rem;
         height: 2.4rem;
-        color: #94a3b8;
+        color: var(--text-muted);
     }
 
     p {
         margin: 0;
         font-size: 1rem;
         font-weight: 600;
-        color: #334155;
+        color: var(--slate-soft);
     }
 
     span {
         font-size: 0.84rem;
-        color: #64748b;
+        color: var(--text-secondary);
     }
 }
 

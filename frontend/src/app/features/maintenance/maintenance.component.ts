@@ -18,6 +18,8 @@ import { Supplier, SupplierService } from '../../core/services/supplier.service'
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
 import { LoggerService } from '../../core/services/logger.service';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-maintenance',
@@ -36,7 +38,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        PageLoaderComponent
+        PageLoaderComponent,
+        EmptyStateComponent
     ],
     templateUrl: './maintenance.component.html',
     styleUrls: ['./maintenance.component.scss']
@@ -48,6 +51,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     private dialog = inject(MatDialog);
     private snackBar = inject(MatSnackBar);
     private logger = inject(LoggerService);
+    private confirmDialog = inject(ConfirmDialogService);
 
     dataSource: MatTableDataSource<Maintenance> = new MatTableDataSource<Maintenance>([]);
     vehicles: Vehicle[] = [];
@@ -229,7 +233,14 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     }
 
     deleteMaintenance(id: number): void {
-        if (confirm('Are you sure you want to delete this maintenance record?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Maintenance Record',
+            message: 'This maintenance record will be permanently removed from the service history.',
+            confirmText: 'Delete Record',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.maintenanceService.deleteMaintenance(id).subscribe({
                 next: () => {
                     if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
@@ -243,7 +254,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
                     this.showSnackBar('Error deleting maintenance');
                 }
             });
-        }
+        });
     }
 
     private showSnackBar(message: string): void {

@@ -1,4 +1,7 @@
-<div class="chart-shell" (click)="onChartClick()">
+<div class="chart-shell" role="button" tabindex="0" aria-label="Clear chart selection"
+    (click)="onChartClick()"
+    (keydown.enter)="onChartKeydown($event)"
+    (keydown.space)="onChartKeydown($event)">
     <div class="chart-toolbar">
         <div class="toolbar-group">
             <button type="button" class="mode-btn" [class.active]="viewMode === 'both'" (click)="setViewMode('both'); $event.stopPropagation()">
@@ -33,7 +36,7 @@
 
                 <svg class="chart-svg" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <line *ngIf="absoluteRecord" x1="0" x2="100" [attr.y1]="absoluteRecord.y" [attr.y2]="absoluteRecord.y"
-                        stroke="#b45309" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" />
+                        stroke="var(--warning-color)" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" />
 
                     <ng-container *ngFor="let series of renderedSeries">
                         <polyline *ngIf="viewMode !== 'record'" [attr.points]="series.sessionPolyline" fill="none" [attr.stroke]="series.color"

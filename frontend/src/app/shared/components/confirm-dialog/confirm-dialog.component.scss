@@ -1,0 +1,66 @@
+.confirm-dialog {
+    display: flex;
+    gap: var(--space-4);
+    max-width: 520px;
+    padding: var(--space-6) var(--space-6) 0;
+}
+
+.confirm-dialog__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--danger-surface);
+    color: var(--danger-color);
+}
+
+.confirm-dialog[data-intent='warning'] .confirm-dialog__icon {
+    background: var(--warning-surface);
+    color: var(--warning-color);
+}
+
+.confirm-dialog[data-intent='info'] .confirm-dialog__icon {
+    background: var(--info-surface);
+    color: var(--info-color);
+}
+
+.confirm-dialog__content {
+    min-width: 0;
+}
+
+h2[mat-dialog-title] {
+    margin: 0 0 var(--space-2);
+    padding: 0;
+    color: var(--text-primary);
+    font-size: 1.15rem;
+    line-height: 1.25;
+    text-wrap: balance;
+}
+
+mat-dialog-content {
+    padding: 0 !important;
+}
+
+p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+mat-dialog-actions {
+    padding: var(--space-4) var(--space-6) var(--space-6);
+    gap: var(--space-2);
+}
+
+@media (max-width: 520px) {
+    .confirm-dialog {
+        padding: var(--space-4) var(--space-4) 0;
+    }
+
+    mat-dialog-actions {
+        padding: var(--space-4);
+    }
+}

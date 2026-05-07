@@ -121,12 +121,17 @@
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="7">No data matching the filter "{{input.value}}"</td>
-                </tr>
             </table>
+
+            <app-empty-state
+                *ngIf="!isLoading && dataSource.data.length === 0"
+                icon="receipt_long"
+                [message]="input.value ? 'No matching invoices' : 'No invoices yet'"
+                [description]="input.value ? 'Try a different search term or clear the filter.' : 'Upload your first invoice to review extraction status and linked records.'">
+            </app-empty-state>
+
             <mat-paginator
+                *ngIf="totalInvoices > 0"
                 [length]="totalInvoices"
                 [pageSize]="pageSize"
                 [pageIndex]="pageIndex"

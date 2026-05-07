@@ -33,4 +33,4 @@ Plan: ./plan.md
 - [x] Ejecutar búsqueda estática de icon buttons sin `aria-label`.
 - [x] Ejecutar búsqueda estática de `transition: all`.
 - [x] Ejecutar `npx tsc -p tsconfig.app.json --noEmit`.
-- [ ] Ejecutar `npm run build` completo. Bloqueado por `Abort trap: 6` al arrancar `ng build` con Node 25.6.1 y Node 22.14.0.
+- [x] Ejecutar `npm run build` completo. Verificado posteriormente durante la remediación de estandarización; mantiene warning de budget inicial excedido.

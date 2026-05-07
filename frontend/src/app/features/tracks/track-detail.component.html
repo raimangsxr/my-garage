@@ -17,11 +17,13 @@
 
     <app-page-loader *ngIf="loading" icon="track_changes" message="Loading track detail..." minHeight="280px"></app-page-loader>
 
-    <div *ngIf="!loading && error" class="mg-empty-state">
-        <mat-icon>error_outline</mat-icon>
-        <p>{{ error }}</p>
+    <app-empty-state
+        *ngIf="!loading && error"
+        icon="error_outline"
+        [message]="error"
+        description="Go back to the track list and try opening the circuit again.">
         <button mat-raised-button color="primary" (click)="goBack()">Back to Tracks</button>
-    </div>
+    </app-empty-state>
 
     <div *ngIf="!loading && !error && trackDetail" class="track-detail-content">
         <mat-card class="mg-surface-card track-hero-card">

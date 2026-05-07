@@ -20,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ImageDialogComponent } from '../../../shared/components/image-dialog/image-dialog.component';
 import { PageLoaderComponent } from '../../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 @Component({
     selector: 'app-invoice-review',
@@ -62,7 +63,8 @@ export class InvoiceReviewComponent implements OnInit {
         private vehicleService: VehicleService,
         private fb: FormBuilder,
         private snackBar: MatSnackBar,
-        private dialog: MatDialog
+        private dialog: MatDialog,
+        private confirmDialog: ConfirmDialogService
     ) {
         // ... (constructor remains same)
         this.reviewForm = this.fb.group({
@@ -235,10 +237,24 @@ export class InvoiceReviewComponent implements OnInit {
         if (!this.invoiceId || this.reviewForm.invalid) return;
 
         if (!this.isTotalValid) {
-            if (!confirm('The sum of Subtotal + Tax does not match the Total Amount. Do you want to proceed anyway?')) {
-                return;
-            }
+            this.confirmDialog.confirm({
+                title: 'Approve With Amount Mismatch',
+                message: 'Subtotal plus tax does not match the total amount. Review the values before approving.',
+                confirmText: 'Approve Anyway',
+                intent: 'warning'
+            }).subscribe(confirmed => {
+                if (confirmed) {
+                    this.submitApproval();
+                }
+            });
+            return;
         }
+
+        this.submitApproval();
+    }
+
+    private submitApproval() {
+        if (!this.invoiceId) return;
 
         this.approving = true;
 
@@ -271,12 +287,20 @@ export class InvoiceReviewComponent implements OnInit {
 
     rejectInvoice() {
         if (!this.invoiceId) return;
+        const invoiceId = this.invoiceId;
 
-        if (confirm('Are you sure you want to reject this invoice? It will be re-processed with a more detailed analysis.')) {
+        this.confirmDialog.confirm({
+            title: 'Reject Invoice',
+            message: 'This invoice will be sent back for a more detailed analysis.',
+            confirmText: 'Reject Invoice',
+            intent: 'warning'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.loading = true;
-            this.invoiceService.rejectInvoice(this.invoiceId).subscribe({
+            this.invoiceService.rejectInvoice(invoiceId).subscribe({
                 next: () => {
-                    this.snackBar.open('Invoice rejected. Re-processing started...', 'Close', { duration: 3000 });
+                    this.snackBar.open('Invoice rejected. Re-processing started…', 'Close', { duration: 3000 });
                     this.router.navigate(['/invoices']);
                 },
                 error: (err) => {
@@ -285,6 +309,6 @@ export class InvoiceReviewComponent implements OnInit {
                     this.snackBar.open('Error rejecting invoice', 'Close', { duration: 3000 });
                 }
             });
-        }
+        });
     }
 }

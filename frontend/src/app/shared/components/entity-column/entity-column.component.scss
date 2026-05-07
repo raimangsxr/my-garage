@@ -1,4 +1,6 @@
 .entity-column {
+    --entity-column-header-gradient: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-dark) 100%);
+
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -8,9 +10,9 @@
         align-items: center;
         gap: 12px;
         padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--entity-column-header-gradient);
         border-radius: 12px 12px 0 0;
-        color: white;
+        color: var(--text-inverse);
 
         mat-icon {
             font-size: 24px;
@@ -26,7 +28,7 @@
         }
 
         .count-badge {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--surface-overlay);
             border-radius: 12px;
             padding: 4px 12px;
             font-size: 14px;
@@ -44,7 +46,7 @@
     .column-body {
         flex: 1;
         padding: 16px;
-        background: #f9fafb;
+        background: var(--surface-muted);
         border-radius: 0 0 12px 12px;
         overflow-y: auto;
     }

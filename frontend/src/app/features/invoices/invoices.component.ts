@@ -21,6 +21,8 @@ import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { Subscription } from 'rxjs';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-invoices',
@@ -41,7 +43,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatInputModule,
         MatFormFieldModule,
         MatProgressSpinnerModule,
-        PageLoaderComponent
+        PageLoaderComponent,
+        EmptyStateComponent
     ],
     templateUrl: './invoices.component.html',
     styleUrls: ['./invoices.component.scss']
@@ -72,6 +75,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     private snackBar = inject(MatSnackBar);
     private router = inject(Router);
     private logger = inject(LoggerService);
+    private confirmDialog = inject(ConfirmDialogService);
 
     ngOnInit(): void {
         this.loadData();
@@ -258,7 +262,14 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     }
 
     deleteInvoice(id: number): void {
-        if (confirm('Are you sure you want to delete this invoice?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Invoice',
+            message: 'This invoice will be permanently removed, including its uploaded document reference.',
+            confirmText: 'Delete Invoice',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.invoiceService.deleteInvoice(id).subscribe({
                 next: () => {
                     if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
@@ -272,7 +283,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                     this.showSnackBar('Error deleting invoice');
                 }
             });
-        }
+        });
     }
 
     getStatusColor(status: string): string {

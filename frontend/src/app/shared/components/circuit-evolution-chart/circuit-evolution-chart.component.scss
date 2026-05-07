@@ -1,7 +1,33 @@
 .chart-shell {
+    --chart-border: var(--border-muted);
+    --chart-panel-border: var(--border-muted);
+    --chart-hover-border: var(--border-strong);
+    --chart-focus-border: var(--info-color);
+    --chart-bg: var(--surface-color);
+    --chart-bg-muted: var(--surface-muted);
+    --chart-bg-soft: var(--surface-color);
+    --chart-text-strong: var(--slate-strong);
+    --chart-text: var(--slate-soft);
+    --chart-text-muted: var(--text-secondary);
+    --chart-absolute-border: var(--warning-border-strong);
+    --chart-absolute-bg: var(--warning-surface);
+    --chart-absolute-text: var(--warning-text-deep);
+    --chart-absolute-text-strong: var(--warning-color);
+    --chart-grid: var(--border-faint);
+    --chart-positive-bg: var(--success-surface-strong);
+    --chart-positive-text: var(--success-text-deep);
+    --chart-negative-bg: var(--danger-surface-strong);
+    --chart-negative-text: var(--danger-text-deep);
+
     display: flex;
     flex-direction: column;
     gap: 12px;
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+        border-radius: 12px;
+    }
 }
 
 .chart-toolbar {
@@ -19,9 +45,9 @@
 
     .mode-btn,
     .reset-btn {
-        border: 1px solid #d9e2ec;
-        background: #ffffff;
-        color: #334155;
+        border: 1px solid var(--border-muted);
+        background: var(--chart-bg);
+        color: var(--chart-text);
         border-radius: 8px;
         height: 30px;
         padding: 0 10px;
@@ -31,14 +57,14 @@
         transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 
         &:hover {
-            border-color: #8ea4c4;
-            color: #0f172a;
+            border-color: var(--chart-hover-border);
+            color: var(--chart-text-strong);
         }
 
         &.active {
-            background: #eaf6ff;
-            border-color: #61a8e8;
-            color: #0c4a6e;
+            background: var(--info-surface);
+            border-color: var(--info-color);
+            color: var(--info-text-deep);
         }
     }
 }
@@ -54,9 +80,9 @@
     display: inline-flex;
     align-items: baseline;
     gap: 8px;
-    border: 1px solid #fcd9a5;
-    background: #fff7ed;
-    color: #7c2d12;
+    border: 1px solid var(--chart-absolute-border);
+    background: var(--chart-absolute-bg);
+    color: var(--chart-absolute-text);
     border-radius: 8px;
     padding: 6px 10px;
     width: fit-content;
@@ -76,7 +102,7 @@
 
     .meta {
         font-size: 12px;
-        color: #9a3412;
+        color: var(--chart-absolute-text-strong);
     }
 }
 
@@ -89,7 +115,7 @@
 .y-axis {
     width: 66px;
     position: relative;
-    border-right: 1px solid #dbe6ee;
+    border-right: 1px solid var(--chart-border);
     flex-shrink: 0;
 
     .y-label {
@@ -97,7 +123,7 @@
         right: 8px;
         transform: translateY(-50%);
         font-size: 11px;
-        color: #64748b;
+        color: var(--chart-text-muted);
         font-family: 'Courier New', monospace;
         white-space: nowrap;
     }
@@ -106,18 +132,18 @@
 .chart-area {
     flex: 1;
     position: relative;
-    border-bottom: 1px solid #dbe6ee;
+    border-bottom: 1px solid var(--chart-border);
     overflow: visible;
-    background: linear-gradient(180deg, #fcfeff 0%, #f8fbfd 100%);
+    background: linear-gradient(180deg, var(--chart-bg-soft) 0%, var(--chart-bg-muted) 100%);
 }
 
 .absolute-line-label {
     position: absolute;
     right: 8px;
     transform: translateY(-50%);
-    background: #ffedd5;
-    border: 1px solid #fdba74;
-    color: #9a3412;
+    background: var(--warning-surface-strong);
+    border: 1px solid var(--warning-border-strong);
+    color: var(--chart-absolute-text-strong);
     border-radius: 6px;
     padding: 2px 6px;
     font-size: 10px;
@@ -131,7 +157,7 @@
     left: 0;
     right: 0;
     height: 1px;
-    background-color: #eaf0f5;
+    background-color: var(--chart-grid);
     pointer-events: none;
 }
 
@@ -154,7 +180,7 @@
     height: 10px;
     border-radius: 50%;
     transform: translate(-50%, -50%);
-    border: 2px solid #ffffff;
+    border: 2px solid var(--chart-bg);
     box-shadow: 0 1px 3px rgba(15, 23, 42, 0.18);
     cursor: pointer;
     transition: transform 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
@@ -210,16 +236,16 @@
     transform: translateX(-50%) rotate(45deg);
     width: 10px;
     height: 10px;
-    background: #ffffff;
+    background: var(--chart-bg);
     box-shadow: 1px 1px 4px rgba(15, 23, 42, 0.14);
 }
 
 .tooltip-content {
     position: relative;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    background: linear-gradient(180deg, var(--chart-bg) 0%, var(--chart-bg-muted) 100%);
     border-radius: 12px;
     box-shadow: 0 14px 28px rgba(15, 23, 42, 0.18);
-    border: 1px solid #dbe3ee;
+    border: 1px solid var(--chart-panel-border);
     padding: 12px;
     min-width: 210px;
 }
@@ -230,7 +256,7 @@
     gap: 8px;
     margin-bottom: 8px;
     padding-bottom: 8px;
-    border-bottom: 1px solid #e7edf4;
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .tooltip-series-dot {
@@ -243,7 +269,7 @@
 .tooltip-series-name {
     font-weight: 800;
     font-size: 13px;
-    color: #0f172a;
+    color: var(--chart-text-strong);
     letter-spacing: 0.01em;
 }
 
@@ -265,19 +291,19 @@
         font-size: 14px;
         width: 14px;
         height: 14px;
-        color: #94a3b8;
+        color: var(--text-muted);
     }
 }
 
 .tooltip-time {
     font-weight: 800;
     font-size: 15px;
-    color: #0f172a;
+    color: var(--chart-text-strong);
     font-family: 'Courier New', monospace;
 }
 
 .tooltip-date {
-    color: #475569;
+    color: var(--slate-muted);
 }
 
 .tooltip-delta {
@@ -285,23 +311,23 @@
     width: fit-content;
     border-radius: 999px;
     padding: 2px 8px;
-    background: #e2e8f0;
-    color: #334155;
+    background: var(--border-muted);
+    color: var(--chart-text);
 
     &.better {
-        color: #065f46;
-        background: #d1fae5;
+        color: var(--chart-positive-text);
+        background: var(--chart-positive-bg);
     }
 
     &.worse {
-        color: #991b1b;
-        background: #fee2e2;
+        color: var(--chart-negative-text);
+        background: var(--chart-negative-bg);
     }
 }
 
 .tooltip-meta {
     margin-top: 10px;
-    border-top: 1px dashed #dbe3ee;
+    border-top: 1px dashed var(--chart-panel-border);
     padding-top: 10px;
     display: grid;
     grid-template-columns: 1fr;
@@ -313,9 +339,9 @@
     align-items: center;
     gap: 6px;
     font-size: 11px;
-    color: #334155;
-    background: #f1f5f9;
-    border: 1px solid #d9e4ee;
+    color: var(--chart-text);
+    background: var(--surface-muted);
+    border: 1px solid var(--border-muted);
     border-radius: 999px;
     padding: 2px 8px;
     width: fit-content;
@@ -324,7 +350,7 @@
         font-size: 12px;
         width: 12px;
         height: 12px;
-        color: #64748b;
+        color: var(--chart-text-muted);
     }
 }
 
@@ -338,7 +364,7 @@
         position: absolute;
         transform: translateX(-50%);
         font-size: 11px;
-        color: #64748b;
+        color: var(--chart-text-muted);
         white-space: nowrap;
     }
 }
@@ -350,8 +376,8 @@
 }
 
 .legend-item {
-    border: 1px solid #dbe6ee;
-    background: #ffffff;
+    border: 1px solid var(--chart-border);
+    background: var(--chart-bg);
     border-radius: 10px;
     padding: 8px 10px;
     display: grid;
@@ -363,11 +389,11 @@
     transition: border-color 0.14s ease, box-shadow 0.14s ease, opacity 0.14s ease;
 
     &:hover {
-        border-color: #94a3b8;
+        border-color: var(--chart-hover-border);
     }
 
     &.focused {
-        border-color: #3b82f6;
+        border-color: var(--chart-focus-border);
         box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2);
     }
 
@@ -382,7 +408,7 @@
     }
 
     .vehicle-name {
-        color: #0f172a;
+        color: var(--chart-text-strong);
         font-weight: 600;
         font-size: 12px;
         min-width: 0;
@@ -392,14 +418,14 @@
     }
 
     .best-time {
-        color: #1e293b;
+        color: var(--slate-strong);
         font-size: 12px;
         font-family: 'Courier New', monospace;
         font-weight: 700;
     }
 
     .improvement {
-        color: #047857;
+        color: var(--success-color);
         font-size: 11px;
         font-weight: 700;
     }

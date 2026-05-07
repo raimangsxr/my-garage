@@ -1,0 +1,21 @@
+<div class="confirm-dialog" [attr.data-intent]="intent">
+    <div class="confirm-dialog__icon" aria-hidden="true">
+        <mat-icon>{{ icon }}</mat-icon>
+    </div>
+
+    <div class="confirm-dialog__content">
+        <h2 mat-dialog-title>{{ data.title }}</h2>
+        <mat-dialog-content>
+            <p>{{ data.message }}</p>
+        </mat-dialog-content>
+    </div>
+</div>
+
+<mat-dialog-actions align="end">
+    <button *ngIf="cancelText" type="button" mat-button (click)="cancel()">
+        {{ cancelText }}
+    </button>
+    <button type="button" mat-raised-button [color]="intent === 'info' ? 'primary' : 'warn'" (click)="confirm()">
+        {{ confirmText }}
+    </button>
+</mat-dialog-actions>

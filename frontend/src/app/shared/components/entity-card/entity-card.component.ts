@@ -18,4 +18,10 @@ export class EntityCardComponent {
             this.cardClick.emit();
         }
     }
+
+    onKeyActivate(event: Event): void {
+        if (!this.clickable) return;
+        event.preventDefault();
+        this.cardClick.emit();
+    }
 }

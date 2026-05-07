@@ -5,15 +5,15 @@
 .notification-item {
     cursor: pointer;
     transition: background-color 0.2s ease;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: var(--border-soft);
 
     &:hover {
-        background-color: #f8fafc;
+        background-color: var(--surface-hover);
     }
 
     &.unread {
-        background-color: #eff6ff;
-        border-left: 3px solid #2563eb;
+        background-color: var(--info-surface);
+        border-left: 3px solid var(--info-color);
 
         .notification-title {
             font-weight: 700;
@@ -21,7 +21,7 @@
     }
 
     &.read {
-        color: #64748b;
+        color: var(--text-secondary);
     }
 }
 
@@ -34,22 +34,22 @@
 
 .date {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--text-secondary);
     white-space: nowrap;
 }
 
 .type-itv {
-    color: #d97706;
+    color: var(--warning-color);
 }
 
 .type-insurance {
-    color: #0369a1;
+    color: var(--info-color);
 }
 
 .type-tax {
-    color: #b91c1c;
+    color: var(--danger-color);
 }
 
 .type-general {
-    color: #475569;
+    color: var(--slate-muted);
 }

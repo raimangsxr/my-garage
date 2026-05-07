@@ -17,6 +17,8 @@ import { Supplier, SupplierService } from '../../core/services/supplier.service'
 import { Invoice, InvoiceService } from '../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-parts',
@@ -34,7 +36,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        PageLoaderComponent
+        PageLoaderComponent,
+        EmptyStateComponent
     ],
     templateUrl: './parts.component.html',
     styleUrls: ['./parts.component.scss']
@@ -63,7 +66,8 @@ export class PartsComponent implements OnInit, OnDestroy {
         private invoiceService: InvoiceService,
         private maintenanceService: MaintenanceService,
         private dialog: MatDialog,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private confirmDialog: ConfirmDialogService
     ) { }
 
     ngOnInit(): void {
@@ -179,7 +183,14 @@ export class PartsComponent implements OnInit, OnDestroy {
     }
 
     deletePart(id: number): void {
-        if (confirm('Are you sure you want to delete this part?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Part',
+            message: 'This part will be permanently removed from the inventory.',
+            confirmText: 'Delete Part',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.partService.deletePart(id).subscribe({
                 next: () => {
                     if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
@@ -193,7 +204,7 @@ export class PartsComponent implements OnInit, OnDestroy {
                     this.showSnackBar('Error deleting part');
                 }
             });
-        }
+        });
     }
 
     private showSnackBar(message: string): void {

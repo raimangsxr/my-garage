@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 from app.api import deps
 from app.core import security
 from app.models import User, GoogleAuthToken
-from app.database import get_session
 
 from app.core.config import settings
 
@@ -35,7 +34,7 @@ class GoogleLoginResponse(BaseModel):
 
 @router.post("/login/access-token")
 def login_access_token(
-    session: Session = Depends(get_session),
+    session: Session = Depends(deps.get_db),
     form_data: OAuth2PasswordRequestForm = Depends()
 ) -> Any:
     """
@@ -63,7 +62,7 @@ def login_access_token(
 @router.post("/google/login", response_model=GoogleLoginResponse)
 def google_login(
     request: GoogleLoginRequest,
-    session: Session = Depends(get_session)
+    session: Session = Depends(deps.get_db)
 ) -> Any:
     """
     Login with Google OAuth 2.0 token
@@ -207,7 +206,7 @@ def google_login(
         )
 
 @router.post("/password-recovery/{email}")
-def recover_password(email: str, session: Session = Depends(get_session)) -> Any:
+def recover_password(email: str, session: Session = Depends(deps.get_db)) -> Any:
     """
     Password Recovery
     """

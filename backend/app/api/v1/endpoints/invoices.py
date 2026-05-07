@@ -129,7 +129,7 @@ def read_invoices(
     status: Optional[str] = Query(default=None),
     sort_by: str = Query(default="date"),
     sort_dir: str = Query(default="desc", pattern="^(asc|desc)$"),
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
     """
@@ -222,7 +222,7 @@ def read_invoices(
 @router.post("/upload", response_model=Invoice)
 async def upload_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     file: UploadFile = File(...),
     vehicle_id: Optional[int] = Form(None),
     current_user: User = Depends(deps.get_current_active_user),
@@ -272,7 +272,7 @@ async def upload_invoice(
 @router.get("/{id}", response_model=Invoice)
 def get_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -288,7 +288,7 @@ def get_invoice(
 @router.get("/{id}/extracted-data", response_model=InvoiceExtractedData)
 def get_extracted_data(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -322,7 +322,7 @@ def get_extracted_data(
 @router.put("/{id}/extracted-data")
 def update_extracted_data(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     data: InvoiceExtractedData,
     current_user: User = Depends(deps.get_current_active_user),
@@ -359,7 +359,7 @@ def update_extracted_data(
 @router.post("/{id}/reject")
 async def reject_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
     background_tasks: BackgroundTasks,
@@ -393,7 +393,7 @@ async def reject_invoice(
 @router.post("/{id}/retry")
 async def retry_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
     background_tasks: BackgroundTasks,
@@ -427,7 +427,7 @@ async def retry_invoice(
 @router.post("/{id}/approve")
 async def approve_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
@@ -460,7 +460,7 @@ async def approve_invoice(
 @router.delete("/{id}", response_model=Invoice)
 def delete_invoice(
     *,
-    session: Session = Depends(deps.get_session),
+    session: Session = Depends(deps.get_db),
     id: int,
     current_user: User = Depends(deps.get_current_active_user),
 ) -> Any:
