@@ -17,6 +17,7 @@ import { Supplier } from '../../../core/services/supplier.service';
 import { Part } from '../../../core/services/part.service';
 import { Invoice } from '../../../core/services/invoice.service';
 import { PartDialogComponent } from '../../parts/part-dialog/part-dialog.component';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 export interface MaintenanceDialogData {
     maintenance: Maintenance;
@@ -58,6 +59,7 @@ export class MaintenanceDialogComponent {
         private dialog: MatDialog,
         private maintenanceService: MaintenanceService,
         private partService: PartService,
+        private confirmDialog: ConfirmDialogService,
         @Inject(MAT_DIALOG_DATA) public data: MaintenanceDialogData
     ) {
         this.isEditMode = !!data.maintenance.id;
@@ -145,7 +147,14 @@ export class MaintenanceDialogComponent {
     }
 
     deletePart(partId: number): void {
-        if (confirm('Are you sure you want to delete this part?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Linked Part',
+            message: 'This part will be removed from the maintenance record.',
+            confirmText: 'Delete Part',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.partService.deletePart(partId).subscribe({
                 next: () => {
                     this.refreshMaintenanceData();
@@ -154,6 +163,6 @@ export class MaintenanceDialogComponent {
                     console.error('Error deleting part', err);
                 }
             });
-        }
+        });
     }
 }

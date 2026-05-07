@@ -335,6 +335,7 @@ Todo error recuperable debe tener:
 - Formularios con `mat-form-field` deben tener labels visibles.
 - Inputs deben usar `type`, `autocomplete` e `inputmode` cuando aplique.
 - Errores deben mostrarse junto al campo.
+- Confirmaciones destructivas deben usar `ConfirmDialogComponent`; no usar `window.confirm()` ni `window.alert()` en UI de producto.
 - Acciones de diálogo: secundaria a la izquierda, primaria a la derecha.
 - Botón primario específico: `Save Vehicle`, `Approve Invoice`, `Save API Key`; evitar `Continue` genérico.
 - Si hay cambios sin guardar en formularios largos, añadir confirmación de salida.

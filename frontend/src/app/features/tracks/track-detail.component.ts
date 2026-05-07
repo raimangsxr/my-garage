@@ -13,17 +13,18 @@ import { CircuitEvolutionChartComponent, ChartSeries } from '../../shared/compon
 import { buildApiUrl } from '../../core/utils/api-url.util';
 import { environment } from '../../../environments/environment';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 // Color palette for vehicles
 const VEHICLE_COLORS = [
-    '#3b82f6', // Blue
-    '#ef4444', // Red
-    '#10b981', // Green
-    '#f59e0b', // Orange
-    '#8b5cf6', // Purple
-    '#ec4899', // Pink
-    '#06b6d4', // Cyan
-    '#84cc16'  // Lime
+    'var(--chart-series-1)',
+    'var(--chart-series-2)',
+    'var(--chart-series-3)',
+    'var(--chart-series-4)',
+    'var(--chart-series-5)',
+    'var(--chart-series-6)',
+    'var(--chart-series-7)',
+    'var(--chart-series-8)'
 ];
 
 @Component({
@@ -37,6 +38,7 @@ const VEHICLE_COLORS = [
         MatIconModule,
         MatButtonModule,
         PageLoaderComponent,
+        EmptyStateComponent,
         MatTabsModule,
         MatChipsModule,
         CircuitEvolutionChartComponent

@@ -24,7 +24,7 @@
 }
 
 .maintenance-card {
-    border-left: 3px solid #1d4ed8;
+    border-left: 3px solid var(--info-color);
 }
 
 .part-row {
@@ -57,7 +57,7 @@
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
-    color: #b91c1c;
+    color: var(--danger-color);
     font-size: 0.82rem;
     font-weight: 600;
 }
@@ -73,7 +73,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #f8fafc;
+    background: var(--surface-muted);
 
     img {
         max-width: 100%;
@@ -92,7 +92,7 @@
         transition: opacity 0.2s ease;
 
         mat-icon {
-            color: white;
+            color: var(--text-inverse);
             font-size: 40px;
             width: 40px;
             height: 40px;
@@ -110,7 +110,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #64748b;
+    color: var(--text-secondary);
 
     p {
         margin: 0;

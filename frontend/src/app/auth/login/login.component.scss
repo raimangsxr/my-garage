@@ -48,14 +48,14 @@
             font-weight: 500;
             margin-bottom: 4px;
             text-align: center;
-            color: #333;
+            color: var(--slate-strong);
         }
 
         mat-card-subtitle {
             font-size: 0.875rem; // Smaller subtitle (14px)
             margin: 0;
             text-align: center;
-            color: #666;
+            color: var(--text-secondary);
         }
     }
 

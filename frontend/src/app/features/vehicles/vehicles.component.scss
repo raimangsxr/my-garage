@@ -34,7 +34,7 @@
             display: flex;
             gap: 4px;
             align-items: center;
-            color: #fff;
+            color: var(--text-inverse);
 
             mat-icon {
                 font-size: 16px;
@@ -60,12 +60,12 @@
             bottom: 12px;
             left: 12px;
             background: rgba(255, 255, 255, 0.95);
-            color: #0f172a;
+            color: var(--slate-strong);
             padding: 4px 8px;
             border-radius: 6px;
             font-family: 'Roboto Mono', monospace;
             font-size: 13px;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border-strong);
         }
     }
 
@@ -76,7 +76,7 @@
             margin: 0 0 0.85rem;
             font-size: 1.06rem;
             font-weight: 700;
-            color: #0f172a;
+            color: var(--slate-strong);
         }
 
         .info-row {
@@ -87,24 +87,24 @@
             font-size: 0.84rem;
 
             .label {
-                color: #64748b;
+                color: var(--text-secondary);
                 font-weight: 600;
             }
 
             .value {
-                color: #334155;
+                color: var(--slate-soft);
                 font-weight: 600;
                 text-align: right;
 
                 .amount {
-                    color: #64748b;
+                    color: var(--text-secondary);
                     font-size: 0.75rem;
                     font-weight: 500;
                 }
             }
 
             &.expired .value {
-                color: #b91c1c;
+                color: var(--danger-color);
             }
         }
     }

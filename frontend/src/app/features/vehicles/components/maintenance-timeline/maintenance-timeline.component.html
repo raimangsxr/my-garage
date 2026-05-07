@@ -12,7 +12,10 @@
 
     <div class="timeline">
         <div class="timeline-item" *ngFor="let maintenance of displayMaintenances; let last = last" [class.last]="last"
-            (click)="onMaintenanceClick(maintenance)">
+            role="button" tabindex="0"
+            (click)="onMaintenanceClick(maintenance)"
+            (keydown.enter)="onMaintenanceKeydown($event, maintenance)"
+            (keydown.space)="onMaintenanceKeydown($event, maintenance)">
             <div class="timeline-marker"></div>
             <div class="timeline-content">
                 <div class="maintenance-date">{{ formatDate(maintenance.date) }}</div>
@@ -24,6 +27,7 @@
         </div>
     </div>
     <app-empty-state *ngIf="displayMaintenances.length === 0" icon="history"
-        [message]="searchQuery ? 'No maintenance matches' : 'No maintenance records'">
+        [message]="searchQuery ? 'No maintenance matches' : 'No maintenance records'"
+        [description]="searchQuery ? 'Try a different term or clear the search.' : 'New maintenance entries will appear in this timeline.'">
     </app-empty-state>
 </div>

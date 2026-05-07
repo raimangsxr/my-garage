@@ -18,7 +18,14 @@
     <app-page-loader *ngIf="isLoading" icon="directions_car" message="Loading vehicles..." minHeight="260px"></app-page-loader>
 
     <div class="vehicles-grid" *ngIf="!isLoading">
-        <mat-card *ngFor="let vehicle of vehicles" class="vehicle-card mg-surface-card" (click)="viewVehicleDetails(vehicle.id!)">
+        <mat-card
+            *ngFor="let vehicle of vehicles"
+            class="vehicle-card mg-surface-card"
+            role="link"
+            tabindex="0"
+            (click)="viewVehicleDetails(vehicle.id!)"
+            (keydown.enter)="viewVehicleDetails(vehicle.id!)"
+            (keydown.space)="viewVehicleDetails(vehicle.id!); $event.preventDefault()">
             <div class="vehicle-image"
                 [style.backgroundImage]="'url(' + (vehicle.image_url || 'assets/placeholder-car.png') + ')'">
                 <div class="usage-type-badge" [attr.data-usage]="vehicle.usage_type || 'street'">
@@ -59,7 +66,7 @@
                 </div>
             </mat-card-content>
 
-            <div class="card-actions" (click)="$event.stopPropagation()">
+            <div class="card-actions" (click)="$event.stopPropagation()" (keydown.space)="$event.stopPropagation()">
                 <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Vehicle options">
                     <mat-icon>more_vert</mat-icon>
                 </button>
@@ -77,13 +84,15 @@
         </mat-card>
     </div>
 
-    <div *ngIf="!isLoading && vehicles.length === 0" class="mg-empty-state">
-        <mat-icon>directions_car</mat-icon>
-        <p>No vehicles yet</p>
-        <span>Add your first vehicle to start tracking maintenance and costs.</span>
-    </div>
+    <app-empty-state
+        *ngIf="!isLoading && vehicles.length === 0"
+        icon="directions_car"
+        message="No vehicles yet"
+        description="Add your first vehicle to start tracking maintenance and costs.">
+    </app-empty-state>
 
     <mat-paginator
+        *ngIf="totalVehicles > 0"
         [length]="totalVehicles"
         [pageSize]="pageSize"
         [pageIndex]="pageIndex"

@@ -193,7 +193,13 @@
                     <mat-card-title>Invoice Image</mat-card-title>
                     <mat-card-subtitle>Click to enlarge</mat-card-subtitle>
                 </mat-card-header>
-                <mat-card-content class="preview-content" (click)="openImagePreview()">
+                <mat-card-content
+                    class="preview-content"
+                    role="button"
+                    tabindex="0"
+                    (click)="openImagePreview()"
+                    (keydown.enter)="openImagePreview()"
+                    (keydown.space)="openImagePreview(); $event.preventDefault()">
                     <div class="image-container" *ngIf="invoice?.file_url; else noImage">
                         <img [src]="invoice?.file_url" alt="Invoice Preview">
                         <div class="overlay">

@@ -71,14 +71,18 @@
 
                     <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-                    <tr class="mat-row" *matNoDataRow>
-                        <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
-                    </tr>
                 </table>
             </div>
 
+            <app-empty-state
+                *ngIf="!isLoading && dataSource.data.length === 0"
+                icon="extension"
+                [message]="input.value ? 'No matching parts' : 'No parts yet'"
+                [description]="input.value ? 'Try a different search term or clear the filter.' : 'Add your first part to start tracking stock and pricing.'">
+            </app-empty-state>
+
             <mat-paginator
+                *ngIf="totalParts > 0"
                 [length]="totalParts"
                 [pageSize]="pageSize"
                 [pageIndex]="pageIndex"

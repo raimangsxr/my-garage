@@ -1,7 +1,7 @@
 .tracks-table {
     .circuit-name {
         font-weight: 700;
-        color: #0f172a;
+        color: var(--slate-strong);
         display: inline-flex;
         align-items: center;
         gap: 0.45rem;
@@ -16,11 +16,11 @@
     }
 
     .small-icon {
-        color: #64748b;
+        color: var(--text-secondary);
     }
 
     .trophy-icon {
-        color: #d97706;
+        color: var(--warning-color);
     }
 
     .location-cell,
@@ -33,7 +33,7 @@
 
     .best-time {
         font-weight: 700;
-        color: #0f172a;
+        color: var(--slate-strong);
     }
 
     .circuit-row {

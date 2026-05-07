@@ -7,6 +7,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Notification, NotificationService } from '../../../core/services/notification.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-notifications',
@@ -18,7 +19,8 @@ import { Notification, NotificationService } from '../../../core/services/notifi
     MatIconModule,
     MatListModule,
     MatSnackBarModule,
-    MatTooltipModule
+    MatTooltipModule,
+    EmptyStateComponent
   ],
   templateUrl: './notifications.html',
   styleUrl: './notifications.scss'

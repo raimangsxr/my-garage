@@ -26,7 +26,7 @@ import { MatIconModule } from '@angular/material/icon';
       display: flex;
       justify-content: center;
       align-items: center;
-      background: #000;
+      background: var(--dark-surface);
     }
     .actions {
       position: absolute;

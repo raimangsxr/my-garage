@@ -49,23 +49,23 @@
                         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
                             <defs>
                                 <linearGradient id="recordAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                                    <stop offset="0%" stop-color="#0f766e" stop-opacity="0.16" />
-                                    <stop offset="100%" stop-color="#0f766e" stop-opacity="0.02" />
+                                    <stop offset="0%" stop-color="var(--accent-text-strong)" stop-opacity="0.16" />
+                                    <stop offset="100%" stop-color="var(--accent-text-strong)" stop-opacity="0.02" />
                                 </linearGradient>
                             </defs>
 
-                            <line x1="0" y1="20" x2="100" y2="20" stroke="#dbe7e3" stroke-width="0.6" />
-                            <line x1="0" y1="40" x2="100" y2="40" stroke="#dbe7e3" stroke-width="0.6" />
-                            <line x1="0" y1="60" x2="100" y2="60" stroke="#dbe7e3" stroke-width="0.6" />
-                            <line x1="0" y1="80" x2="100" y2="80" stroke="#dbe7e3" stroke-width="0.6" />
+                            <line x1="0" y1="20" x2="100" y2="20" stroke="var(--border-muted)" stroke-width="0.6" />
+                            <line x1="0" y1="40" x2="100" y2="40" stroke="var(--border-muted)" stroke-width="0.6" />
+                            <line x1="0" y1="60" x2="100" y2="60" stroke="var(--border-muted)" stroke-width="0.6" />
+                            <line x1="0" y1="80" x2="100" y2="80" stroke="var(--border-muted)" stroke-width="0.6" />
 
                             <polygon [attr.points]="chartData.recordArea" fill="url(#recordAreaGradient)" />
 
                             <polyline *ngIf="showSessionTrend" [attr.points]="chartData.sessionLine" fill="none"
-                                stroke="#64748b" stroke-width="1.2" stroke-dasharray="2 2"
+                                stroke="var(--text-secondary)" stroke-width="1.2" stroke-dasharray="2 2"
                                 vector-effect="non-scaling-stroke" stroke-linecap="round" />
 
-                            <polyline [attr.points]="chartData.recordStepLine" fill="none" stroke="#0f766e"
+                            <polyline [attr.points]="chartData.recordStepLine" fill="none" stroke="var(--accent-text-strong)"
                                 stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linecap="round"
                                 stroke-linejoin="round" />
                         </svg>
@@ -121,16 +121,16 @@
     <div class="dialog-body">
         <div class="records-table">
             <div class="table-header">
-                <div class="col-date sortable" (click)="toggleSort('date')" [class.active]="sortBy === 'date'">
+                <button type="button" class="col-date sortable" (click)="toggleSort('date')" [class.active]="sortBy === 'date'">
                     Date
                     <mat-icon *ngIf="sortBy === 'date'">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'
                         }}</mat-icon>
-                </div>
-                <div class="col-time sortable" (click)="toggleSort('time')" [class.active]="sortBy === 'time'">
+                </button>
+                <button type="button" class="col-time sortable" (click)="toggleSort('time')" [class.active]="sortBy === 'time'">
                     Lap Time
                     <mat-icon *ngIf="sortBy === 'time'">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward'
                         }}</mat-icon>
-                </div>
+                </button>
                 <div class="col-details">Details</div>
                 <div class="col-actions"></div>
             </div>

@@ -14,6 +14,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-suppliers',
@@ -31,7 +33,8 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatInputModule,
         MatFormFieldModule,
         MatTooltipModule,
-        PageLoaderComponent
+        PageLoaderComponent,
+        EmptyStateComponent
     ],
     templateUrl: './suppliers.component.html',
     styleUrls: ['./suppliers.component.scss']
@@ -54,7 +57,8 @@ export class SuppliersComponent implements OnInit, OnDestroy {
     constructor(
         private supplierService: SupplierService,
         private dialog: MatDialog,
-        private snackBar: MatSnackBar
+        private snackBar: MatSnackBar,
+        private confirmDialog: ConfirmDialogService
     ) { }
 
     ngOnInit(): void {
@@ -164,7 +168,14 @@ export class SuppliersComponent implements OnInit, OnDestroy {
     }
 
     deleteSupplier(id: number): void {
-        if (confirm('Are you sure you want to delete this supplier?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Supplier',
+            message: 'This supplier will be permanently removed. Linked records will keep their existing data.',
+            confirmText: 'Delete Supplier',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.supplierService.deleteSupplier(id).subscribe({
                 next: () => {
                     if (this.dataSource.data.length === 1 && this.pageIndex > 0) {
@@ -178,7 +189,7 @@ export class SuppliersComponent implements OnInit, OnDestroy {
                     this.showSnackBar('Error deleting supplier');
                 }
             });
-        }
+        });
     }
 
     private showSnackBar(message: string): void {

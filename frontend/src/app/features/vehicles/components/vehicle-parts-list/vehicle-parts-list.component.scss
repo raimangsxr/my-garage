@@ -23,13 +23,13 @@
 
 .card-title {
     font-weight: 600;
-    color: #111827;
+    color: var(--slate-strong);
     margin-bottom: 4px;
 }
 
 .card-subtitle {
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin-bottom: 8px;
 }
 
@@ -37,7 +37,7 @@
     display: flex;
     gap: 12px;
     font-size: 13px;
-    color: #6b7280;
+    color: var(--text-secondary);
 
     span {
         display: flex;

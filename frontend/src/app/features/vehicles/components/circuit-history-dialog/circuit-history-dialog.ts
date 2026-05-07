@@ -6,6 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TrackRecord } from '../../../../core/services/vehicle.service';
 import { TrackRecordDialogComponent } from '../track-record-dialog/track-record-dialog';
+import { ConfirmDialogService } from '../../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 export interface CircuitHistoryData {
     circuitName: string;
@@ -28,6 +29,7 @@ export interface CircuitHistoryData {
 export class CircuitHistoryDialogComponent {
     private dialogRef = inject(MatDialogRef<CircuitHistoryDialogComponent>);
     private dialog = inject(MatDialog);
+    private confirmDialog = inject(ConfirmDialogService);
     data: CircuitHistoryData = inject(MAT_DIALOG_DATA);
 
     sortBy: 'date' | 'time' = 'date';
@@ -353,9 +355,16 @@ export class CircuitHistoryDialogComponent {
     }
 
     deleteRecord(record: TrackRecord) {
-        if (confirm('Are you sure you want to delete this session record?')) {
+        this.confirmDialog.confirm({
+            title: 'Delete Session Record',
+            message: 'This track session record will be permanently removed from the circuit history.',
+            confirmText: 'Delete Record',
+            intent: 'danger'
+        }).subscribe(confirmed => {
+            if (!confirmed) return;
+
             this.dialogRef.close({ action: 'delete', recordId: record.id });
-        }
+        });
     }
 
     closeDialog() {

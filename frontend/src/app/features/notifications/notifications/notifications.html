@@ -12,14 +12,17 @@
     <mat-card class="mg-surface-card notifications-card">
         <mat-card-content>
             <mat-list>
-                <div *ngIf="notifications.length === 0" class="mg-empty-state">
-                    <mat-icon>notifications_off</mat-icon>
-                    <p>No notifications</p>
-                    <span>New alerts will appear here.</span>
-                </div>
+                <app-empty-state
+                    *ngIf="notifications.length === 0"
+                    icon="notifications_off"
+                    message="No notifications"
+                    description="New alerts will appear here.">
+                </app-empty-state>
 
                 <mat-list-item *ngFor="let notification of notifications" [class.read]="notification.is_read"
-                    [class.unread]="!notification.is_read" (click)="markAsRead(notification)" class="notification-item">
+                    [class.unread]="!notification.is_read" (click)="markAsRead(notification)"
+                    (keydown.enter)="markAsRead(notification)" (keydown.space)="markAsRead(notification); $event.preventDefault()"
+                    class="notification-item" role="button" tabindex="0">
                     <mat-icon matListItemIcon [ngClass]="getClass(notification.type)">{{ getIcon(notification.type) }}</mat-icon>
                     <div matListItemTitle class="notification-title">
                         {{ notification.title }}

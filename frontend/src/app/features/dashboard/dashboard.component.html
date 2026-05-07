@@ -19,15 +19,17 @@
         minHeight="320px">
     </app-page-loader>
 
-    <div *ngIf="!loading && error" class="mg-empty-state">
-        <mat-icon>error_outline</mat-icon>
-        <p>{{ error }}</p>
+    <app-empty-state
+        *ngIf="!loading && error"
+        icon="error_outline"
+        [message]="error"
+        description="Try loading the dashboard again.">
         <button mat-raised-button color="primary" (click)="loadStats()">Retry</button>
-    </div>
+    </app-empty-state>
 
     <div *ngIf="!loading && !error && stats" class="dashboard-content">
         <div class="stats-grid">
-            <mat-card class="stat-card" [routerLink]="['/vehicles']">
+            <a class="stat-card stat-card-link" [routerLink]="['/vehicles']">
                 <div class="stat-card-inner">
                     <div class="stat-icon-container primary">
                         <mat-icon>directions_car</mat-icon>
@@ -37,9 +39,9 @@
                         <div class="stat-label">Vehicles</div>
                     </div>
                 </div>
-            </mat-card>
+            </a>
 
-            <mat-card class="stat-card" [routerLink]="['/maintenance']">
+            <a class="stat-card stat-card-link" [routerLink]="['/maintenance']">
                 <div class="stat-card-inner">
                     <div class="stat-icon-container accent">
                         <mat-icon>build_circle</mat-icon>
@@ -49,9 +51,9 @@
                         <div class="stat-label">Scheduled Maintenance</div>
                     </div>
                 </div>
-            </mat-card>
+            </a>
 
-            <mat-card class="stat-card">
+            <div class="stat-card">
                 <div class="stat-card-inner">
                     <div class="stat-icon-container warn">
                         <mat-icon>euro</mat-icon>
@@ -61,9 +63,9 @@
                         <div class="stat-label">Total Spending</div>
                     </div>
                 </div>
-            </mat-card>
+            </div>
 
-            <mat-card class="stat-card" [routerLink]="['/suppliers']">
+            <a class="stat-card stat-card-link" [routerLink]="['/suppliers']">
                 <div class="stat-card-inner">
                     <div class="stat-icon-container primary">
                         <mat-icon>store</mat-icon>
@@ -73,7 +75,7 @@
                         <div class="stat-label">Suppliers</div>
                     </div>
                 </div>
-            </mat-card>
+            </a>
         </div>
 
         <div class="content-grid">
@@ -86,10 +88,13 @@
                         </mat-card-title>
                     </mat-card-header>
                     <mat-card-content>
-                        <div *ngIf="stats.circuit_summary.total_circuits === 0" class="mg-empty-state compact-empty">
-                            <mat-icon>not_listed_location</mat-icon>
-                            <p>No track data</p>
-                        </div>
+                        <app-empty-state
+                            *ngIf="stats.circuit_summary.total_circuits === 0"
+                            icon="not_listed_location"
+                            message="No track data"
+                            description="Track sessions will appear here once records are added."
+                            [compact]="true">
+                        </app-empty-state>
                         <div *ngIf="stats.circuit_summary.total_circuits > 0" class="circuit-stats">
                             <div class="circuit-stat-row">
                                 <div class="circuit-stat-item">
@@ -161,10 +166,13 @@
                     </mat-card-title>
                 </mat-card-header>
                 <mat-card-content>
-                    <div *ngIf="stats.recent_activity.length === 0" class="mg-empty-state compact-empty">
-                        <mat-icon>event_busy</mat-icon>
-                        <p>No recent activity</p>
-                    </div>
+                    <app-empty-state
+                        *ngIf="stats.recent_activity.length === 0"
+                        icon="event_busy"
+                        message="No recent activity"
+                        description="New maintenance and invoice activity will appear here."
+                        [compact]="true">
+                    </app-empty-state>
                     <div class="activity-list" *ngIf="stats.recent_activity.length > 0">
                         <div *ngFor="let activity of stats.recent_activity; trackBy: trackByActivityId" class="activity-item">
                             <div class="activity-icon">

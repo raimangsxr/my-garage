@@ -27,7 +27,11 @@
 
         <div class="table-body">
             <div *ngFor="let record of uniqueCircuits; let i = index" class="table-row"
-                (click)="openCircuitHistory(record)" matTooltip="View circuit history">
+                role="button" tabindex="0"
+                (click)="openCircuitHistory(record)"
+                (keydown.enter)="openCircuitHistory(record)"
+                (keydown.space)="$event.preventDefault(); openCircuitHistory(record)"
+                matTooltip="View circuit history">
 
                 <div class="col-rank">
                     <span class="rank-number">{{ i + 1 }}</span>

@@ -20,7 +20,8 @@
             </div>
         </app-entity-card>
         <app-empty-state *ngIf="displayParts.length === 0" icon="build_circle"
-            [message]="searchQuery ? 'No parts match your search' : 'No parts registered'">
+            [message]="searchQuery ? 'No parts match your search' : 'No parts registered'"
+            [description]="searchQuery ? 'Try a different term or clear the search.' : 'Linked parts will appear here as maintenance and invoices are connected.'">
         </app-empty-state>
     </div>
 </div>

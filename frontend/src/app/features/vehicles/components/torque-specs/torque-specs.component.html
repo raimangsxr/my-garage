@@ -27,7 +27,8 @@
             </div>
         </div>
         <app-empty-state *ngIf="displaySpecs.length === 0" icon="build_circle"
-            [message]="searchQuery ? 'No specs match your search' : 'No specs available'">
+            [message]="searchQuery ? 'No specs match your search' : 'No specs available'"
+            [description]="searchQuery ? 'Try a different term or clear the search.' : 'Add torque values to build a reusable specification set for this vehicle.'">
         </app-empty-state>
     </div>
 

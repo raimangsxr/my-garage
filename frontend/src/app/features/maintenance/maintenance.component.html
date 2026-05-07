@@ -111,16 +111,18 @@
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell no-data-cell" colspan="8">
-                        No records found for "{{ input.value || 'current criteria' }}"
-                    </td>
-                </tr>
             </table>
         </div>
 
+        <app-empty-state
+            *ngIf="!isLoading && dataSource.data.length === 0"
+            icon="build"
+            [message]="input.value ? 'No matching maintenance records' : 'No maintenance records found'"
+            [description]="input.value ? 'Try a different search term or clear the filter.' : 'Create your first entry to start tracking service history.'">
+        </app-empty-state>
+
         <mat-paginator
+            *ngIf="totalMaintenances > 0"
             [length]="totalMaintenances"
             [pageSize]="pageSize"
             [pageIndex]="pageIndex"
@@ -129,10 +131,5 @@
             aria-label="Select page of maintenance records">
         </mat-paginator>
 
-        <div class="empty-state mg-empty-state" *ngIf="dataSource.data.length === 0 && !input.value">
-            <mat-icon>build</mat-icon>
-            <p>No maintenance records found</p>
-            <span>Create your first entry to start tracking service history.</span>
-        </div>
     </mat-card>
 </div>

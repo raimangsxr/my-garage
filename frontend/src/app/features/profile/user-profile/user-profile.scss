@@ -12,7 +12,7 @@
         height: 108px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid #e2e8f0;
+        border: 3px solid var(--border-muted);
         box-shadow: var(--shadow-sm);
     }
 }
@@ -21,15 +21,15 @@
     margin-bottom: 1.2rem;
     padding: 1rem;
     border-radius: 12px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
+    background: var(--surface-muted);
+    border: var(--border-soft);
 
     h3 {
         margin: 0 0 0.75rem;
         font-size: 0.88rem;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-        color: #475569;
+        color: var(--slate-muted);
     }
 }
 
@@ -52,7 +52,7 @@
         }
 
         &.selected {
-            border-color: #1d4ed8;
+            border-color: var(--info-color);
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
     }

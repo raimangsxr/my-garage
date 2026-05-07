@@ -82,7 +82,11 @@
                     </div>
                 </app-entity-card>
 
-                <app-empty-state *ngIf="!vehicleDetails.invoices?.length" icon="receipt" message="No invoices yet">
+                <app-empty-state
+                    *ngIf="!vehicleDetails.invoices?.length"
+                    icon="receipt"
+                    message="No invoices yet"
+                    description="Upload the first invoice for this vehicle to review extracted records and costs.">
                 </app-empty-state>
             </div>
         </app-entity-column>

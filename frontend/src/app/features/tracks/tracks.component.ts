@@ -13,6 +13,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TracksService } from './tracks.service';
 import { TrackSummary } from './tracks.models';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-tracks',
@@ -25,6 +26,7 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatIconModule,
         MatButtonModule,
         PageLoaderComponent,
+        EmptyStateComponent,
         MatFormFieldModule,
         MatInputModule,
         MatSortModule,

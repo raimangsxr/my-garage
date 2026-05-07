@@ -12,4 +12,6 @@ import { MatIconModule } from '@angular/material/icon';
 export class EmptyStateComponent {
     @Input() icon: string = 'inbox';
     @Input() message: string = 'No data available';
+    @Input() description: string = '';
+    @Input() compact: boolean = false;
 }

@@ -189,6 +189,11 @@ export class CircuitEvolutionChartComponent implements OnChanges {
         this.focusSeriesName = null;
     }
 
+    onChartKeydown(event: Event): void {
+        event.preventDefault();
+        this.onChartClick();
+    }
+
     isSeriesDimmed(seriesName: string): boolean {
         return this.focusSeriesName !== null && this.focusSeriesName !== seriesName;
     }

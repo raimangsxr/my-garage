@@ -1,4 +1,8 @@
-<div class="empty-state">
+<div class="empty-state" [class.empty-state--compact]="compact">
     <mat-icon>{{ icon }}</mat-icon>
     <p>{{ message }}</p>
+    <span *ngIf="description">{{ description }}</span>
+    <div class="empty-state__actions" *ngIf="!compact">
+        <ng-content></ng-content>
+    </div>
 </div>

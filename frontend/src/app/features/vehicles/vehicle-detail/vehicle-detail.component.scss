@@ -1,6 +1,16 @@
 .vehicle-detail-container {
     min-height: 100vh;
-    background: #f5f5f5;
+    background: var(--bg-color);
+    --vehicle-scrim-light: rgba(15, 23, 42, 0.3);
+    --vehicle-scrim-strong: rgba(15, 23, 42, 0.7);
+    --vehicle-warning-border: var(--warning-color);
+    --vehicle-warning-surface: var(--warning-surface);
+    --vehicle-danger-border: var(--danger-color);
+    --vehicle-danger-surface: var(--danger-surface);
+    --vehicle-track-gradient: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-dark) 100%);
+    --vehicle-track-shadow: 0 4px 12px rgba(26, 35, 126, 0.22);
+    --vehicle-info-muted: var(--text-secondary);
+    --vehicle-plate-bg: var(--slate-strong);
 }
 
 // Hero Section
@@ -13,7 +23,7 @@
     .hero-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.7));
+        background: linear-gradient(to bottom, var(--vehicle-scrim-light), var(--vehicle-scrim-strong));
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -21,17 +31,17 @@
 
         .back-button {
             align-self: flex-start;
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--surface-overlay);
             backdrop-filter: blur(10px);
-            color: white;
+            color: var(--text-inverse);
 
             &:hover {
-                background: rgba(255, 255, 255, 0.3);
+                background: var(--surface-overlay-strong);
             }
         }
 
         .hero-content {
-            color: white;
+            color: var(--text-inverse);
 
             h1 {
                 margin: 0;
@@ -61,7 +71,8 @@
     z-index: 1;
 
     .stat-card {
-        background: white;
+            background: white;
+            background: var(--surface-color);
         border-radius: 12px;
         padding: 20px;
         display: flex;
@@ -76,13 +87,13 @@
         }
 
         &.warning {
-            background: linear-gradient(135deg, #fff 0%, #fff3e0 100%);
-            border-left: 4px solid #ff9800;
+            background: linear-gradient(135deg, var(--surface-color) 0%, var(--vehicle-warning-surface) 100%);
+            border-left: 4px solid var(--vehicle-warning-border);
         }
 
         &.danger {
-            background: linear-gradient(135deg, #fff 0%, #ffebee 100%);
-            border-left: 4px solid #f44336;
+            background: linear-gradient(135deg, var(--surface-color) 0%, var(--vehicle-danger-surface) 100%);
+            border-left: 4px solid var(--vehicle-danger-border);
         }
 
         mat-icon {
@@ -98,7 +109,7 @@
 
             .stat-label {
                 font-size: 0.75rem;
-                color: #666;
+                color: var(--vehicle-info-muted);
                 text-transform: uppercase;
                 letter-spacing: 0.5px;
             }
@@ -106,7 +117,7 @@
             .stat-value {
                 font-size: 1.25rem;
                 font-weight: 500;
-                color: #333;
+                color: var(--slate-strong);
             }
         }
     }
@@ -129,7 +140,7 @@
     margin: 0;
 
     mat-button-toggle-group {
-        background: white; // Solid white for better contrast
+        background: var(--surface-color);
         border-radius: 8px; // Match license plate
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); // Slightly reduced shadow
         overflow: hidden;
@@ -164,8 +175,8 @@
             }
 
             &.mat-button-toggle-checked {
-                background-color: #111827; // Dark elegant background like license plate text
-                color: white !important;
+                background-color: var(--vehicle-plate-bg);
+                color: var(--text-inverse) !important;
 
                 // Aggressively target all possible elements to ensure white color
                 ::ng-deep {
@@ -179,26 +190,26 @@
                     .mat-pseudo-checkbox,
                     .mat-pseudo-checkbox-checked,
                     .mat-pseudo-checkbox::after {
-                        color: white !important;
-                        fill: white !important;
-                        stroke: white !important;
-                        border-color: white !important;
+                        color: var(--text-inverse) !important;
+                        fill: var(--text-inverse) !important;
+                        stroke: var(--text-inverse) !important;
+                        border-color: var(--text-inverse) !important;
                         background-color: transparent !important; // Or white if needed, but usually it's the checkmark that needs color
                     }
 
                     // Specific fix for the pseudo checkbox checkmark
                     .mat-pseudo-checkbox-checked::after {
-                        color: white !important;
-                        border-color: white !important;
+                        color: var(--text-inverse) !important;
+                        border-color: var(--text-inverse) !important;
                     }
                 }
             }
 
             &:not(.mat-button-toggle-checked) {
-                color: #666;
+                color: var(--vehicle-info-muted);
 
                 &:hover {
-                    background-color: #f5f5f5;
+                    background-color: var(--surface-hover);
                 }
             }
         }
@@ -217,14 +228,14 @@
     margin-bottom: 32px;
 
     .stat-item {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: var(--vehicle-track-gradient);
         border-radius: 16px;
         padding: 24px;
         display: flex;
         align-items: center;
         gap: 16px;
-        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        color: white;
+        box-shadow: var(--vehicle-track-shadow);
+        color: var(--text-inverse);
 
         mat-icon {
             font-size: 40px;
@@ -272,10 +283,11 @@
 }
 
 .entity-column {
-    background: #fff;
+    background: var(--surface-color);
     border-radius: 16px;
     padding: 24px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    border: var(--border-soft);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
     height: 100%; // Make all columns same height
@@ -287,23 +299,23 @@
         gap: 12px;
         margin-bottom: 24px;
         padding-bottom: 16px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid rgba(15, 23, 42, 0.06);
 
         mat-icon {
-            color: #666;
+            color: var(--vehicle-info-muted);
         }
 
         h2 {
             margin: 0;
             font-size: 1.25rem;
             font-weight: 500;
-            color: #333;
+            color: var(--slate-strong);
             flex: 1;
         }
 
         .count-badge {
-            background: #f5f5f5;
-            color: #666;
+            background: var(--surface-muted);
+            color: var(--vehicle-info-muted);
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 0.875rem;
@@ -319,8 +331,8 @@
 }
 
 .entity-card {
-    background: #fff;
-    border: 1px solid #eee;
+    background: var(--surface-color);
+    border: var(--border-soft);
     border-radius: 12px;
     padding: 16px;
     cursor: pointer;
@@ -334,7 +346,7 @@
 
     .card-date {
         font-size: 0.75rem;
-        color: #999;
+        color: var(--text-muted);
         margin-bottom: 4px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -343,13 +355,13 @@
     .card-title {
         font-size: 1rem;
         font-weight: 500;
-        color: #333;
+        color: var(--slate-strong);
         margin-bottom: 4px;
     }
 
     .card-subtitle {
         font-size: 0.875rem;
-        color: #666;
+        color: var(--vehicle-info-muted);
         margin-bottom: 8px;
     }
 
@@ -358,30 +370,30 @@
         gap: 16px;
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid #f5f5f5;
+        border-top: 1px solid var(--border-faint);
 
         span {
             display: flex;
             align-items: center;
             gap: 4px;
             font-size: 0.875rem;
-            color: #666;
+            color: var(--vehicle-info-muted);
 
             mat-icon {
                 font-size: 16px;
                 width: 16px;
                 height: 16px;
-                color: #999;
+                color: var(--text-muted);
             }
         }
     }
 
     &.part-card {
-        border-left: 4px solid #2196f3;
+        border-left: 4px solid var(--info-color);
     }
 
     &.invoice-card {
-        border-left: 4px solid #ff9800;
+        border-left: 4px solid var(--warning-color);
     }
 }
 
@@ -412,9 +424,9 @@
     width: 12px;
     height: 12px;
     border-radius: 50%;
-    background: #4caf50;
-    border: 2px solid #fff;
-    box-shadow: 0 0 0 2px #4caf50;
+    background: var(--success-color);
+    border: 2px solid var(--surface-color);
+    box-shadow: 0 0 0 2px var(--success-color);
     z-index: 2;
     margin-top: 6px;
 }
@@ -425,7 +437,7 @@
     top: 6px;
     bottom: 0;
     width: 2px;
-    background: #e0e0e0;
+    background: var(--border-muted);
     z-index: 1;
 }
 
@@ -438,7 +450,7 @@
 .empty-state {
     text-align: center;
     padding: 40px 0;
-    color: #999;
+    color: var(--text-muted);
 
     p {
         margin: 0;
@@ -479,7 +491,7 @@
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    color: #999;
+    color: var(--text-muted);
 
     mat-icon {
         font-size: 64px;
@@ -515,13 +527,13 @@
         width: 40px;
         height: 40px;
         border-radius: 50%;
-        background: #fff3e0;
+        background: var(--warning-surface);
         display: flex;
         align-items: center;
         justify-content: center;
 
         mat-icon {
-            color: #ff9800;
+            color: var(--warning-color);
             font-size: 20px;
             width: 20px;
             height: 20px;
@@ -535,19 +547,19 @@
 
         .invoice-number {
             font-weight: 500;
-            color: #333;
+            color: var(--slate-strong);
             font-size: 0.9rem;
         }
 
         .invoice-date {
             font-size: 0.75rem;
-            color: #999;
+            color: var(--text-muted);
         }
     }
 
     .invoice-amount {
         font-weight: 600;
-        color: #333;
+        color: var(--slate-strong);
         font-size: 0.9rem;
     }
 }

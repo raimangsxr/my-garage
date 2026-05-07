@@ -73,12 +73,17 @@
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-
-                <tr class="mat-row" *matNoDataRow>
-                    <td class="mat-cell" colspan="5">No data matching the filter "{{input.value}}"</td>
-                </tr>
             </table>
+
+            <app-empty-state
+                *ngIf="!isLoading && dataSource.data.length === 0"
+                icon="store"
+                [message]="input.value ? 'No matching suppliers' : 'No suppliers yet'"
+                [description]="input.value ? 'Try a different search term or clear the filter.' : 'Add your first supplier to keep contact and billing data organised.'">
+            </app-empty-state>
+
             <mat-paginator
+                *ngIf="totalSuppliers > 0"
                 [length]="totalSuppliers"
                 [pageSize]="pageSize"
                 [pageIndex]="pageIndex"

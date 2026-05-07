@@ -13,6 +13,7 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { VehicleService, Vehicle } from '../../../core/services/vehicle.service';
 import { HttpClient } from '@angular/common/http';
+import { ConfirmDialogService } from '../../../shared/components/confirm-dialog/confirm-dialog.service';
 
 @Component({
     selector: 'app-vehicle-dialog',
@@ -42,6 +43,7 @@ export class VehicleDialogComponent {
     private data: Vehicle | undefined = inject(MAT_DIALOG_DATA);
     private vehicleService = inject(VehicleService);
     private http = inject(HttpClient);
+    private confirmDialog = inject(ConfirmDialogService);
 
     form: FormGroup;
     isEditMode = false;
@@ -119,7 +121,13 @@ export class VehicleDialogComponent {
             },
             error: (err) => {
                 console.error('Error loading image from URL', err);
-                alert('Error loading image from URL. Please check the URL and try again.');
+                this.confirmDialog.confirm({
+                    title: 'Image Could Not Be Loaded',
+                    message: 'Check the image URL and try again.',
+                    confirmText: 'Close',
+                    cancelText: null,
+                    intent: 'info'
+                }).subscribe();
             }
         });
     }

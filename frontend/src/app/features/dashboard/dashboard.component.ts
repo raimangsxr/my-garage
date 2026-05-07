@@ -8,6 +8,7 @@ import { DashboardService, DashboardStats } from './dashboard.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { Subscription } from 'rxjs';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 
 @Component({
     selector: 'app-dashboard',
@@ -18,6 +19,7 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
         MatIconModule,
         MatButtonModule,
         PageLoaderComponent,
+        EmptyStateComponent,
         RouterModule
     ],
     templateUrl: './dashboard.component.html',

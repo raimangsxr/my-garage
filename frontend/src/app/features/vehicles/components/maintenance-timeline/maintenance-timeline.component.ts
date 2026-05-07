@@ -56,6 +56,11 @@ export class MaintenanceTimelineComponent {
         this.maintenanceClick.emit(maintenance);
     }
 
+    onMaintenanceKeydown(event: Event, maintenance: Maintenance): void {
+        event.preventDefault();
+        this.onMaintenanceClick(maintenance);
+    }
+
     formatDate(dateString: string): string {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
