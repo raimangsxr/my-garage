@@ -1,9 +1,17 @@
+:host {
+    display: block;
+    height: 100%;
+    min-width: 0;
+}
+
 .entity-column {
     --entity-column-header-gradient: linear-gradient(135deg, var(--primary-light) 0%, var(--accent-dark) 100%);
 
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-width: 0;
+    overflow: hidden;
 
     .column-header {
         display: flex;
@@ -22,9 +30,13 @@
 
         h2 {
             flex: 1;
+            min-width: 0;
             margin: 0;
             font-size: 18px;
             font-weight: 600;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .count-badge {
@@ -45,9 +57,11 @@
 
     .column-body {
         flex: 1;
+        min-width: 0;
         padding: 16px;
         background: var(--surface-muted);
         border-radius: 0 0 12px 12px;
         overflow-y: auto;
+        overflow-x: hidden;
     }
 }
