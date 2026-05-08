@@ -9,6 +9,8 @@ Owner: Codex
 
 Corregir la visualización y edición de partes e invoices dentro del detalle de vehículo en modo street, donde actualmente se renderizan tarjetas vacías aunque el click siga funcionando y las partes se abran en modo solo lectura.
 
+Actualización 2026-05-07: corregir también el scroll horizontal que aparece en las columnas de `Parts` e `Invoices`; el contenido debe adaptarse al ancho disponible sin requerir desplazamiento lateral.
+
 ## Problema
 
 En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltiples items sin contenido visible. Aun así, al hacer click en partes se abre un modal con información, lo que indica que los datos existen pero la presentación está rota. Además, las partes se abren en modo no editable desde un contexto donde el usuario espera poder modificarlas.
@@ -24,6 +26,7 @@ En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltipl
 - Hacer que las tarjetas de parts e invoices se rendericen correctamente con su contenido visible.
 - Permitir editar partes desde el detalle de vehículo.
 - Mantener la accesibilidad y el patrón compartido de `app-entity-card`.
+- Eliminar el scroll horizontal en las columnas de `Parts` e `Invoices` sin ocultar información crítica.
 
 ## Fuera de Alcance
 
@@ -44,6 +47,7 @@ En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltipl
 - Una parte sin proveedor o referencia sigue renderizando una tarjeta útil con los datos disponibles.
 - Una invoice en estado de procesamiento sin número sigue mostrando un fallback visible.
 - El patrón compartido de tarjeta sigue siendo accesible por teclado.
+- Nombres, referencias, proveedores o importes largos se ajustan o truncan de forma controlada dentro de su tarjeta.
 
 ## Requisitos Funcionales
 
@@ -51,6 +55,7 @@ En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltipl
 - RF-2: Las listas de parts e invoices del detalle de vehículo deben renderizar contenido visible.
 - RF-3: El diálogo de parte abierto desde `vehicle-detail` no debe forzar `readOnly`.
 - RF-4: Al cerrar el diálogo con cambios guardados, `vehicle-detail` debe refrescar sus datos.
+- RF-5: Las columnas de parts e invoices no deben generar scroll horizontal en desktop ni móvil.
 
 ## Requisitos No Funcionales
 
@@ -58,6 +63,7 @@ En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltipl
 - Seguridad: sin cambios.
 - Accesibilidad: la tarjeta compartida debe seguir siendo navegable con teclado.
 - Responsive: sin cambios de layout.
+- Responsive: parts e invoices deben adaptarse a una sola columna y mantener contenido dentro de la superficie disponible.
 - Observabilidad: se mantienen logs y snackbars existentes.
 
 ## UX y Diseño
@@ -94,6 +100,8 @@ En el detalle de vehículo, las listas de `Parts` e `Invoices` muestran múltipl
 - CA-1: Dado el detalle de vehículo en modo street, cuando existen parts o invoices, entonces sus tarjetas muestran contenido visible.
 - CA-2: Dado una parte del detalle de vehículo, cuando el usuario la abre, entonces puede editarla.
 - CA-3: Dado `app-entity-card`, cuando contiene contenido de bloque, entonces el DOM generado sigue siendo válido y accesible.
+- CA-4: Dado el detalle de vehículo en modo street, cuando se visualizan `Parts` e `Invoices` en desktop o móvil, entonces no aparece scroll horizontal en esas columnas.
+- CA-5: Dado una part o invoice con texto largo, cuando se renderiza la tarjeta, entonces el texto permanece dentro del ancho disponible mediante ajuste, truncado o salto de línea controlado.
 
 ## Pruebas Esperadas
 
