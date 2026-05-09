@@ -49,10 +49,11 @@ import os
 
 app.include_router(api_router, prefix="/api/v1")
 
-# Mount uploads directory
-uploads_dir = os.path.join(os.getcwd(), "uploads")
-os.makedirs(uploads_dir, exist_ok=True)
-app.mount("/uploads", StaticFiles(directory=uploads_dir), name="uploads")
+# Mount public media directory and keep legacy uploads alias for existing URLs.
+media_dir = os.path.join(os.getcwd(), "media")
+os.makedirs(media_dir, exist_ok=True)
+app.mount("/media", StaticFiles(directory=media_dir), name="media")
+app.mount("/uploads", StaticFiles(directory=media_dir), name="uploads-legacy")
 
 @app.get("/")
 def read_root():

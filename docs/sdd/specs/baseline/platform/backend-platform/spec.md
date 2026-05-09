@@ -17,7 +17,7 @@ Base backend de My Garage: FastAPI, prefijo `/api/v1`, configuración, CORS, ses
 - La base de datos se configura desde `DATABASE_URL`.
 - Las sesiones se exponen mediante dependencias en `backend/app/database.py` y `backend/app/api/deps.py`.
 - Las excepciones propias se serializan de forma homogénea con request id.
-- Los uploads se sirven desde `/uploads`.
+- Los documentos públicos se sirven desde `/media` y se mantiene compatibilidad legacy con `/uploads`.
 - JWT protege endpoints privados mediante usuario activo.
 
 ## Contratos

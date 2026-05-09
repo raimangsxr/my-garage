@@ -15,7 +15,7 @@ from app.services.vehicle_document_rag_service import VehicleDocumentRAGService
 
 router = APIRouter()
 
-storage_service = StorageService(upload_dir="uploads/vehicle-documents")
+storage_service = StorageService(upload_dir="media/vehicle-documents")
 rag_service = VehicleDocumentRAGService()
 
 

@@ -1,9 +1,9 @@
-import os
 from typing import TypedDict
 
 from sqlmodel import Session
 
 from app.core.config import settings
+from app.core.storage import StorageService
 from app.models import Invoice, InvoiceStatus, User
 
 
@@ -15,6 +15,9 @@ class InvoiceProcessingJob(TypedDict):
 
 
 class InvoiceWorkflowService:
+    def __init__(self) -> None:
+        self.storage_service = StorageService()
+
     def reject_for_reprocess(
         self,
         *,
@@ -69,8 +72,7 @@ class InvoiceWorkflowService:
         return settings.GEMINI_API_KEY
 
     def resolve_file_path(self, file_url: str) -> str:
-        relative_path = file_url.lstrip("/")
-        return os.path.join(os.getcwd(), relative_path)
+        return self.storage_service.resolve_file_path(file_url)
 
     def _build_processing_job(
         self,
