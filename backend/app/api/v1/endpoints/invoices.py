@@ -500,13 +500,7 @@ def delete_invoice(
     
     # Eliminar archivo
     try:
-        # Construir ruta completa del archivo
-        import os
-        # Asegurar que usamos la ruta correcta relativa al root del proyecto
-        # invoice.file_url es algo como "/uploads/invoices/..."
-        # Necesitamos quitar el primer slash para unirlo con os.getcwd() o usar la ruta relativa
-        relative_path = invoice.file_url.lstrip("/")
-        file_path = os.path.join(os.getcwd(), relative_path)
+        file_path = storage_service.resolve_file_path(invoice.file_url)
         storage_service.delete_file(file_path)
     except Exception as e:
         logger.warning(f"Could not delete file: {e}")

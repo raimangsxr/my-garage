@@ -1,7 +1,7 @@
 import requests
 import sys
 
-url = "http://127.0.0.1:8000/uploads/invoices/da33049d-7804-4746-89b2-41081195f821.jpg"
+url = "http://127.0.0.1:8000/media/invoices/da33049d-7804-4746-89b2-41081195f821.jpg"
 
 try:
     print(f"Testing URL: {url}")

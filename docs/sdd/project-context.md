@@ -44,7 +44,7 @@ My Garage es una PWA para gestión personal de vehículos. El producto cubre:
 - Configuración vía `.env` en backend.
 - Middleware de request id y handlers de excepciones propios.
 - Integración con Gemini para extracción de datos de facturas.
-- Almacenamiento de uploads bajo `/uploads`; las imágenes de vehículo están migradas a binario en base de datos.
+- Almacenamiento documental público bajo `/media` con compatibilidad legacy para `/uploads`; las imágenes de vehículo están migradas a binario en base de datos.
 
 ## Superficie de API
 
