@@ -16,6 +16,7 @@ from pypdf import PdfReader
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.storage import StorageService
 from app.models import Invoice, Vehicle, VehicleDocument, VehicleDocumentChunk, VehicleKnowledgeFact
 
 logger = logging.getLogger(__name__)
@@ -59,6 +60,9 @@ class VehicleDocumentRAGService:
             "confidence_note": "Ninguna fuente indexada coincidió con esta pregunta.",
         },
     }
+
+    def __init__(self) -> None:
+        self.storage_service = StorageService(upload_dir="media/vehicle-documents")
 
     def resolve_gemini_api_key(self, current_user: Any) -> str:
         user_settings = getattr(current_user, "settings", None)
@@ -442,7 +446,7 @@ Sources:
         return sum(a * b for a, b in zip(left_list, right_list))
 
     def resolve_file_path(self, file_url: str) -> str:
-        return os.path.join(os.getcwd(), file_url.lstrip("/"))
+        return self.storage_service.resolve_file_path(file_url)
 
     def tokenize(self, text: str) -> List[str]:
         return re.findall(r"[a-zA-Z0-9]{2,}", text.lower())

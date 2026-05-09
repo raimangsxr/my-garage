@@ -26,6 +26,18 @@ El objetivo principal de este proyecto es mantener un control de versiones estri
 3.  **Commit:**
     * Realiza un único *commit* atómico por tarea.
     * El mensaje de *commit* debe seguir el formato de "Conventional Commits" (ej. `feat: [Descripción de la funcionalidad]` o `fix: [Descripción del arreglo]`).
+    * Formato recomendado: `tipo(scope opcional): descripción corta en imperativo`.
+    * Tipos habituales:
+      `feat`: nueva funcionalidad.
+      `fix`: corrección de bug.
+      `refactor`: cambio interno sin alterar comportamiento esperado.
+      `docs`: documentación.
+      `test`: pruebas.
+      `chore`: tareas de mantenimiento/configuración.
+    * Ejemplos válidos:
+      `feat(auth): add Google login fallback`
+      `fix(invoices): preserve supplier when retrying processing`
+      `refactor(storage): move uploaded files to media directory`
 
 4.  **Push:**
     * Realiza `git push origin <nombre_de_la_rama_creada>` para cargar la rama remota.

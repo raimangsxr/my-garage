@@ -3,16 +3,19 @@ from pathlib import Path
 from fastapi import UploadFile
 import mimetypes
 
+
 class StorageService:
     """Servicio para almacenar archivos subidos."""
-    
+
+    LEGACY_PUBLIC_PREFIX = "/uploads/"
+    PUBLIC_PREFIX = "/media/"
     ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.txt', '.md'}
     CHUNK_SIZE = 1024 * 1024  # 1MB
-    
-    def __init__(self, upload_dir: str = "uploads/invoices"):
+
+    def __init__(self, upload_dir: str = "media/invoices"):
         self.upload_dir = Path(upload_dir)
         self.upload_dir.mkdir(parents=True, exist_ok=True)
-    
+
     async def save_file(self, file: UploadFile) -> tuple[str, str]:
         """
         Guarda un archivo y retorna (file_path, file_url)
@@ -53,9 +56,9 @@ class StorageService:
         # URL relativa para acceder al archivo
         relative_dir = self.upload_dir.as_posix().lstrip("./")
         file_url = f"/{relative_dir}/{unique_filename}"
-        
+
         return str(file_path), file_url
-    
+
     def delete_file(self, file_path: str) -> None:
         """Elimina un archivo del almacenamiento"""
         path = Path(file_path)
@@ -67,3 +70,9 @@ class StorageService:
             return None
         guessed_type, _ = mimetypes.guess_type(file_name)
         return guessed_type
+
+    def resolve_file_path(self, file_url: str) -> str:
+        normalized_url = file_url.strip()
+        if normalized_url.startswith(self.LEGACY_PUBLIC_PREFIX):
+            normalized_url = f"{self.PUBLIC_PREFIX}{normalized_url[len(self.LEGACY_PUBLIC_PREFIX):]}"
+        return str(Path.cwd() / normalized_url.lstrip("/"))
