@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1.endpoints import auth, vehicles, users, parts, maintenance, invoices, suppliers, notifications, dashboard, track_records, organizers, tracks, settings, circuits
+from app.api.v1.endpoints import auth, vehicles, users, parts, maintenance, invoices, suppliers, notifications, dashboard, track_records, organizers, tracks, settings, circuits, vehicle_rag
 
 api_router = APIRouter()
 api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
@@ -16,3 +16,4 @@ api_router.include_router(notifications.router, prefix="/notifications", tags=["
 api_router.include_router(tracks.router, prefix="/tracks", tags=["tracks"])
 api_router.include_router(circuits.router, prefix="/circuits", tags=["circuits"])
 api_router.include_router(settings.router, prefix="/settings", tags=["settings"])
+api_router.include_router(vehicle_rag.router, tags=["vehicle-rag"])

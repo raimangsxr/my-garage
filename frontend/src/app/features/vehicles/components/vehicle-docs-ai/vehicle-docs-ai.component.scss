@@ -1,0 +1,259 @@
+.docs-ai-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+}
+
+.docs-ai-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    h3 {
+        margin: 0 0 6px;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    p {
+        margin: 0;
+        max-width: 70ch;
+        color: var(--text-secondary);
+    }
+}
+
+.docs-ai-summary {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.summary-chip,
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: 0 12px;
+    border-radius: 999px;
+    border: 1px solid var(--border-soft);
+    background: var(--surface-muted);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.status-pill[data-status='ready'] {
+    background: rgba(0, 191, 165, 0.12);
+    color: var(--accent-dark);
+    border-color: rgba(0, 191, 165, 0.28);
+}
+
+.status-pill[data-status='indexing'],
+.status-pill[data-status='uploaded'] {
+    background: rgba(26, 35, 126, 0.08);
+    color: var(--primary-color);
+    border-color: rgba(26, 35, 126, 0.2);
+}
+
+.status-pill[data-status='failed'] {
+    background: rgba(211, 47, 47, 0.08);
+    color: var(--danger-color);
+    border-color: rgba(211, 47, 47, 0.2);
+}
+
+.tab-panel {
+    padding: 20px 4px 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 0;
+}
+
+.panel-toolbar,
+.chat-config {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.type-field,
+.scope-field {
+    width: min(260px, 100%);
+}
+
+.document-list,
+.knowledge-list,
+.chat-log {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.indexing-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid rgba(26, 35, 126, 0.18);
+    background: rgba(26, 35, 126, 0.06);
+    color: var(--primary-color);
+    font-size: 0.92rem;
+}
+
+.document-card,
+.knowledge-card,
+.chat-message {
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 16px;
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    min-width: 0;
+}
+
+.document-main,
+.message-body {
+    min-width: 0;
+    flex: 1;
+}
+
+.document-title-row,
+.knowledge-heading {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    min-width: 0;
+}
+
+.document-title-row h4,
+.knowledge-heading h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.document-meta,
+.knowledge-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.document-actions,
+.knowledge-actions,
+.composer-actions,
+.citation-list,
+.suggested-questions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.document-actions {
+    justify-content: flex-end;
+    align-items: flex-start;
+    min-width: min(320px, 100%);
+}
+
+.document-error,
+.knowledge-content,
+.chat-confidence,
+.knowledge-excerpt {
+    margin: 12px 0 0;
+}
+
+.document-error {
+    color: var(--danger-color);
+}
+
+.knowledge-content {
+    color: var(--text-primary);
+}
+
+.knowledge-excerpt {
+    padding-left: 12px;
+    border-left: 3px solid var(--border-soft);
+    color: var(--text-secondary);
+}
+
+.ask-panel {
+    gap: 20px;
+}
+
+.chat-workspace {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.chat-message[data-role='user'] {
+    background: rgba(26, 35, 126, 0.05);
+}
+
+.chat-message[data-role='assistant'] {
+    background: var(--surface-color);
+}
+
+.message-label {
+    width: 84px;
+    flex-shrink: 0;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.message-body p {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--text-primary);
+}
+
+.citation-chip {
+    justify-content: flex-start;
+}
+
+.question-field {
+    width: 100%;
+}
+
+@media (max-width: 980px) {
+    .docs-ai-header,
+    .panel-toolbar,
+    .chat-config,
+    .document-card,
+    .knowledge-card,
+    .chat-message {
+        flex-direction: column;
+    }
+
+    .document-actions {
+        min-width: 0;
+        justify-content: flex-start;
+    }
+
+    .message-label {
+        width: auto;
+    }
+}

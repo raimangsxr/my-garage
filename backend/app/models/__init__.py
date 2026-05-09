@@ -10,3 +10,6 @@ from .track_record import TrackRecord, TrackRecordBase, TrackRecordCreate, Track
 from .track import Track, TrackBase, TrackCreate, TrackRead, TrackUpdate
 from .google_auth import GoogleAuthToken
 from .settings import Settings, SettingsCreate, SettingsRead, SettingsUpdate
+from .vehicle_document import VehicleDocument, VehicleDocumentRead, VehicleDocumentStatus, VehicleDocumentType
+from .vehicle_document_chunk import VehicleDocumentChunk
+from .vehicle_knowledge_fact import VehicleKnowledgeFact, VehicleKnowledgeFactRead
