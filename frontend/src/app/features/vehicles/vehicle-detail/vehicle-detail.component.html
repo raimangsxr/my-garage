@@ -9,16 +9,20 @@
             }" (backClick)="goBack()">
         </app-vehicle-hero>
 
-        <!-- View Mode Toggle (only for track/both vehicles) -->
+        <!-- View Mode Toggle -->
         <div class="view-mode-toggle" *ngIf="showViewModeToggle">
-            <mat-button-toggle-group [(value)]="viewMode" (change)="toggleViewMode()">
+            <mat-button-toggle-group [(value)]="viewMode">
                 <mat-button-toggle value="street">
                     <mat-icon>add_road</mat-icon>
                     <span>Street</span>
                 </mat-button-toggle>
-                <mat-button-toggle value="track">
+                <mat-button-toggle value="track" *ngIf="showTrackView">
                     <mat-icon>sports_score</mat-icon>
                     <span>Track</span>
+                </mat-button-toggle>
+                <mat-button-toggle value="docs">
+                    <mat-icon>auto_awesome</mat-icon>
+                    <span>Docs &amp; AI</span>
                 </mat-button-toggle>
             </mat-button-toggle-group>
         </div>
@@ -149,6 +153,13 @@
         <app-track-records [records]="trackRecords" (recordAdded)="onTrackRecordAdded($event)"
             (recordUpdated)="onTrackRecordUpdated($event)" (recordDeleted)="onTrackRecordDeleted($event)">
         </app-track-records>
+    </div>
+
+    <div class="docs-ai-view" *ngIf="viewMode === 'docs' && vehicleDetails?.vehicle?.id">
+        <app-vehicle-docs-ai
+            [vehicleId]="vehicleDetails.vehicle.id"
+            [vehicleLabel]="vehicleDetails.vehicle.brand + ' ' + vehicleDetails.vehicle.model">
+        </app-vehicle-docs-ai>
     </div>
 </div>
 

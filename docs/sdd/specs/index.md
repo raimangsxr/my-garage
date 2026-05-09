@@ -11,6 +11,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Cerrar Segunda Ronda de Estandarización](./2026-05-07-standardization-round-2/spec.md) | Implemented | refactor | 2026-05-07 | Cierra consistencia backend, accesibilidad residual y estados documentales SDD. |
 | [Corregir Tarjetas Vacías en Detalle de Vehículo](./2026-05-07-fix-vehicle-detail-entity-cards/spec.md) | Implemented | hotfix | 2026-05-07 | Corrige la renderización de parts e invoices y habilita edición de parts desde vehicle detail. |
 | [Corregir Shell y Redirecciones de Autenticación](./2026-05-07-fix-auth-shell-routing/spec.md) | In Progress | hotfix | 2026-05-07 | Evita mostrar login dentro de la shell y redirige `/login` a `dashboard` cuando hay sesión válida. |
+| [RAG de Documentación de Vehículo](./2026-05-09-vehicle-document-rag/spec.md) | Implemented | feature | 2026-05-09 | Añade biblioteca documental por vehículo, conocimiento derivado y chat con citas sobre la documentación. |
 
 ## Baseline Actual
 

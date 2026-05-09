@@ -22,6 +22,7 @@ import { MaintenanceTimelineComponent } from '../components/maintenance-timeline
 import { TorqueSpecsComponent } from '../components/torque-specs/torque-specs.component';
 import { VehiclePartsListComponent } from '../components/vehicle-parts-list/vehicle-parts-list.component';
 import { TrackRecordsComponent } from '../components/track-records/track-records';
+import { VehicleDocsAiComponent } from '../components/vehicle-docs-ai/vehicle-docs-ai.component';
 import { EntityColumnComponent } from '../../../shared/components/entity-column/entity-column.component';
 import { EntityCardComponent } from '../../../shared/components/entity-card/entity-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -45,6 +46,7 @@ import { UniquePipe } from '../../../shared/pipes/unique.pipe';
         TorqueSpecsComponent,
         VehiclePartsListComponent,
         TrackRecordsComponent,
+        VehicleDocsAiComponent,
         EntityColumnComponent,
         EntityCardComponent,
         EmptyStateComponent,
@@ -73,7 +75,7 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
     maintenances: Maintenance[] = [];
 
     // Track mode
-    viewMode: 'street' | 'track' = 'street';
+    viewMode: 'street' | 'track' | 'docs' = 'street';
     trackRecords: TrackRecord[] = [];
     trackStats: TrackStats = {};
 
@@ -244,12 +246,11 @@ export class VehicleDetailComponent implements OnInit, OnDestroy {
         );
     }
 
-    // Track mode methods
-    toggleViewMode() {
-        this.viewMode = this.viewMode === 'street' ? 'track' : 'street';
+    get showViewModeToggle(): boolean {
+        return !!this.vehicleDetails?.vehicle;
     }
 
-    get showViewModeToggle(): boolean {
+    get showTrackView(): boolean {
         return this.vehicleDetails?.vehicle?.usage_type === 'both' ||
             this.vehicleDetails?.vehicle?.usage_type === 'track';
     }

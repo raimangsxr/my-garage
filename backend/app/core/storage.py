@@ -1,14 +1,13 @@
-import os
 import uuid
 from pathlib import Path
-from fastapi import UploadFile, HTTPException
+from fastapi import UploadFile
 import mimetypes
 
 class StorageService:
-    """Servicio para almacenar archivos de facturas subidas"""
+    """Servicio para almacenar archivos subidos."""
     
-    ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png'}
-    MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
+    ALLOWED_EXTENSIONS = {'.pdf', '.jpg', '.jpeg', '.png', '.txt', '.md'}
+    CHUNK_SIZE = 1024 * 1024  # 1MB
     
     def __init__(self, upload_dir: str = "uploads/invoices"):
         self.upload_dir = Path(upload_dir)
@@ -36,18 +35,24 @@ class StorageService:
         unique_filename = f"{uuid.uuid4()}{file_ext}"
         file_path = self.upload_dir / unique_filename
         
-        # Guardar archivo
-        content = await file.read()
-        
-        # Validar tamaño
-        if len(content) > self.MAX_FILE_SIZE:
-            raise ValueError(f"File too large. Maximum size: {self.MAX_FILE_SIZE / 1024 / 1024}MB")
-        
-        with open(file_path, "wb") as f:
-            f.write(content)
+        # Guardar archivo en streaming para soportar documentos grandes
+        try:
+            with open(file_path, "wb") as f:
+                while True:
+                    chunk = await file.read(self.CHUNK_SIZE)
+                    if not chunk:
+                        break
+                    f.write(chunk)
+        except Exception:
+            if file_path.exists():
+                file_path.unlink()
+            raise
+        finally:
+            await file.close()
         
         # URL relativa para acceder al archivo
-        file_url = f"/uploads/invoices/{unique_filename}"
+        relative_dir = self.upload_dir.as_posix().lstrip("./")
+        file_url = f"/{relative_dir}/{unique_filename}"
         
         return str(file_path), file_url
     
@@ -56,3 +61,9 @@ class StorageService:
         path = Path(file_path)
         if path.exists() and path.is_file():
             path.unlink()
+
+    def resolve_mime_type(self, file_name: str | None) -> str | None:
+        if not file_name:
+            return None
+        guessed_type, _ = mimetypes.guess_type(file_name)
+        return guessed_type

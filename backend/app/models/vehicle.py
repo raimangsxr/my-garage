@@ -8,6 +8,8 @@ if TYPE_CHECKING:
     from .vehicle_specs import VehicleSpecs
     from .track_record import TrackRecord
     from .invoice import Invoice
+    from .vehicle_document import VehicleDocument
+    from .vehicle_knowledge_fact import VehicleKnowledgeFact
 
 from .vehicle_specs import VehicleSpecsBase
 
@@ -35,6 +37,14 @@ class Vehicle(VehicleBase, table=True):
     specs: Optional["VehicleSpecs"] = Relationship(back_populates="vehicle", sa_relationship_kwargs={"uselist": False, "cascade": "all, delete-orphan"})
     track_records: List["TrackRecord"] = Relationship(back_populates="vehicle")
     invoices: List["Invoice"] = Relationship(back_populates="vehicle")
+    documents: List["VehicleDocument"] = Relationship(
+        back_populates="vehicle",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
+    knowledge_facts: List["VehicleKnowledgeFact"] = Relationship(
+        back_populates="vehicle",
+        sa_relationship_kwargs={"cascade": "all, delete-orphan"},
+    )
 
 class VehicleRead(VehicleBase):
     id: int

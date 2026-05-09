@@ -1,0 +1,222 @@
+<section class="docs-ai-shell">
+    <div class="docs-ai-header">
+        <div>
+            <h3>Docs &amp; AI</h3>
+            <p>Keep vehicle documents close to the work, derive useful knowledge, and ask questions with citations.</p>
+        </div>
+        <div class="docs-ai-summary">
+            <span class="summary-chip">{{ readyDocumentsCount }} ready</span>
+            <span class="summary-chip" *ngIf="indexingDocumentsCount > 0">{{ indexingDocumentsCount }} indexing</span>
+            <span class="summary-chip">{{ knowledge.length }} facts</span>
+        </div>
+    </div>
+
+    <mat-tab-group animationDuration="0ms">
+        <mat-tab label="Documents">
+            <div class="tab-panel">
+                <div class="panel-toolbar">
+                    <div class="toolbar-group">
+                        <mat-form-field appearance="outline" class="type-field">
+                            <mat-label>Document type</mat-label>
+                            <mat-select [(ngModel)]="selectedDocumentType">
+                                <mat-option *ngFor="let type of documentTypeOptions" [value]="type">
+                                    {{ documentTypeLabels[type] }}
+                                </mat-option>
+                            </mat-select>
+                        </mat-form-field>
+                        <button mat-raised-button color="primary" (click)="triggerUpload()">
+                            <mat-icon>upload_file</mat-icon>
+                            Upload Document
+                        </button>
+                        <input #fileInput type="file" hidden multiple accept=".pdf,.png,.jpg,.jpeg,.txt,.md" (change)="onFilesSelected($event)">
+                    </div>
+                    <button mat-stroked-button (click)="loadDocuments()">
+                        <mat-icon>refresh</mat-icon>
+                        Refresh
+                    </button>
+                </div>
+
+                <app-page-loader *ngIf="loadingDocuments" icon="description" message="Loading vehicle documents..." minHeight="220px"></app-page-loader>
+
+                <app-empty-state
+                    *ngIf="!loadingDocuments && documents.length === 0"
+                    icon="description"
+                    message="No vehicle documents yet"
+                    description="Upload an owner manual, workshop manual or related paperwork to start building knowledge for this vehicle.">
+                </app-empty-state>
+
+                <div class="document-list" *ngIf="!loadingDocuments && documents.length > 0">
+                    <div class="indexing-banner" *ngIf="indexingDocumentsCount > 0">
+                        <mat-icon>hourglass_top</mat-icon>
+                        <span>Indexing is in progress. This view refreshes automatically every few seconds.</span>
+                    </div>
+                    <article class="document-card mg-surface-card" *ngFor="let document of documents; trackBy: trackByDocumentId">
+                        <div class="document-main">
+                            <div class="document-title-row">
+                                <h4>{{ document.title || document.file_name }}</h4>
+                                <span class="status-pill" [attr.data-status]="document.status">{{ document.status }}</span>
+                            </div>
+                            <div class="document-meta">
+                                <span>{{ documentTypeLabels[document.document_type] }}</span>
+                                <span>{{ document.chunk_count }} chunks</span>
+                                <span *ngIf="document.indexed_at">Indexed {{ document.indexed_at | date:'short' }}</span>
+                                <span *ngIf="document.file_name">{{ document.file_name }}</span>
+                            </div>
+                            <p class="document-error" *ngIf="document.error_message">{{ document.error_message }}</p>
+                        </div>
+
+                        <div class="document-actions">
+                            <button mat-stroked-button (click)="openSource(document.file_url)">
+                                <mat-icon>open_in_new</mat-icon>
+                                Open
+                            </button>
+                            <button mat-stroked-button (click)="toggleDocumentInChat(document)">
+                                <mat-icon>{{ document.included_in_rag ? 'visibility_off' : 'visibility' }}</mat-icon>
+                                {{ document.included_in_rag ? 'Exclude from chat' : 'Include in chat' }}
+                            </button>
+                            <button mat-stroked-button (click)="reindexDocument(document)">
+                                <mat-icon>refresh</mat-icon>
+                                Reindex
+                            </button>
+                            <button mat-stroked-button color="warn" (click)="deleteDocument(document)">
+                                <mat-icon>delete</mat-icon>
+                                Delete
+                            </button>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </mat-tab>
+
+        <mat-tab label="Knowledge">
+            <div class="tab-panel">
+                <div class="panel-toolbar">
+                    <mat-slide-toggle [(ngModel)]="includeHiddenKnowledge" (change)="loadKnowledge()" color="primary">
+                        Show hidden knowledge
+                    </mat-slide-toggle>
+                    <button mat-stroked-button (click)="loadKnowledge()">
+                        <mat-icon>refresh</mat-icon>
+                        Refresh
+                    </button>
+                </div>
+
+                <app-page-loader *ngIf="loadingKnowledge" icon="psychology" message="Loading derived knowledge..." minHeight="220px"></app-page-loader>
+
+                <app-empty-state
+                    *ngIf="!loadingKnowledge && knowledge.length === 0"
+                    icon="psychology"
+                    message="No derived knowledge yet"
+                    description="Once documents are indexed, the assistant will extract useful facts for review here.">
+                </app-empty-state>
+
+                <div class="knowledge-list" *ngIf="!loadingKnowledge && knowledge.length > 0">
+                    <article class="knowledge-card mg-surface-card" *ngFor="let fact of knowledge; trackBy: trackByKnowledgeId">
+                        <div class="knowledge-heading">
+                            <div>
+                                <h4>{{ fact.title }}</h4>
+                                <div class="knowledge-meta">
+                                    <span *ngIf="fact.category">{{ fact.category }}</span>
+                                    <span *ngIf="fact.source_label">{{ fact.source_label }}</span>
+                                    <span *ngIf="fact.confidence !== null && fact.confidence !== undefined">Confidence {{ fact.confidence | number:'1.0-2' }}</span>
+                                </div>
+                            </div>
+                            <div class="knowledge-actions">
+                                <button mat-icon-button [attr.aria-label]="fact.is_hidden ? 'Restore knowledge fact' : 'Hide knowledge fact'" (click)="toggleKnowledgeVisibility(fact)">
+                                    <mat-icon>{{ fact.is_hidden ? 'visibility' : 'visibility_off' }}</mat-icon>
+                                </button>
+                                <button mat-icon-button aria-label="Delete knowledge fact" (click)="deleteKnowledge(fact)">
+                                    <mat-icon>delete</mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <p class="knowledge-content">{{ fact.content }}</p>
+                        <blockquote class="knowledge-excerpt" *ngIf="fact.source_excerpt">{{ fact.source_excerpt }}</blockquote>
+                    </article>
+                </div>
+            </div>
+        </mat-tab>
+
+        <mat-tab label="Ask">
+            <div class="tab-panel ask-panel">
+                <div class="chat-config">
+                    <mat-form-field appearance="outline" class="scope-field">
+                        <mat-label>Source scope</mat-label>
+                        <mat-select [(ngModel)]="chatScope">
+                            <mat-option value="all_documents">All indexed documents</mat-option>
+                            <mat-option value="manuals_only">Manuals only</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                    <mat-slide-toggle [(ngModel)]="includeInvoiceDocs" color="primary">
+                        Include invoice knowledge
+                    </mat-slide-toggle>
+                </div>
+
+                <app-empty-state
+                    *ngIf="readyDocumentsCount === 0"
+                    icon="forum"
+                    message="No indexed documents ready for chat"
+                    description="Upload and index at least one document for this vehicle before asking detailed questions.">
+                </app-empty-state>
+
+                <div *ngIf="readyDocumentsCount > 0" class="chat-workspace">
+                    <div class="suggested-questions" *ngIf="messages.length === 0">
+                        <button
+                            mat-stroked-button
+                            type="button"
+                            *ngFor="let question of suggestedQuestions"
+                            (click)="askSuggestedQuestion(question)">
+                            {{ question }}
+                        </button>
+                    </div>
+
+                    <div class="chat-log" *ngIf="messages.length > 0">
+                        <article class="chat-message" *ngFor="let message of messages; trackBy: trackByMessage" [attr.data-role]="message.role">
+                            <div class="message-label">{{ message.role === 'user' ? 'You' : 'Assistant' }}</div>
+                            <div class="message-body">
+                                <p>{{ message.content }}</p>
+
+                                <div class="chat-confidence" *ngIf="message.response?.confidence_note">
+                                    {{ message.response?.confidence_note }}
+                                </div>
+
+                                <div class="citation-list" *ngIf="message.response?.citations?.length">
+                                    <button
+                                        mat-stroked-button
+                                        type="button"
+                                        class="citation-chip"
+                                        *ngFor="let citation of message.response?.citations"
+                                        [attr.aria-label]="buildCitationAriaLabel(citation.source_label, citation.page_number)"
+                                        (click)="openCitation(citation.file_url, citation.page_number)">
+                                        <mat-icon>description</mat-icon>
+                                        <span>{{ citation.source_label }}</span>
+                                        <span *ngIf="citation.page_number">p.{{ citation.page_number }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="chat-composer">
+                        <mat-form-field appearance="outline" class="question-field">
+                            <mat-label>Ask {{ vehicleLabel }}</mat-label>
+                            <textarea
+                                matInput
+                                rows="4"
+                                [(ngModel)]="chatQuestion"
+                                placeholder="Ask about fluids, maintenance intervals, procedures, torque specs or invoice history.">
+                            </textarea>
+                        </mat-form-field>
+
+                        <div class="composer-actions">
+                            <button mat-stroked-button type="button" (click)="chatQuestion = ''" [disabled]="asking || !chatQuestion.trim()">Clear</button>
+                            <button mat-raised-button color="primary" type="button" (click)="askQuestion()" [disabled]="asking || !chatQuestion.trim()">
+                                <mat-icon>{{ asking ? 'hourglass_top' : 'send' }}</mat-icon>
+                                {{ asking ? 'Asking...' : 'Ask this vehicle' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</section>
