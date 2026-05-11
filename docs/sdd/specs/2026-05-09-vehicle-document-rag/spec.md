@@ -59,6 +59,7 @@ La aplicación ya concentra datos operativos del garaje, pero la documentación 
 - RF-3: la aplicación debe soportar al menos tipos documentales `owner_manual`, `workshop_manual`, `invoice`, `insurance`, `registration` y `other`.
 - RF-4: cada documento debe tener estados observables de ingesta al menos `uploaded`, `indexing`, `ready`, `failed`.
 - RF-5: el sistema debe generar chunks consultables de la documentación lista para RAG.
+- RF-5.1: los embeddings de chunks deben persistirse en PostgreSQL mediante `pgvector`, de forma consultable por similitud sin depender de ranking en memoria del backend.
 - RF-6: el usuario debe poder formular preguntas acotadas al vehículo y obtener respuestas con citas por documento y referencia de página o sección cuando exista.
 - RF-6.1: el bloque `Ask` debe tolerar consultas en un idioma distinto al de la documentación y responder en el idioma del usuario cuando exista evidencia suficiente en las fuentes.
 - RF-6.2: cuando el retrieval no encuentre evidencia suficiente, el bloque `Ask` debe devolver también el mensaje de baja confianza en el idioma de la pregunta del usuario.
@@ -72,6 +73,7 @@ La aplicación ya concentra datos operativos del garaje, pero la documentación 
 
 - Rendimiento: el detalle de vehículo no debe cargar chunks ni contenido pesado en la llamada base; los datos RAG deben consultarse bajo demanda.
 - Rendimiento: la subida de documentos grandes debe realizarse en streaming a disco, evitando cargar el fichero completo en memoria de aplicación.
+- Rendimiento: la recuperación de chunks para `Ask` debe ejecutarse en la base de datos y no cargar el corpus completo del vehículo en memoria de aplicación para rankearlo.
 - Seguridad: solo usuarios autenticados podrán gestionar y consultar documentos de sus vehículos; no se deben exponer claves ni contenido sensible en logs.
 - Accesibilidad: gestión documental y chat deben mantener navegación por teclado, foco visible y labels accesibles en acciones icon-only.
 - Responsive: `Docs & AI` debe ser usable en desktop y móvil, con prioridad a lectura, filtros y acciones principales.
@@ -141,6 +143,7 @@ La aplicación ya concentra datos operativos del garaje, pero la documentación 
 - Requiere migración: sí
 - Backfill: no aplica en esta implementación; las facturas participan como fuente lógica opcional en chat sin materializarse como `vehicle_document`
 - Compatibilidad con datos existentes: debe mantenerse total para flujos de vehículos, facturas y mantenimiento ya existentes
+- Compatibilidad con datos existentes: la migración a `pgvector` puede invalidar chunks y conocimiento derivado existentes si se tratan como datos reconstruibles de prueba, siempre que conserve los documentos origen y fuerce reindexación limpia.
 
 ## Criterios de Aceptación
 
@@ -153,6 +156,7 @@ La aplicación ya concentra datos operativos del garaje, pero la documentación 
 - CA-7: Dado un vehículo con documentación y facturas, cuando el usuario limita el chat a manuales, entonces las citas solo provienen de esas fuentes.
 - CA-8: Dada una pregunta en español cuyo retrieval no encuentra fuentes suficientes, cuando el usuario consulta `Ask`, entonces la respuesta de baja confianza y la nota de confianza se muestran en español.
 - CA-9: Dada una respuesta con una cita a un PDF y `page_number`, cuando el usuario pulsa la referencia en `Ask`, entonces se abre el PDF en la página citada.
+- CA-10: Dado un vehículo con chunks ya indexados, cuando el sistema migra a `pgvector`, entonces `Ask` sigue recuperando fuentes válidas mediante similitud calculada en PostgreSQL.
 
 ## Pruebas Esperadas
 
@@ -176,3 +180,4 @@ La aplicación ya concentra datos operativos del garaje, pero la documentación 
 ## Decisiones Relacionadas
 
 - ADR: [ADR-0001: Arquitectura Base para RAG de Documentación de Vehículo](../../decisions/0001-vehicle-document-rag-architecture.md)
+- ADR: [ADR-0002: Migración de Retrieval Documental a pgvector](../../decisions/0002-vehicle-document-rag-pgvector.md)

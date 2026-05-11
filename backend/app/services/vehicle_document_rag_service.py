@@ -3,12 +3,11 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import math
 import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, List, Optional
+from typing import Any, List, Optional
 
 import google.generativeai as genai
 from PIL import Image
@@ -388,7 +387,11 @@ Sources:
         query_embedding = self.embed_text(question)
 
         statement = (
-            select(VehicleDocumentChunk, VehicleDocument)
+            select(
+                VehicleDocumentChunk,
+                VehicleDocument,
+                VehicleDocumentChunk.embedding.cosine_distance(query_embedding).label("distance"),
+            )
             .join(VehicleDocument, VehicleDocumentChunk.document_id == VehicleDocument.id)
             .where(
                 VehicleDocument.vehicle_id == vehicle.id,
@@ -400,11 +403,14 @@ Sources:
             statement = statement.where(
                 VehicleDocument.document_type.in_(["owner_manual", "workshop_manual"])
             )
+        statement = statement.order_by(
+            VehicleDocumentChunk.embedding.cosine_distance(query_embedding)
+        ).limit(8)
 
         retrieved: list[RetrievedSource] = []
         rows = session.exec(statement).all()
-        for chunk, document in rows:
-            similarity = self.cosine_similarity(query_embedding, chunk.embedding or [])
+        for chunk, document, distance in rows:
+            similarity = self._distance_to_similarity(distance)
             if similarity <= 0:
                 continue
             retrieved.append(
@@ -433,17 +439,10 @@ Sources:
             index = int.from_bytes(digest[:2], "big") % self.EMBEDDING_DIMENSION
             vector[index] += 1.0
 
-        norm = math.sqrt(sum(value * value for value in vector))
+        norm = sum(value * value for value in vector) ** 0.5
         if norm == 0:
             return vector
         return [value / norm for value in vector]
-
-    def cosine_similarity(self, left: Iterable[float], right: Iterable[float]) -> float:
-        left_list = list(left)
-        right_list = list(right)
-        if not left_list or not right_list or len(left_list) != len(right_list):
-            return 0.0
-        return sum(a * b for a, b in zip(left_list, right_list))
 
     def resolve_file_path(self, file_url: str) -> str:
         return self.storage_service.resolve_file_path(file_url)
@@ -559,6 +558,13 @@ Question:
     def _localized_no_sources_response(self, detected_language: Optional[str], question: str) -> dict[str, str]:
         language = self._normalize_language_code(detected_language) or self._infer_language_from_question(question)
         return self.FALLBACK_MESSAGES.get(language, self.FALLBACK_MESSAGES["en"])
+
+    def _distance_to_similarity(self, distance: Any) -> float:
+        try:
+            numeric_distance = float(distance)
+        except (TypeError, ValueError):
+            return 0.0
+        return max(0.0, 1.0 - numeric_distance)
 
     def _normalize_language_code(self, value: Optional[str]) -> Optional[str]:
         if not value:

@@ -30,3 +30,4 @@ google-auth-httplib2
 pdf2image
 python-jose[cryptography]
 pypdf
+pgvector
