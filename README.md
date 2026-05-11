@@ -46,7 +46,7 @@
     cd backend
     python -m venv venv
     source venv/bin/activate  # On Windows: venv\Scripts\activate
-    pip install -r requirements.txt
+    pip install -e .[dev]
     # Configure .env file with your DATABASE_URL
     uvicorn app.main:app --reload
     ```
