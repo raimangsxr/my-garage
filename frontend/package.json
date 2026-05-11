@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "my-garage-frontend",
   "version": "0.0.0",
   "scripts": {
     "config": "node scripts/set-env.js",
