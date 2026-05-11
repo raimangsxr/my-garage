@@ -8,7 +8,7 @@ Fecha: 2026-05-09
 
 Implementar un RAG por vehículo como extensión natural del detalle de vehículo existente. La fase inicial prioriza biblioteca documental, pipeline de ingesta/indexación y chat con citas. La extracción de facts operativos y su promoción a modelos compartidos se plantea desde el diseño, pero se puede liberar por fases para reducir riesgo.
 
-La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando almacenamiento documental generalizado, chunks persistidos y embeddings deterministas en base de datos para retrieval por vehículo sin introducir un servicio vectorial externo en esta iteración.
+La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando almacenamiento documental generalizado y `pgvector` en PostgreSQL para persistir embeddings y resolver retrieval por vehículo sin introducir un servicio vectorial externo separado.
 
 ## Impacto por Capa
 
@@ -29,7 +29,7 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 - Endpoints:
   - nuevos endpoints documentales y chat bajo `/api/v1`
 - Migraciones:
-  - sí, creación de tablas e índices documentales
+  - sí, creación/evolución de tablas documentales, habilitación de `pgvector` y reseteo de datos derivados reconstruibles
 
 ### Frontend
 
@@ -57,7 +57,7 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 - Índices:
   - `vehicle_id`, `status`, `document_type`, `included_in_rag`
 - Backfill:
-  - no aplica; las facturas se usan como fuente lógica opcional en tiempo de consulta
+  - no requerido; chunks, embeddings y facts existentes se resetean y se regeneran desde los documentos origen
 - Compatibilidad:
   - sin ruptura para vehículos, facturas, mantenimientos o specs existentes
 
@@ -75,7 +75,8 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 
 - Integración:
   - Gemini para generación de respuestas y transcripción/extracción
-  - embeddings locales deterministas persistidos en JSON para retrieval
+  - `pgvector` para persistencia y búsqueda por similitud en PostgreSQL
+  - embeddings deterministas locales en esta fase, persistidos como `vector`
   - expansión de consulta multilingüe con Gemini para mejorar retrieval cuando la pregunta y la fuente no comparten idioma
   - fallback local de idioma para mensajes sin evidencia, evitando depender del modelo cuando no se recuperan fuentes
 - Estados de error:
@@ -93,6 +94,7 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 | Nuevo dominio documental por vehículo | alta, listado, gestión y exclusión de fuentes | frontend/backend | nuevo |
 | Nuevo contrato de chat con citas | respuesta estructurada con fuentes | frontend/backend | nuevo |
 | Storage documental | pasa de orientado a facturas a reutilizable para documentos de vehículo | backend | compatible si se conserva flujo actual |
+| Retrieval documental | pasa de ranking en memoria a ranking SQL con `pgvector` | backend | compatible |
 
 ## Estrategia de Implementación
 
@@ -100,11 +102,13 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 2. Añadir endpoints de subida/listado/gestión documental por vehículo.
 3. Ajustar storage para soportar uploads grandes en streaming a disco.
 4. Implementar pipeline de parsing, chunking e indexación con estados persistidos.
-5. Extender `vehicle-detail` con modo `Docs & AI` y pestaña `Documents`.
-6. Implementar retrieval y endpoint `ask` con citas.
-7. Implementar pestaña `Ask` con historial de sesión en memoria y fuentes usadas.
-8. Implementar pestaña `Knowledge` con facts derivados y acciones básicas de gestión.
-9. Evaluar promoción de facts a specs/torque en una fase posterior o limitada.
+5. Migrar `vehicle_document_chunk.embedding` a `pgvector`, habilitando la extensión y reseteando chunks/facts reconstruibles.
+6. Mover el retrieval del backend a consulta SQL por similitud con `pgvector`.
+7. Extender `vehicle-detail` con modo `Docs & AI` y pestaña `Documents`.
+8. Implementar retrieval y endpoint `ask` con citas.
+9. Implementar pestaña `Ask` con historial de sesión en memoria y fuentes usadas.
+10. Implementar pestaña `Knowledge` con facts derivados y acciones básicas de gestión.
+11. Evaluar promoción de facts a specs/torque en una fase posterior o limitada.
 
 ## Estrategia de Pruebas
 
@@ -112,6 +116,7 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
   - validación de tipos documentales, transición de estados y chunking
   - reglas de exclusión de fuentes del chat
   - idioma del fallback cuando no hay fuentes recuperadas
+  - retrieval por similitud con `pgvector`
 - Integración backend:
   - upload/listado/reindex/delete
   - ask con citas y permisos correctos
@@ -127,7 +132,9 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
   - exclusión de una fuente y confirmación de que no se cita
   - móvil y desktop en `Docs & AI`
 - Migración:
-  - alta de tablas
+  - alta/evolución de tablas
+  - creación de extensión `vector`
+  - reseteo de chunks/facts y reindexación posterior desde documentos origen
   - rollback razonable
   - convivencia con facturas ya existentes
 
@@ -135,6 +142,8 @@ La implementación mantiene el stack corto sobre FastAPI + PostgreSQL, usando al
 
 - Calidad insuficiente del retrieval con manuales escaneados o ruidosos:
   mitigación: limitar tipos iniciales, exigir estados claros y añadir reindexado.
+- Dependencia de `pgvector` en entornos locales o CI:
+  mitigación: documentar instalación, crear migración idempotente y mantener fallback operativo en reindexado.
 - Incremento de complejidad en `vehicle-detail`:
   mitigación: encapsular el modo `Docs & AI` en componentes propios y cargas lazy si hace falta.
 - Coste o cuota del proveedor IA:

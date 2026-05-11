@@ -57,3 +57,11 @@ def test_answer_question_falls_back_to_english_when_language_is_unknown(monkeypa
 
     assert response["answer"].startswith("I couldn't find enough indexed documentation")
     assert response["confidence_note"] == "No indexed sources matched this question."
+
+
+def test_distance_to_similarity_clamps_invalid_values():
+    service = VehicleDocumentRAGService()
+
+    assert service._distance_to_similarity(0.2) == 0.8
+    assert service._distance_to_similarity(1.4) == 0.0
+    assert service._distance_to_similarity(None) == 0.0

@@ -26,6 +26,8 @@ Plan: ./plan.md
 - [x] Añadir pestañas `Documents`, `Knowledge` y `Ask`.
 - [x] Añadir estados loading/empty/error/indexing en la UI.
 - [x] Hacer que las citas de `Ask` abran el PDF en la página referenciada cuando exista `page_number`.
+- [x] Migrar chunks documentales a `pgvector` con limpieza de datos derivados reconstruibles.
+- [x] Mover el retrieval de chunks a consulta SQL sobre `pgvector`.
 - [x] Añadir o actualizar pruebas.
 - [x] Actualizar documentación SDD si hubo cambios de alcance.
 
@@ -33,7 +35,7 @@ Plan: ./plan.md
 
 - [x] Ejecutar checks backend.
 - [x] Ejecutar checks frontend.
-- [x] Validar migración hacia adelante.
+- [ ] Validar migración hacia adelante.
 - [ ] Validar flujo manual principal.
 - [x] Validar caso límite principal.
 - [ ] Validar apertura manual de cita PDF en página concreta.
@@ -46,5 +48,5 @@ Plan: ./plan.md
 - [ ] PR enlaza `plan.md`.
 - [ ] PR enlaza ADRs si existen.
 - [ ] PR resume pruebas ejecutadas.
-- [ ] PR documenta checks no ejecutados.
+- [x] PR documenta checks no ejecutados.
 - [ ] PR incluye capturas si toca UI.

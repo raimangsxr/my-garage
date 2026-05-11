@@ -1,6 +1,7 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 
-from sqlalchemy import Column, JSON, Text
+from sqlalchemy import Column, Text
+from pgvector.sqlalchemy import VECTOR
 from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
@@ -15,7 +16,7 @@ class VehicleDocumentChunkBase(SQLModel):
     page_number: Optional[int] = None
     source_label: Optional[str] = None
     content: str = Field(sa_column=Column(Text, nullable=False))
-    embedding: List[float] = Field(default_factory=list, sa_column=Column(JSON, nullable=False))
+    embedding: Any = Field(sa_type=VECTOR(256))
 
 
 class VehicleDocumentChunk(VehicleDocumentChunkBase, table=True):
