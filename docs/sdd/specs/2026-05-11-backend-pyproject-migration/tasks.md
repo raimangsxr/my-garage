@@ -9,7 +9,10 @@ Plan: [plan.md](./plan.md)
 - [x] Revisar `system.md` si toca frontend.
 - [x] Revisar migraciones Alembic existentes si toca datos.
 - [x] Identificar tests existentes relacionados.
+<<<<<<< feature/backend-pyproject-runtime-fixes
 - [x] Comparar `backend/venv` con `pyproject.toml`.
+=======
+>>>>>>> main
 
 ## Implementación
 
@@ -20,8 +23,11 @@ Plan: [plan.md](./plan.md)
 - [x] Añadir estados loading/empty/error si toca UI.
 - [x] Añadir o actualizar pruebas.
 - [x] Actualizar documentación SDD si hubo cambios de alcance.
+<<<<<<< feature/backend-pyproject-runtime-fixes
 - [x] Declarar dependencias críticas faltantes en `pyproject.toml`.
 - [x] Sustituir `psycopg2-binary` por `psycopg2` y alinear `pgvector`.
+=======
+>>>>>>> main
 
 ## Verificación
 
@@ -32,8 +38,11 @@ Plan: [plan.md](./plan.md)
 - [x] Validar caso límite principal.
 - [x] Revisar responsive si toca UI.
 - [x] Revisar consola/network si toca UI.
+<<<<<<< feature/backend-pyproject-runtime-fixes
 - [x] Validar imports principales contra el manifiesto corregido.
 - [x] Validar compatibilidad del engine con `psycopg2`.
+=======
+>>>>>>> main
 
 ## PR
 
