@@ -10,6 +10,7 @@ import { SidenavComponent } from './layout/sidenav/sidenav.component';
 import { FooterComponent } from './layout/footer/footer.component';
 import { AuthService } from './core/services/auth.service';
 import { UserService } from './core/services/user.service';
+import { PwaService } from './core/services/pwa.service';
 
 @Component({
     selector: 'app-root',
@@ -33,6 +34,7 @@ export class AppComponent implements OnDestroy {
     private authService = inject(AuthService);
     private router = inject(Router);
     private userService = inject(UserService);
+    private pwaService = inject(PwaService);
     private subscriptions = new Subscription();
     private isPublicRouteSubject = new BehaviorSubject<boolean>(this.isPublicRoute(this.router.url));
 
@@ -51,6 +53,8 @@ export class AppComponent implements OnDestroy {
         );
 
     constructor() {
+        this.pwaService.init();
+
         const token = this.authService.getToken();
         if (token) {
             this.subscriptions.add(
@@ -80,6 +84,7 @@ export class AppComponent implements OnDestroy {
     }
 
     ngOnDestroy(): void {
+        this.pwaService.destroy();
         this.subscriptions.unsubscribe();
     }
 }

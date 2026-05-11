@@ -103,6 +103,33 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+.mat-mdc-snack-bar-container.success-snackbar .mdc-snackbar__surface {
+  background: var(--success-color) !important;
+  color: var(--text-inverse) !important;
+}
+
+.mat-mdc-snack-bar-container.warning-snackbar .mdc-snackbar__surface {
+  background: var(--warning-color) !important;
+  color: var(--text-inverse) !important;
+}
+
+.mat-mdc-snack-bar-container.info-snackbar .mdc-snackbar__surface {
+  background: var(--primary-color) !important;
+  color: var(--text-inverse) !important;
+}
+
+.mat-mdc-snack-bar-container.error-snackbar .mdc-snackbar__surface {
+  background: var(--danger-color) !important;
+  color: var(--text-inverse) !important;
+}
+
+.mat-mdc-snack-bar-container.success-snackbar .mdc-button__label,
+.mat-mdc-snack-bar-container.warning-snackbar .mdc-button__label,
+.mat-mdc-snack-bar-container.info-snackbar .mdc-button__label,
+.mat-mdc-snack-bar-container.error-snackbar .mdc-button__label {
+  color: var(--text-inverse) !important;
+}
+
 /* Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 8px;
