@@ -22,6 +22,7 @@ Plan: [plan.md](./plan.md)
 - [x] Actualizar documentación SDD si hubo cambios de alcance.
 - [x] Ajustar el `Dockerfile` o el empaquetado mínimo necesario para instalación reproducible.
 - [ ] Alinear `DATABASE_URL` y el driver PostgreSQL entre backend, Alembic y manifests.
+- [ ] Alinear el healthcheck operativo entre backend y probes del despliegue.
 
 ## Verificación
 
