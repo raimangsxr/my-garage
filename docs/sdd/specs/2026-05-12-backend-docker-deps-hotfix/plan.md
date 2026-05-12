@@ -8,6 +8,8 @@ Fecha: 2026-05-12
 
 Reproducir el build y el arranque de la imagen actual para capturar el fallo exacto, corregir el `backend/Dockerfile` o el empaquetado mínimo necesario y revalidar el flujo completo con `docker build` y `docker run`.
 
+Ante el fallo posterior del job de migración, ampliar la corrección al contrato del `DATABASE_URL`: normalizar el driver `postgresql+psycopg://` al stack `psycopg2` usado por la imagen y corregir la documentación/manifiestos de ejemplo para no seguir publicando un DSN incompatible.
+
 ## Impacto por Capa
 
 ### Backend
@@ -51,6 +53,7 @@ Reproducir el build y el arranque de la imagen actual para capturar el fallo exa
 | --- | --- | --- | --- |
 | Build backend Docker | ajuste del flujo de instalación dentro de la imagen | desarrolladores y despliegue | compatible |
 | Arranque backend en contenedor | asegurar imports y binarios presentes | desarrolladores y despliegue | compatible |
+| `DATABASE_URL` backend/migraciones | normalización de driver legacy `psycopg` a `psycopg2` | backend y job Alembic | compatible |
 
 ## Estrategia de Implementación
 
@@ -59,12 +62,13 @@ Reproducir el build y el arranque de la imagen actual para capturar el fallo exa
 3. Ajustar `backend/Dockerfile` y cualquier archivo estrictamente necesario para una instalación reproducible.
 4. Instalar un toolchain de compilación completo en la imagen para cubrir dependencias que aún compilan desde fuente, en particular `psycopg2`.
 5. Repetir build y validaciones mínimas de import/arranque.
-6. Actualizar spec, plan y tasks con el comportamiento final verificado.
+6. Normalizar el `DATABASE_URL` legacy con `psycopg` dentro del backend y alinear manifiestos/docs publicados.
+7. Actualizar spec, plan y tasks con el comportamiento final verificado.
 
 ## Estrategia de Pruebas
 
 - Unitarias: no aplica salvo que el fallo obligue a tocar código Python de arranque
-- Integración backend: `docker build`, `docker run ... python -c "import app.main"` y arranque con `/health`
+- Integración backend: `docker build`, `docker run ... python -c "import app.main"`, arranque con `/health` y verificación de engine con `DATABASE_URL` legacy `postgresql+psycopg://`
 - Frontend: no aplica
 - Manual/UI: no aplica
 - Migración: no aplica
@@ -74,6 +78,7 @@ Reproducir el build y el arranque de la imagen actual para capturar el fallo exa
 - Dependencia nativa faltante en la imagen: mitigarlo reproduciendo el error real y ajustando paquetes del sistema.
 - Archivo de proyecto no copiado durante el build: mitigarlo revisando el contexto mínimo necesario para `pip install .`.
 - Falso positivo por import que no conecta a servicios reales: separar validación de import/arranque de validación con PostgreSQL real.
+- Configuración desplegada con DSN antiguo: mitigarlo aceptando el formato legacy en código y corrigiendo la plantilla publicada.
 
 ## Rollback
 

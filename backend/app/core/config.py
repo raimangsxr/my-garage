@@ -48,6 +48,17 @@ class Settings(BaseSettings):
 
         raise ValueError(v)
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def normalize_database_url(cls, v: str) -> str:
+        if not isinstance(v, str):
+            raise ValueError("DATABASE_URL must be a string")
+
+        if v.startswith("postgresql+psycopg://"):
+            return "postgresql+psycopg2://" + v[len("postgresql+psycopg://"):]
+
+        return v
+
     DATABASE_URL: str # override in .env
     SECRET_KEY: str = "CHANGE_THIS_TO_A_SECURE_SECRET_KEY_IN_PRODUCTION"  # override in .env
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 hours
