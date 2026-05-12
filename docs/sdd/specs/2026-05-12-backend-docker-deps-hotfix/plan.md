@@ -10,6 +10,8 @@ Reproducir el build y el arranque de la imagen actual para capturar el fallo exa
 
 Ante el fallo posterior del job de migración, ampliar la corrección al contrato del `DATABASE_URL`: normalizar el driver `postgresql+psycopg://` al stack `psycopg2` usado por la imagen y corregir la documentación/manifiestos de ejemplo para no seguir publicando un DSN incompatible.
 
+Ampliar también la compatibilidad operativa del healthcheck para responder tanto a `/health` como a `/healthz`, ya que el tráfico real del cluster está usando la segunda ruta aunque los manifests versionados publiquen la primera.
+
 ## Impacto por Capa
 
 ### Backend
@@ -54,6 +56,7 @@ Ante el fallo posterior del job de migración, ampliar la corrección al contrat
 | Build backend Docker | ajuste del flujo de instalación dentro de la imagen | desarrolladores y despliegue | compatible |
 | Arranque backend en contenedor | asegurar imports y binarios presentes | desarrolladores y despliegue | compatible |
 | `DATABASE_URL` backend/migraciones | normalización de driver legacy `psycopg` a `psycopg2` | backend y job Alembic | compatible |
+| Healthcheck backend | alias operativo `/healthz` sobre el endpoint existente | despliegue y probes | compatible |
 
 ## Estrategia de Implementación
 
@@ -63,12 +66,13 @@ Ante el fallo posterior del job de migración, ampliar la corrección al contrat
 4. Instalar un toolchain de compilación completo en la imagen para cubrir dependencias que aún compilan desde fuente, en particular `psycopg2`.
 5. Repetir build y validaciones mínimas de import/arranque.
 6. Normalizar el `DATABASE_URL` legacy con `psycopg` dentro del backend y alinear manifiestos/docs publicados.
-7. Actualizar spec, plan y tasks con el comportamiento final verificado.
+7. Añadir compatibilidad de healthcheck para `/healthz` sin romper `/health`.
+8. Actualizar spec, plan y tasks con el comportamiento final verificado.
 
 ## Estrategia de Pruebas
 
 - Unitarias: no aplica salvo que el fallo obligue a tocar código Python de arranque
-- Integración backend: `docker build`, `docker run ... python -c "import app.main"`, arranque con `/health` y verificación de engine con `DATABASE_URL` legacy `postgresql+psycopg://`
+- Integración backend: `docker build`, `docker run ... python -c "import app.main"`, arranque con `/health` y `/healthz`, y verificación de engine con `DATABASE_URL` legacy `postgresql+psycopg://`
 - Frontend: no aplica
 - Manual/UI: no aplica
 - Migración: no aplica

@@ -59,14 +59,23 @@ app.mount("/uploads", StaticFiles(directory=media_dir), name="uploads-legacy")
 def read_root():
     return {"Hello": "World"}
 
+def _health_payload():
+    return {
+        "status": "healthy",
+        "version": "1.0.0",
+        "environment": settings.ENVIRONMENT,
+    }
+
+
 @app.get("/health")
 def health_check():
     """
     Health check endpoint for monitoring.
     Returns the service status and version.
     """
-    return {
-        "status": "healthy",
-        "version": "1.0.0",
-        "environment": settings.ENVIRONMENT
-    }
+    return _health_payload()
+
+
+@app.get("/healthz")
+def healthz_check():
+    return _health_payload()
