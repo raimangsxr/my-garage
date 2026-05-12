@@ -15,6 +15,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Añadir Manifests Kubernetes Base](./2026-05-09-k8s-deployment-manifests/spec.md) | In Progress | chore | 2026-05-09 | Versiona manifests base para desplegar My Garage en Kubernetes con media persistente. |
 | [Unificar Storage Backend en Media](./2026-05-09-backend-media-storage/spec.md) | In Progress | refactor | 2026-05-09 | Alinea uploads documentales del backend con `media/` y mantiene compatibilidad con rutas legacy. |
 | [Migrar empaquetado del backend a pyproject.toml](./2026-05-11-backend-pyproject-migration/spec.md) | Implemented | chore | 2026-05-11 | Unifica dependencias del backend en `pyproject.toml` para alinear local, tests y Docker. |
+| [Corregir instalación de dependencias del backend en Docker](./2026-05-12-backend-docker-deps-hotfix/spec.md) | Implemented | hotfix | 2026-05-12 | Corrige el toolchain de la imagen backend para compilar `psycopg2` y arrancar el contenedor. |
 | [Convertir el Frontend en PWA](./2026-05-11-frontend-pwa/spec.md) | In Progress | feature | 2026-05-11 | Habilita instalación PWA, caching de shell y avisos de actualización para el frontend Angular. |
 
 ## Baseline Actual
