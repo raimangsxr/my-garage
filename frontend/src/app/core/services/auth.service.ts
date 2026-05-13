@@ -20,7 +20,9 @@ export class AuthService {
 
     isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
-    constructor(private http: HttpClient, private router: Router, private userService: UserService) {}
+    constructor(private http: HttpClient, private router: Router, private userService: UserService) {
+        this.isAuthenticatedSubject.next(this.hasToken());
+    }
 
     private hasToken(): boolean {
         return !!this.getToken();
