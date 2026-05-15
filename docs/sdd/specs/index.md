@@ -19,6 +19,8 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Convertir el Frontend en PWA](./2026-05-11-frontend-pwa/spec.md) | In Progress | feature | 2026-05-11 | Habilita instalación PWA, caching de shell y avisos de actualización para el frontend Angular. |
 | [Corregir Bucle de Arranque con Sesión Persistida](./2026-05-13-fix-auth-bootstrap-loop/spec.md) | In Progress | hotfix | 2026-05-13 | Evita que la app quede cargando o alternando rutas cuando existe token persistido en el navegador. |
 | [Mejorar Feedback y Borrado de Documentos RAG](./2026-05-13-rag-document-feedback-delete/spec.md) | In Progress | hotfix | 2026-05-13 | Añade progreso visible en la carga documental y corrige el borrado concurrente de documentos RAG. |
+| [Invocación por voz en Ask de Docs & AI](./2026-05-15-vehicle-ask-voice-trigger/spec.md) | In Progress | feature | 2026-05-15 | Añade activación por palabra clave en `Ask` con transcripción editable previa al envío manual al asistente. |
+| [Homogeneizar Toasts y Snackbars](./2026-05-16-toast-standardization/spec.md) | In Progress | refactor | 2026-05-16 | Centraliza el feedback emergente en un servicio compartido y fija la posición `bottom-right`. |
 
 ## Baseline Actual
 

@@ -2,13 +2,13 @@ import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../services/auth.service';
 import { LoggerService } from '../services/logger.service';
+import { ToastService } from '../services/toast.service';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
     const router = inject(Router);
-    const snackBar = inject(MatSnackBar);
+    const toast = inject(ToastService);
     const authService = inject(AuthService);
     const logger = inject(LoggerService);
 
@@ -60,11 +60,8 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
             // Show error to user (except for requests marked as silent)
             if (!req.headers.has('X-Silent-Error')) {
-                snackBar.open(errorMessage, 'Close', {
-                    duration: 5000,
-                    horizontalPosition: 'center',
-                    verticalPosition: 'top',
-                    panelClass: ['error-snackbar']
+                toast.error(errorMessage, {
+                    duration: 5000
                 });
             }
 

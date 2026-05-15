@@ -8,10 +8,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { SettingsService } from '../../core/services/settings.service';
 import { Settings } from '../../core/models/settings.model';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
     selector: 'app-settings',
@@ -35,7 +36,7 @@ import { PageLoaderComponent } from '../../shared/components/page-loader/page-lo
 export class SettingsComponent implements OnInit {
     private fb = inject(FormBuilder);
     private settingsService = inject(SettingsService);
-    private snackBar = inject(MatSnackBar);
+    private toast = inject(ToastService);
 
     settingsForm: FormGroup;
     isLoading = false;
@@ -65,7 +66,7 @@ export class SettingsComponent implements OnInit {
             },
             error: (error) => {
                 console.error('Error loading settings:', error);
-                this.showSnackBar('Error loading settings');
+                this.toast.error('Error loading settings');
                 this.isLoading = false;
             }
         });
@@ -76,24 +77,16 @@ export class SettingsComponent implements OnInit {
             this.isLoading = true;
             this.settingsService.updateSettings(this.settingsForm.value).subscribe({
                 next: (settings) => {
-                    this.showSnackBar('Settings saved successfully');
+                    this.toast.success('Settings saved successfully');
                     this.isLoading = false;
                     // Here you might want to apply the settings immediately (e.g. change theme)
                 },
                 error: (error) => {
                     console.error('Error saving settings:', error);
-                    this.showSnackBar('Error saving settings');
+                    this.toast.error('Error saving settings');
                     this.isLoading = false;
                 }
             });
         }
-    }
-
-    private showSnackBar(message: string): void {
-        this.snackBar.open(message, 'Close', {
-            duration: 3000,
-            horizontalPosition: 'end',
-            verticalPosition: 'top'
-        });
     }
 }

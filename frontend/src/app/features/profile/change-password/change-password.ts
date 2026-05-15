@@ -6,9 +6,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserService } from '../../../core/services/user.service';
 import { Router } from '@angular/router';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-change-password',
@@ -35,7 +36,7 @@ export class ChangePassword {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
-    private snackBar: MatSnackBar,
+    private toast: ToastService,
     private router: Router
   ) {
     this.form = this.fb.group({
@@ -62,7 +63,7 @@ export class ChangePassword {
       const { current_password, new_password } = this.form.value;
       this.userService.changePassword({ current_password, new_password }).subscribe({
         next: () => {
-          this.showSnackBar('Password changed successfully');
+          this.toast.success('Password changed successfully');
           this.form.reset();
           // Optional: Redirect to profile or dashboard
           // this.router.navigate(['/profile']);
@@ -70,15 +71,9 @@ export class ChangePassword {
         error: (err) => {
           console.error('Error changing password', err);
           const errorMessage = err.error?.detail || 'Error changing password';
-          this.showSnackBar(errorMessage);
+          this.toast.error(errorMessage);
         }
       });
     }
-  }
-
-  private showSnackBar(message: string): void {
-    this.snackBar.open(message, 'Close', {
-      duration: 3000
-    });
   }
 }

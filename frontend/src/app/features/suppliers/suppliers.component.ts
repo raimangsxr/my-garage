@@ -5,13 +5,14 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
+import { ToastTone, ToastService } from '../../core/services/toast.service';
 import { SupplierDialogComponent } from './supplier-dialog/supplier-dialog.component';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
@@ -57,7 +58,7 @@ export class SuppliersComponent implements OnInit, OnDestroy {
     constructor(
         private supplierService: SupplierService,
         private dialog: MatDialog,
-        private snackBar: MatSnackBar,
+        private toast: ToastService,
         private confirmDialog: ConfirmDialogService
     ) { }
 
@@ -111,7 +112,7 @@ export class SuppliersComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error('Error loading suppliers', err);
-                this.showSnackBar('Error loading suppliers');
+                this.showSnackBar('Error loading suppliers', 'error');
                 this.isLoading = false;
             }
         });
@@ -145,11 +146,11 @@ export class SuppliersComponent implements OnInit, OnDestroy {
             next: () => {
                 this.pageIndex = 0;
                 this.loadSuppliers();
-                this.showSnackBar('Supplier created successfully');
+                this.showSnackBar('Supplier created successfully', 'success');
             },
             error: (err) => {
                 console.error('Error creating supplier', err);
-                this.showSnackBar('Error creating supplier');
+                this.showSnackBar('Error creating supplier', 'error');
             }
         });
     }
@@ -158,11 +159,11 @@ export class SuppliersComponent implements OnInit, OnDestroy {
         this.supplierService.updateSupplier(id, supplier).subscribe({
             next: () => {
                 this.loadSuppliers();
-                this.showSnackBar('Supplier updated successfully');
+                this.showSnackBar('Supplier updated successfully', 'success');
             },
             error: (err) => {
                 console.error('Error updating supplier', err);
-                this.showSnackBar('Error updating supplier');
+                this.showSnackBar('Error updating supplier', 'error');
             }
         });
     }
@@ -182,18 +183,19 @@ export class SuppliersComponent implements OnInit, OnDestroy {
                         this.pageIndex -= 1;
                     }
                     this.loadSuppliers();
-                    this.showSnackBar('Supplier deleted successfully');
+                    this.showSnackBar('Supplier deleted successfully', 'success');
                 },
                 error: (err) => {
                     console.error('Error deleting supplier', err);
-                    this.showSnackBar('Error deleting supplier');
+                    this.showSnackBar('Error deleting supplier', 'error');
                 }
             });
         });
     }
 
-    private showSnackBar(message: string): void {
-        this.snackBar.open(message, 'Close', {
+    private showSnackBar(message: string, tone: ToastTone = 'info'): void {
+        this.toast.open(message, {
+            tone,
             duration: 3000
         });
     }

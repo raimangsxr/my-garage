@@ -98,7 +98,9 @@ Patrón único:
 - Búsqueda con debounce (250ms) en todos los listados.
 - Sorting/paginación resetean página al cambiar criterio.
 - Acciones destructivas con confirmación.
-- Mensajes de feedback homogéneos en `snackbar` (éxito/error).
+- Mensajes de feedback homogéneos en `snackbar` o toast.
+- Toda notificación emergente tipo `snackbar` o toast debe mostrarse en la esquina inferior derecha (`bottom-right`).
+- Las variantes de feedback breve deben reutilizar el patrón semántico compartido (`success`, `warning`, `info`, `error`) en lugar de abrir `MatSnackBar` directamente desde cada módulo.
 
 ## 8. Responsive y breakpoints
 - `<=1200px`: ocultar columnas de soporte.
