@@ -6,9 +6,10 @@ import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { UserService, User } from '../../../core/services/user.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { ImageCropperComponent } from '../../../shared/components/image-cropper/image-cropper';
 
 @Component({
@@ -32,7 +33,7 @@ import { ImageCropperComponent } from '../../../shared/components/image-cropper/
 export class UserProfile implements OnInit {
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
-  private snackBar = inject(MatSnackBar);
+  private toast = inject(ToastService);
 
   form: FormGroup;
   user: User | null = null;
@@ -79,10 +80,10 @@ export class UserProfile implements OnInit {
       this.userService.updateMe(this.form.value).subscribe({
         next: (user) => {
           this.user = user;
-          this.snackBar.open('Profile updated successfully', 'Close', { duration: 3000 });
+          this.toast.success('Profile updated successfully');
         },
         error: () => {
-          this.snackBar.open('Error updating profile', 'Close', { duration: 3000 });
+          this.toast.error('Error updating profile');
         }
       });
     }

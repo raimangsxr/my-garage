@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatInputModule } from '@angular/material/input';
@@ -16,6 +16,7 @@ import { PartDialogComponent } from './part-dialog/part-dialog.component';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { Invoice, InvoiceService } from '../../core/services/invoice.service';
 import { Maintenance, MaintenanceService } from '../../core/services/maintenance.service';
+import { ToastTone, ToastService } from '../../core/services/toast.service';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -66,7 +67,7 @@ export class PartsComponent implements OnInit, OnDestroy {
         private invoiceService: InvoiceService,
         private maintenanceService: MaintenanceService,
         private dialog: MatDialog,
-        private snackBar: MatSnackBar,
+        private toast: ToastService,
         private confirmDialog: ConfirmDialogService
     ) { }
 
@@ -115,7 +116,7 @@ export class PartsComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 console.error('Error loading parts', err);
-                this.showSnackBar('Error loading parts');
+                this.showSnackBar('Error loading parts', 'error');
                 this.isLoading = false;
             }
         });
@@ -160,11 +161,11 @@ export class PartsComponent implements OnInit, OnDestroy {
             next: () => {
                 this.pageIndex = 0;
                 this.loadParts();
-                this.showSnackBar('Part created successfully');
+                this.showSnackBar('Part created successfully', 'success');
             },
             error: (err) => {
                 console.error('Error creating part', err);
-                this.showSnackBar('Error creating part');
+                this.showSnackBar('Error creating part', 'error');
             }
         });
     }
@@ -173,11 +174,11 @@ export class PartsComponent implements OnInit, OnDestroy {
         this.partService.updatePart(id, part).subscribe({
             next: () => {
                 this.loadParts();
-                this.showSnackBar('Part updated successfully');
+                this.showSnackBar('Part updated successfully', 'success');
             },
             error: (err) => {
                 console.error('Error updating part', err);
-                this.showSnackBar('Error updating part');
+                this.showSnackBar('Error updating part', 'error');
             }
         });
     }
@@ -197,18 +198,19 @@ export class PartsComponent implements OnInit, OnDestroy {
                         this.pageIndex -= 1;
                     }
                     this.loadParts();
-                    this.showSnackBar('Part deleted successfully');
+                    this.showSnackBar('Part deleted successfully', 'success');
                 },
                 error: (err) => {
                     console.error('Error deleting part', err);
-                    this.showSnackBar('Error deleting part');
+                    this.showSnackBar('Error deleting part', 'error');
                 }
             });
         });
     }
 
-    private showSnackBar(message: string): void {
-        this.snackBar.open(message, 'Close', {
+    private showSnackBar(message: string, tone: ToastTone = 'info'): void {
+        this.toast.open(message, {
+            tone,
             duration: 3000
         });
     }

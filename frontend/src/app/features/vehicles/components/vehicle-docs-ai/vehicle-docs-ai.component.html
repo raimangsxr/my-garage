@@ -11,7 +11,7 @@
         </div>
     </div>
 
-    <mat-tab-group animationDuration="0ms">
+    <mat-tab-group animationDuration="0ms" [selectedIndex]="selectedTabIndex" (selectedIndexChange)="onTabChange($event)">
         <mat-tab label="Documents">
             <div class="tab-panel">
                 <div class="panel-toolbar">
@@ -143,6 +143,33 @@
                 </app-empty-state>
 
                 <div *ngIf="readyDocumentsCount > 0" class="chat-workspace">
+                    <section class="voice-trigger-card mg-surface-card">
+                        <div class="voice-trigger-copy">
+                            <div class="voice-trigger-header">
+                                <h4>Voice activation</h4>
+                                <span class="status-pill" [attr.data-status]="voiceState">{{ voiceState }}</span>
+                            </div>
+                            <p class="voice-trigger-keyword">Wake phrase: <strong>{{ voiceWakePhrase }}</strong></p>
+                            <p class="voice-trigger-status">{{ voiceStatusMessage }}</p>
+                            <p class="voice-trigger-error" *ngIf="voiceErrorMessage">{{ voiceErrorMessage }}</p>
+                        </div>
+
+                        <div class="voice-trigger-actions">
+                            <button
+                                mat-stroked-button
+                                type="button"
+                                color="primary"
+                                [attr.aria-label]="voiceToggleLabel"
+                                (click)="toggleVoiceListening()"
+                                [disabled]="asking">
+                                <mat-icon>
+                                    {{ isVoiceBusy ? 'hearing' : 'mic' }}
+                                </mat-icon>
+                                {{ voiceButtonLabel }}
+                            </button>
+                        </div>
+                    </section>
+
                     <div class="suggested-questions" *ngIf="messages.length === 0">
                         <button
                             mat-stroked-button
@@ -192,7 +219,13 @@
                         </mat-form-field>
 
                         <div class="composer-actions">
-                            <button mat-stroked-button type="button" (click)="chatQuestion = ''" [disabled]="asking || !chatQuestion.trim()">Clear</button>
+                            <button
+                                mat-stroked-button
+                                type="button"
+                                (click)="chatQuestion = ''"
+                                [disabled]="asking || isVoiceBusy || !chatQuestion.trim()">
+                                Clear
+                            </button>
                             <button mat-raised-button color="primary" type="button" (click)="askQuestion()" [disabled]="asking || !chatQuestion.trim()">
                                 <mat-icon>{{ asking ? 'hourglass_top' : 'send' }}</mat-icon>
                                 {{ asking ? 'Asking...' : 'Ask this vehicle' }}

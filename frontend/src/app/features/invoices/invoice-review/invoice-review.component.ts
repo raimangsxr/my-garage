@@ -10,12 +10,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { InvoiceService, InvoiceExtractedData, Invoice } from '../../../core/services/invoice.service';
 import { VehicleService, Vehicle } from '../../../core/services/vehicle.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ImageDialogComponent } from '../../../shared/components/image-dialog/image-dialog.component';
@@ -62,7 +63,7 @@ export class InvoiceReviewComponent implements OnInit {
         private invoiceService: InvoiceService,
         private vehicleService: VehicleService,
         private fb: FormBuilder,
-        private snackBar: MatSnackBar,
+        private toast: ToastService,
         private dialog: MatDialog,
         private confirmDialog: ConfirmDialogService
     ) {
@@ -127,7 +128,7 @@ export class InvoiceReviewComponent implements OnInit {
             },
             error: (err) => {
                 console.error('Error loading extracted data', err);
-                this.snackBar.open('Error loading invoice data', 'Close', { duration: 3000 });
+                this.toast.error('Error loading invoice data');
                 this.loading = false;
             }
         });
@@ -267,20 +268,20 @@ export class InvoiceReviewComponent implements OnInit {
                 this.invoiceService.approveInvoice(this.invoiceId!).subscribe({
                     next: () => {
                         this.approving = false;
-                        this.snackBar.open('Invoice approved successfully!', 'Close', { duration: 3000 });
+                        this.toast.success('Invoice approved successfully!');
                         this.router.navigate(['/invoices']);
                     },
                     error: (err) => {
                         this.approving = false;
                         console.error('Error approving invoice', err);
-                        this.snackBar.open('Error approving invoice', 'Close', { duration: 3000 });
+                        this.toast.error('Error approving invoice');
                     }
                 });
             },
             error: (err) => {
                 this.approving = false;
                 console.error('Error updating data', err);
-                this.snackBar.open('Error saving changes', 'Close', { duration: 3000 });
+                this.toast.error('Error saving changes');
             }
         });
     }
@@ -300,13 +301,13 @@ export class InvoiceReviewComponent implements OnInit {
             this.loading = true;
             this.invoiceService.rejectInvoice(invoiceId).subscribe({
                 next: () => {
-                    this.snackBar.open('Invoice rejected. Re-processing started…', 'Close', { duration: 3000 });
+                    this.toast.warning('Invoice rejected. Re-processing started…');
                     this.router.navigate(['/invoices']);
                 },
                 error: (err) => {
                     this.loading = false;
                     console.error('Error rejecting invoice', err);
-                    this.snackBar.open('Error rejecting invoice', 'Close', { duration: 3000 });
+                    this.toast.error('Error rejecting invoice');
                 }
             });
         });

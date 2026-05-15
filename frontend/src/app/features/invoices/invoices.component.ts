@@ -6,7 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
@@ -19,6 +19,7 @@ import { Maintenance, MaintenanceService } from '../../core/services/maintenance
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { Vehicle, VehicleService } from '../../core/services/vehicle.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { ToastTone, ToastService } from '../../core/services/toast.service';
 import { Subscription } from 'rxjs';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
@@ -72,7 +73,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
     private maintenanceService = inject(MaintenanceService);
     private supplierService = inject(SupplierService);
     private vehicleService = inject(VehicleService);
-    private snackBar = inject(MatSnackBar);
+    private toast = inject(ToastService);
     private router = inject(Router);
     private logger = inject(LoggerService);
     private confirmDialog = inject(ConfirmDialogService);
@@ -143,7 +144,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 this.logger.error('Error loading invoices', err);
-                this.showSnackBar('Error loading invoices');
+                this.showSnackBar('Error loading invoices', 'error');
                 this.isLoading = false;
             }
         });
@@ -204,9 +205,9 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                         // If finished processing, reload everything to ensure consistency
                         if (updatedInv.status !== 'pending' && updatedInv.status !== 'processing') {
                             if (updatedInv.status === 'failed') {
-                                this.showSnackBar(`Processing failed: ${updatedInv.error_message || 'Unknown error'}`);
+                                this.showSnackBar(`Processing failed: ${updatedInv.error_message || 'Unknown error'}`, 'error');
                             } else if (updatedInv.status === 'review') {
-                                this.showSnackBar('Invoice processed and ready for review');
+                                this.showSnackBar('Invoice processed and ready for review', 'success');
                             }
                             this.loadInvoices();
                         }
@@ -244,7 +245,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
 
         this.invoiceService.retryInvoice(invoice.id).subscribe({
             next: () => {
-                this.showSnackBar('Retrying invoice processing...');
+                this.showSnackBar('Retrying invoice processing...', 'info');
                 // Update status locally for immediate feedback
                 invoice.status = 'pending';
                 // Start polling
@@ -252,7 +253,7 @@ export class InvoicesComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 this.logger.error('Error retrying invoice', err);
-                this.showSnackBar('Error retrying invoice');
+                this.showSnackBar('Error retrying invoice', 'error');
             }
         });
     }
@@ -276,11 +277,11 @@ export class InvoicesComponent implements OnInit, OnDestroy {
                         this.pageIndex -= 1;
                     }
                     this.loadInvoices();
-                    this.showSnackBar('Invoice deleted successfully');
+                    this.showSnackBar('Invoice deleted successfully', 'success');
                 },
                 error: (err) => {
                     this.logger.error('Error deleting invoice', err);
-                    this.showSnackBar('Error deleting invoice');
+                    this.showSnackBar('Error deleting invoice', 'error');
                 }
             });
         });
@@ -307,8 +308,9 @@ export class InvoicesComponent implements OnInit, OnDestroy {
         }
     }
 
-    private showSnackBar(message: string): void {
-        this.snackBar.open(message, 'Close', {
+    private showSnackBar(message: string, tone: ToastTone = 'info'): void {
+        this.toast.open(message, {
+            tone,
             duration: 3000
         });
     }

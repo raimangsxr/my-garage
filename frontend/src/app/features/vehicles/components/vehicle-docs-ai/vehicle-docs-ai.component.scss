@@ -66,6 +66,21 @@
     border-color: rgba(211, 47, 47, 0.2);
 }
 
+.status-pill[data-status='armed'],
+.status-pill[data-status='listening'],
+.status-pill[data-status='transcribing'] {
+    background: rgba(255, 193, 7, 0.14);
+    color: #7a5900;
+    border-color: rgba(255, 193, 7, 0.28);
+}
+
+.status-pill[data-status='unsupported'],
+.status-pill[data-status='error'] {
+    background: rgba(211, 47, 47, 0.08);
+    color: var(--danger-color);
+    border-color: rgba(211, 47, 47, 0.2);
+}
+
 .tab-panel {
     padding: 20px 4px 4px;
     display: flex;
@@ -220,6 +235,83 @@
     gap: 16px;
 }
 
+.voice-trigger-card {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    background:
+        linear-gradient(135deg, rgba(26, 35, 126, 0.05), rgba(0, 191, 165, 0.04)),
+        var(--surface-color);
+}
+
+.voice-trigger-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.voice-trigger-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.voice-trigger-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.voice-trigger-keyword,
+.voice-trigger-status,
+.voice-trigger-error {
+    margin: 8px 0 0;
+}
+
+.voice-trigger-keyword,
+.voice-trigger-status {
+    color: var(--text-secondary);
+}
+
+.voice-trigger-error {
+    color: var(--danger-color);
+}
+
+.voice-trigger-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+}
+
+.voice-preview {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px dashed rgba(26, 35, 126, 0.24);
+    background: rgba(26, 35, 126, 0.04);
+}
+
+.voice-preview-label {
+    display: inline-flex;
+    margin-bottom: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+    color: var(--primary-color);
+}
+
+.voice-preview p {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--text-primary);
+}
+
 .chat-message[data-role='user'] {
     background: rgba(26, 35, 126, 0.05);
 }
@@ -257,13 +349,23 @@
     .panel-toolbar,
     .chat-config,
     .document-card,
-    .chat-message {
+    .chat-message,
+    .voice-trigger-card {
         flex-direction: column;
     }
 
     .document-actions {
         min-width: 0;
         justify-content: flex-start;
+    }
+
+    .voice-trigger-actions {
+        width: 100%;
+        justify-content: stretch;
+    }
+
+    .voice-trigger-actions button {
+        width: 100%;
     }
 
     .message-label {

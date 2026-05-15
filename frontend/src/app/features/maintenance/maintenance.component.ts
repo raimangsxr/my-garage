@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatExpansionModule } from '@angular/material/expansion';
 import { MatSort, MatSortModule, Sort } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule, PageEvent } from '@angular/material/paginator';
@@ -17,6 +17,7 @@ import { VehicleService, Vehicle } from '../../core/services/vehicle.service';
 import { Supplier, SupplierService } from '../../core/services/supplier.service';
 import { MaintenanceDialogComponent } from './maintenance-dialog/maintenance-dialog.component';
 import { LoggerService } from '../../core/services/logger.service';
+import { ToastTone, ToastService } from '../../core/services/toast.service';
 import { PageLoaderComponent } from '../../shared/components/page-loader/page-loader.component';
 import { ConfirmDialogService } from '../../shared/components/confirm-dialog/confirm-dialog.service';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
@@ -49,7 +50,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
     private vehicleService = inject(VehicleService);
     private supplierService = inject(SupplierService);
     private dialog = inject(MatDialog);
-    private snackBar = inject(MatSnackBar);
+    private toast = inject(ToastService);
     private logger = inject(LoggerService);
     private confirmDialog = inject(ConfirmDialogService);
 
@@ -112,7 +113,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 this.logger.error('Error loading vehicles', err);
-                this.showSnackBar('Error loading vehicles');
+                this.showSnackBar('Error loading vehicles', 'error');
             }
         });
     }
@@ -145,7 +146,7 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             },
             error: (err) => {
                 this.logger.error('Error loading maintenances', err);
-                this.showSnackBar('Error loading maintenances');
+                this.showSnackBar('Error loading maintenances', 'error');
                 this.isLoading = false;
             }
         });
@@ -210,11 +211,11 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
             next: () => {
                 this.pageIndex = 0;
                 this.loadMaintenances();
-                this.showSnackBar('Maintenance record created successfully');
+                this.showSnackBar('Maintenance record created successfully', 'success');
             },
             error: (err) => {
                 this.logger.error('Error creating maintenance', err);
-                this.showSnackBar('Error creating maintenance');
+                this.showSnackBar('Error creating maintenance', 'error');
             }
         });
     }
@@ -223,11 +224,11 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
         this.maintenanceService.updateMaintenance(id, maintenance).subscribe({
             next: () => {
                 this.loadMaintenances();
-                this.showSnackBar('Maintenance record updated successfully');
+                this.showSnackBar('Maintenance record updated successfully', 'success');
             },
             error: (err) => {
                 this.logger.error('Error updating maintenance', err);
-                this.showSnackBar('Error updating maintenance');
+                this.showSnackBar('Error updating maintenance', 'error');
             }
         });
     }
@@ -247,18 +248,19 @@ export class MaintenanceComponent implements OnInit, OnDestroy {
                         this.pageIndex -= 1;
                     }
                     this.loadMaintenances();
-                    this.showSnackBar('Maintenance record deleted successfully');
+                    this.showSnackBar('Maintenance record deleted successfully', 'success');
                 },
                 error: (err) => {
                     this.logger.error('Error deleting maintenance', err);
-                    this.showSnackBar('Error deleting maintenance');
+                    this.showSnackBar('Error deleting maintenance', 'error');
                 }
             });
         });
     }
 
-    private showSnackBar(message: string): void {
-        this.snackBar.open(message, 'Close', {
+    private showSnackBar(message: string, tone: ToastTone = 'info'): void {
+        this.toast.open(message, {
+            tone,
             duration: 3000,
         });
     }

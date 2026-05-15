@@ -1,18 +1,18 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject } from '@angular/core';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
 import { fromEvent, interval, merge, Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 
 import { LoggerService } from './logger.service';
+import { ToastService } from './toast.service';
 
 @Injectable({
     providedIn: 'root'
 })
 export class PwaService {
     private readonly updates = inject(SwUpdate);
-    private readonly snackBar = inject(MatSnackBar);
+    private readonly toast = inject(ToastService);
     private readonly logger = inject(LoggerService);
     private readonly document = inject(DOCUMENT);
 
@@ -49,14 +49,13 @@ export class PwaService {
                 this.currentConnectivityState = nextState;
                 const isOffline = nextState === 'offline';
 
-                this.snackBar.open(
+                this.toast.open(
                     isOffline
                         ? 'You are offline. Cached screens remain available.'
                         : 'Connection restored.',
-                    'Close',
                     {
                         duration: isOffline ? 5000 : 3000,
-                        panelClass: [isOffline ? 'warning-snackbar' : 'success-snackbar']
+                        tone: isOffline ? 'warning' : 'success'
                     }
                 );
             })
@@ -77,9 +76,11 @@ export class PwaService {
         this.subscriptions.add(
             this.updates.unrecoverable.subscribe((event) => {
                 this.logger.error('Unrecoverable service worker state', event.reason);
-                const snackBarRef = this.snackBar.open(
+                const snackBarRef = this.toast.error(
                     'The app needs to reload to recover.',
-                    'Reload'
+                    {
+                        action: 'Reload'
+                    }
                 );
                 snackBarRef.onAction().subscribe(() => this.reloadPage());
             })
@@ -109,12 +110,11 @@ export class PwaService {
 
         this.updatePromptShown = true;
 
-        const snackBarRef = this.snackBar.open(
+        const snackBarRef = this.toast.info(
             'A new version of My Garage is ready.',
-            'Reload',
             {
+                action: 'Reload',
                 duration: 0,
-                panelClass: ['info-snackbar']
             }
         );
 

@@ -6,9 +6,10 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { AuthService } from '../../core/services/auth.service';
 import { Subscription } from 'rxjs';
+import { ToastService } from '../../core/services/toast.service';
 
 @Component({
     selector: 'app-login',
@@ -33,7 +34,7 @@ export class LoginComponent implements OnDestroy {
 
     private fb = inject(FormBuilder);
     private authService = inject(AuthService);
-    private snackBar = inject(MatSnackBar);
+    private toast = inject(ToastService);
     private subscriptions = new Subscription();
 
     constructor() {
@@ -59,9 +60,8 @@ export class LoginComponent implements OnDestroy {
                     },
                     error: (err) => {
                         this.isLoading = false;
-                        this.snackBar.open('Login failed. Please check your credentials.', 'Close', {
-                            duration: 3000,
-                            panelClass: ['error-snackbar']
+                        this.toast.error('Login failed. Please check your credentials.', {
+                            duration: 3000
                         });
                     }
                 })

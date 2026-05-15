@@ -4,10 +4,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
 import { GoogleAuthService } from '../../../core/services/google-auth.service';
 import { InvoiceService } from '../../../core/services/invoice.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { GoogleSignInComponent } from '../../../shared/components/google-sign-in/google-sign-in.component';
 import { SafeUrlPipe } from '../../../shared/pipes/safe-url.pipe';
 
@@ -38,7 +39,7 @@ export class InvoiceUploadComponent implements OnInit {
     constructor(
         private googleAuthService: GoogleAuthService,
         private invoiceService: InvoiceService,
-        private snackBar: MatSnackBar,
+        private toast: ToastService,
         private router: Router
     ) { }
 
@@ -82,13 +83,13 @@ export class InvoiceUploadComponent implements OnInit {
         // Validate file type
         const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
         if (!validTypes.includes(file.type)) {
-            this.snackBar.open('Invalid file type. Please upload PDF or Image.', 'Close', { duration: 3000 });
+            this.toast.error('Invalid file type. Please upload PDF or Image.');
             return;
         }
 
         // Validate file size (10MB)
         if (file.size > 10 * 1024 * 1024) {
-            this.snackBar.open('File too large. Maximum size is 10MB.', 'Close', { duration: 3000 });
+            this.toast.error('File too large. Maximum size is 10MB.');
             return;
         }
 
@@ -113,14 +114,14 @@ export class InvoiceUploadComponent implements OnInit {
         this.invoiceService.uploadInvoice(this.selectedFile).subscribe({
             next: (invoice) => {
                 this.uploading = false;
-                this.snackBar.open('Invoice uploaded successfully! Processing...', 'Close', { duration: 3000 });
+                this.toast.success('Invoice uploaded successfully! Processing...');
                 // Navigate to the list or detail to see progress
                 this.router.navigate(['/invoices']);
             },
             error: (err) => {
                 this.uploading = false;
                 console.error('Upload failed', err);
-                this.snackBar.open('Upload failed. Please try again.', 'Close', { duration: 3000 });
+                this.toast.error('Upload failed. Please try again.');
             }
         });
     }
