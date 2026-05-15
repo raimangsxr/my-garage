@@ -6,7 +6,7 @@ Fecha: 2026-05-13
 
 ## Enfoque
 
-Extender el modelo documental con metadatos de progreso persistido, usar eventos de progreso del cliente HTTP para la subida multipart y endurecer el pipeline backend para tolerar borrados concurrentes. La solución mantendrá el procesamiento actual en background, pero hará explícitas sus fases y tratará la eliminación como cancelación lógica antes de la limpieza física y relacional.
+Extender el modelo documental con metadatos de progreso persistido, usar eventos de progreso del cliente HTTP para la subida multipart y endurecer el pipeline backend para tolerar borrados concurrentes. En frontend, el polling pasará a ser silencioso y limitado a documentos, evitando loaders globales, y se retirará temporalmente la pestaña `Knowledge` para concentrar el valor en `Documents` y `Ask`.
 
 ## Impacto por Capa
 
@@ -56,6 +56,7 @@ Extender el modelo documental con metadatos de progreso persistido, usar eventos
 | `VehicleDocumentResponse` | añade metadatos de progreso y detalle | frontend | compatible aditivo |
 | `uploadDocument` frontend | pasa a observar eventos HTTP para reportar progreso | frontend | compatible interno |
 | `DELETE /vehicle-documents/{id}` | trata el borrado como cancelación segura además de limpieza | frontend/backend | compatible |
+| `vehicle-docs-ai` | retira `Knowledge` y hace polling silencioso de documentos | frontend | compatible visual |
 
 ## Estrategia de Implementación
 
@@ -66,7 +67,10 @@ Extender el modelo documental con metadatos de progreso persistido, usar eventos
 5. Endurecer `delete_vehicle_document` para marcar cancelación, limpiar dependencias y tolerar ausencia del fichero.
 6. Cambiar el servicio Angular para observar eventos de subida.
 7. Añadir estado local de uploads en progreso y mostrarlo en la UI con progreso, fase y errores persistidos.
-8. Añadir o actualizar tests.
+8. Cambiar el polling a refresh silencioso y granular solo sobre documentos.
+9. Retirar la pestaña `Knowledge` y su refresco asociado de la UI principal.
+10. Asegurar que las citas de `Ask` construyen la URL con página para PDFs.
+11. Añadir o actualizar tests.
 
 ## Estrategia de Pruebas
 
@@ -78,12 +82,14 @@ Extender el modelo documental con metadatos de progreso persistido, usar eventos
   - delete de documento en `uploaded/indexing/failed/ready`
   - serialización del nuevo contrato
 - Frontend:
-  - mapeo de eventos `HttpEventType.UploadProgress`
-  - render de banners/tarjetas con progreso
+  - progreso de subida
+  - refresh silencioso sin loaders globales
+  - apertura de citas en página concreta
 - Manual/UI:
   - subida de PDF grande
   - reindexado que falle
   - borrado de documento mientras indexa
+  - click en cita de `Ask` con página
 - Migración:
   - aplicar migración hacia delante y comprobar defaults
 
@@ -94,7 +100,7 @@ Extender el modelo documental con metadatos de progreso persistido, usar eventos
 - El progreso de procesamiento no será exacto al byte:
   mitigación: comunicar fases y porcentaje aproximado, no ETA exacto.
 - La UI puede recargar demasiado por polling:
-  mitigación: reutilizar el polling existente solo cuando haya documentos activos.
+  mitigación: hacer polling silencioso, fusionar por `id` y evitar loaders durante refresh automático.
 
 ## Rollback
 

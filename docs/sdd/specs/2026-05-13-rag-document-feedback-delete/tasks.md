@@ -17,6 +17,9 @@ Plan: ./plan.md
 - [x] Crear migración Alembic para nuevos campos.
 - [x] Implementar progreso de subida en frontend.
 - [x] Mostrar progreso de procesamiento y errores persistidos en UI.
+- [x] Hacer el polling silencioso y limitado a documentos activos.
+- [x] Retirar la pestaña `Knowledge` del modo `Docs & AI`.
+- [x] Asegurar apertura de citas en la página concreta del PDF.
 - [x] Añadir o actualizar pruebas.
 - [x] Actualizar documentación SDD si cambia el alcance.
 
