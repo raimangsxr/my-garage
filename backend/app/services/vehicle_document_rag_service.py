@@ -21,6 +21,10 @@ from app.models import Invoice, Vehicle, VehicleDocument, VehicleDocumentChunk, 
 logger = logging.getLogger(__name__)
 
 
+class DocumentDeletedError(Exception):
+    """Raised when a document disappears while an async processor is still running."""
+
+
 @dataclass
 class ParsedDocumentPage:
     page_number: int
@@ -74,21 +78,27 @@ class VehicleDocumentRAGService:
             raise ValueError("Gemini API key not configured")
         genai.configure(api_key=api_key)
 
-    def process_document(self, *, session: Session, document_id: int, gemini_api_key: str) -> VehicleDocument:
-        document = session.get(VehicleDocument, document_id)
-        if not document:
-            raise ValueError("Vehicle document not found")
-
-        document.status = "indexing"
-        document.error_message = None
-        document.updated_at = self._utcnow()
-        session.add(document)
-        session.commit()
-        session.refresh(document)
-
+    def process_document(self, *, session: Session, document_id: int, gemini_api_key: str) -> VehicleDocument | None:
         try:
+            document = self._update_document_processing_state(
+                session=session,
+                document_id=document_id,
+                status="indexing",
+                progress=5,
+                stage="starting",
+                detail="Preparing document for indexing.",
+                error_message=None,
+            )
             file_path = self.resolve_file_path(document.file_url)
             pages = self.parse_document(file_path=file_path, mime_type=document.mime_type, api_key=gemini_api_key)
+            self._update_document_processing_state(
+                session=session,
+                document_id=document_id,
+                status="indexing",
+                progress=45,
+                stage="extracting_text",
+                detail="Text extracted. Preparing chunks for retrieval.",
+            )
             extracted_text = "\n\n".join(
                 f"[Page {page.page_number}]\n{page.text.strip()}" for page in pages if page.text.strip()
             ).strip()
@@ -97,24 +107,42 @@ class VehicleDocumentRAGService:
 
             self._delete_existing_chunks_and_facts(session=session, document_id=document.id)
 
+            document = self._get_document_or_raise(session=session, document_id=document_id)
             chunks = self._build_chunks(document=document, pages=pages)
             for chunk in chunks:
                 session.add(chunk)
+            session.commit()
 
+            self._update_document_processing_state(
+                session=session,
+                document_id=document_id,
+                status="indexing",
+                progress=78,
+                stage="chunking",
+                detail=f"{len(chunks)} chunks indexed. Finalizing document knowledge.",
+            )
+
+            document = self._get_document_or_raise(session=session, document_id=document_id)
             document.extracted_text = extracted_text
             document.chunk_count = len(chunks)
-            document.status = "ready"
-            document.indexed_at = self._utcnow()
-            document.updated_at = self._utcnow()
             session.add(document)
             session.commit()
 
             if gemini_api_key:
+                self._update_document_processing_state(
+                    session=session,
+                    document_id=document_id,
+                    status="indexing",
+                    progress=90,
+                    stage="knowledge",
+                    detail="Extracting derived knowledge facts.",
+                )
                 facts = self.extract_knowledge_facts(
                     document=document,
                     extracted_text=extracted_text,
                     api_key=gemini_api_key,
                 )
+                self._get_document_or_raise(session=session, document_id=document_id)
                 for fact in facts:
                     session.add(fact)
 
@@ -124,14 +152,35 @@ class VehicleDocumentRAGService:
                     "Skipping knowledge fact extraction because Gemini API key is not configured",
                     extra={"document_id": document.id},
                 )
+            document = self._update_document_processing_state(
+                session=session,
+                document_id=document_id,
+                status="ready",
+                progress=100,
+                stage="ready",
+                detail="Document indexed and ready for chat.",
+            )
+            document = self._get_document_or_raise(session=session, document_id=document_id)
+            document.indexed_at = self._utcnow()
+            session.add(document)
+            session.commit()
             session.refresh(document)
             return document
+        except DocumentDeletedError:
+            session.rollback()
+            logger.info(
+                "Vehicle document processing aborted because the document was deleted",
+                extra={"document_id": document_id},
+            )
+            return None
         except Exception as exc:
             session.rollback()
             document = session.get(VehicleDocument, document_id)
             if document:
                 document.status = "failed"
                 document.error_message = str(exc)
+                document.processing_stage = "failed"
+                document.processing_detail = "Processing failed. Review the error message and retry."
                 document.updated_at = self._utcnow()
                 session.add(document)
                 session.commit()
@@ -447,6 +496,9 @@ Sources:
     def resolve_file_path(self, file_url: str) -> str:
         return self.storage_service.resolve_file_path(file_url)
 
+    def delete_document_artifacts(self, *, session: Session, document_id: int) -> None:
+        self._delete_existing_chunks_and_facts(session=session, document_id=document_id)
+
     def tokenize(self, text: str) -> List[str]:
         return re.findall(r"[a-zA-Z0-9]{2,}", text.lower())
 
@@ -489,6 +541,39 @@ Sources:
         for row in chunk_rows + fact_rows:
             session.delete(row)
         session.commit()
+
+    def _get_document_or_raise(self, *, session: Session, document_id: int) -> VehicleDocument:
+        document = session.get(VehicleDocument, document_id)
+        if not document or getattr(document, "deletion_requested", False):
+            raise DocumentDeletedError(f"Vehicle document {document_id} was deleted during processing")
+        return document
+
+    def _update_document_processing_state(
+        self,
+        *,
+        session: Session,
+        document_id: int,
+        status: Optional[str] = None,
+        progress: Optional[int] = None,
+        stage: Optional[str] = None,
+        detail: Optional[str] = None,
+        error_message: Optional[str] = None,
+    ) -> VehicleDocument:
+        document = self._get_document_or_raise(session=session, document_id=document_id)
+        if status is not None:
+            document.status = status
+        if progress is not None:
+            document.processing_progress = max(0, min(100, progress))
+        if stage is not None:
+            document.processing_stage = stage
+        if detail is not None:
+            document.processing_detail = detail
+        document.error_message = error_message
+        document.updated_at = self._utcnow()
+        session.add(document)
+        session.commit()
+        session.refresh(document)
+        return document
 
     def _retrieve_invoice_sources(self, *, session: Session, vehicle: Vehicle, question: str) -> List[RetrievedSource]:
         invoices = session.exec(

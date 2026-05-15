@@ -37,6 +37,9 @@ class VehicleDocumentResponse(BaseModel):
     included_in_rag: bool
     error_message: Optional[str] = None
     chunk_count: int
+    processing_progress: int
+    processing_stage: Optional[str] = None
+    processing_detail: Optional[str] = None
     indexed_at: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
@@ -140,6 +143,9 @@ async def upload_vehicle_document(
         file_url=file_url,
         file_name=file.filename,
         status="uploaded",
+        processing_progress=0,
+        processing_stage="uploaded",
+        processing_detail="Upload complete. Waiting for indexing to start.",
     )
     db.add(document)
     db.commit()
@@ -187,6 +193,18 @@ def delete_vehicle_document(
         raise HTTPException(status_code=404, detail="Vehicle document not found")
 
     file_path = rag_service.resolve_file_path(document.file_url)
+    document.deletion_requested = True
+    document.processing_stage = "deleting"
+    document.processing_detail = "Deletion requested. Cleaning indexed artifacts."
+    document.updated_at = datetime.utcnow()
+    db.add(document)
+    db.commit()
+
+    rag_service.delete_document_artifacts(session=db, document_id=document_id)
+    document = db.get(VehicleDocument, document_id)
+    if not document:
+        storage_service.delete_file(file_path)
+        return {"message": "Vehicle document deleted successfully"}
     db.delete(document)
     db.commit()
     storage_service.delete_file(file_path)
@@ -209,6 +227,9 @@ def reindex_vehicle_document(
 
     document.status = "uploaded"
     document.error_message = None
+    document.processing_progress = 0
+    document.processing_stage = "uploaded"
+    document.processing_detail = "Reindex requested. Waiting to restart processing."
     document.updated_at = datetime.utcnow()
     db.add(document)
     db.commit()
@@ -370,6 +391,9 @@ def _serialize_document(document: VehicleDocument) -> VehicleDocumentResponse:
         included_in_rag=document.included_in_rag,
         error_message=document.error_message,
         chunk_count=document.chunk_count,
+        processing_progress=document.processing_progress,
+        processing_stage=document.processing_stage,
+        processing_detail=document.processing_detail,
         indexed_at=document.indexed_at,
         created_at=document.created_at,
         updated_at=document.updated_at,

@@ -39,11 +39,35 @@
                 <app-page-loader *ngIf="loadingDocuments" icon="description" message="Loading vehicle documents..." minHeight="220px"></app-page-loader>
 
                 <app-empty-state
-                    *ngIf="!loadingDocuments && documents.length === 0"
+                    *ngIf="!loadingDocuments && documents.length === 0 && pendingUploads.length === 0"
                     icon="description"
                     message="No vehicle documents yet"
                     description="Upload an owner manual, workshop manual or related paperwork to start building knowledge for this vehicle.">
                 </app-empty-state>
+
+                <div class="pending-upload-list" *ngIf="!loadingDocuments && pendingUploads.length > 0">
+                    <article class="document-card mg-surface-card pending-upload-card" *ngFor="let upload of pendingUploads; trackBy: trackByPendingUpload">
+                        <div class="document-main">
+                            <div class="document-title-row">
+                                <h4>{{ upload.fileName }}</h4>
+                                <span class="status-pill" [attr.data-status]="upload.status">{{ upload.status }}</span>
+                            </div>
+                            <div class="document-progress-copy">
+                                <span *ngIf="upload.status === 'uploading'">Uploading file to the server</span>
+                                <span *ngIf="upload.status === 'failed'">{{ upload.errorMessage || 'Upload failed' }}</span>
+                            </div>
+                            <mat-progress-bar [mode]="upload.status === 'uploading' ? 'determinate' : 'determinate'" [value]="upload.status === 'uploading' ? upload.progress : 100"></mat-progress-bar>
+                            <p class="document-error" *ngIf="upload.status === 'failed'">{{ upload.errorMessage }}</p>
+                        </div>
+
+                        <div class="document-actions">
+                            <button mat-stroked-button color="warn" *ngIf="upload.status === 'failed'" (click)="dismissPendingUpload(upload.id)">
+                                <mat-icon>close</mat-icon>
+                                Dismiss
+                            </button>
+                        </div>
+                    </article>
+                </div>
 
                 <div class="document-list" *ngIf="!loadingDocuments && documents.length > 0">
                     <div class="indexing-banner" *ngIf="indexingDocumentsCount > 0">
@@ -62,25 +86,33 @@
                                 <span *ngIf="document.indexed_at">Indexed {{ document.indexed_at | date:'short' }}</span>
                                 <span *ngIf="document.file_name">{{ document.file_name }}</span>
                             </div>
+                            <div class="document-progress" *ngIf="document.status !== 'ready'">
+                                <div class="document-progress-copy">
+                                    <span>{{ getDocumentStageLabel(document) }}</span>
+                                    <span>{{ getDocumentProgress(document) }}%</span>
+                                </div>
+                                <mat-progress-bar mode="determinate" [value]="getDocumentProgress(document)"></mat-progress-bar>
+                                <p class="document-progress-detail">{{ getDocumentProgressDetail(document) }}</p>
+                            </div>
                             <p class="document-error" *ngIf="document.error_message">{{ document.error_message }}</p>
                         </div>
 
                         <div class="document-actions">
-                            <button mat-stroked-button (click)="openSource(document.file_url)">
+                            <button mat-stroked-button (click)="openSource(document.file_url)" [disabled]="isDeletingDocument(document.id)">
                                 <mat-icon>open_in_new</mat-icon>
                                 Open
                             </button>
-                            <button mat-stroked-button (click)="toggleDocumentInChat(document)">
+                            <button mat-stroked-button (click)="toggleDocumentInChat(document)" [disabled]="isDeletingDocument(document.id)">
                                 <mat-icon>{{ document.included_in_rag ? 'visibility_off' : 'visibility' }}</mat-icon>
                                 {{ document.included_in_rag ? 'Exclude from chat' : 'Include in chat' }}
                             </button>
-                            <button mat-stroked-button (click)="reindexDocument(document)">
+                            <button mat-stroked-button (click)="reindexDocument(document)" [disabled]="isDeletingDocument(document.id)">
                                 <mat-icon>refresh</mat-icon>
                                 Reindex
                             </button>
-                            <button mat-stroked-button color="warn" (click)="deleteDocument(document)">
-                                <mat-icon>delete</mat-icon>
-                                Delete
+                            <button mat-stroked-button color="warn" (click)="deleteDocument(document)" [disabled]="isDeletingDocument(document.id)">
+                                <mat-icon>{{ isDeletingDocument(document.id) ? 'hourglass_top' : 'delete' }}</mat-icon>
+                                {{ isDeletingDocument(document.id) ? 'Deleting...' : 'Delete' }}
                             </button>
                         </div>
                     </article>

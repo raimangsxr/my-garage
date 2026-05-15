@@ -36,9 +36,13 @@ class VehicleDocumentBase(SQLModel):
     file_name: Optional[str] = None
     status: str = Field(default=VehicleDocumentStatus.UPLOADED.value, index=True)
     included_in_rag: bool = Field(default=True, index=True)
+    deletion_requested: bool = Field(default=False)
     extracted_text: Optional[str] = Field(default=None, sa_column=Column(Text))
     error_message: Optional[str] = Field(default=None, sa_column=Column(Text))
     chunk_count: int = Field(default=0)
+    processing_progress: int = Field(default=0)
+    processing_stage: Optional[str] = None
+    processing_detail: Optional[str] = Field(default=None, sa_column=Column(Text))
     indexed_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime(timezone=False)))
 
 

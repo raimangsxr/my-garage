@@ -3,6 +3,7 @@ import { Component, Input, OnDestroy, OnInit, ViewChild, ElementRef, inject } fr
 import { FormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -16,6 +17,7 @@ import { Subscription, interval } from 'rxjs';
 import {
     VehicleChatResponse,
     VehicleDocument,
+    VehicleDocumentUploadEvent,
     VehicleDocumentType,
     VehicleKnowledgeFact,
     VehicleRagService
@@ -31,6 +33,14 @@ interface ChatMessage {
     response?: VehicleChatResponse;
 }
 
+interface PendingUpload {
+    id: string;
+    fileName: string;
+    progress: number;
+    status: 'uploading' | 'failed';
+    errorMessage?: string;
+}
+
 @Component({
     selector: 'app-vehicle-docs-ai',
     standalone: true,
@@ -39,6 +49,7 @@ interface ChatMessage {
         FormsModule,
         MatButtonModule,
         MatIconModule,
+        MatProgressBarModule,
         MatSnackBarModule,
         MatTabsModule,
         MatFormFieldModule,
@@ -63,12 +74,14 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
     private confirmDialog = inject(ConfirmDialogService);
     private pollingSubscription?: Subscription;
     private lastKnownStatuses = new Map<number, string>();
+    private deletingDocumentIds = new Set<number>();
 
     loadingDocuments = false;
     loadingKnowledge = false;
     asking = false;
     documents: VehicleDocument[] = [];
     knowledge: VehicleKnowledgeFact[] = [];
+    pendingUploads: PendingUpload[] = [];
     selectedDocumentType: VehicleDocumentType = 'owner_manual';
     includeHiddenKnowledge = false;
     chatQuestion = '';
@@ -152,10 +165,21 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
 
         let remaining = files.length;
         files.forEach((file) => {
+            const uploadId = this.createPendingUpload(file);
             this.ragService.uploadDocument(this.vehicleId, file, this.selectedDocumentType)
                 .subscribe({
-                    next: () => {
+                    next: (event: VehicleDocumentUploadEvent) => {
+                        if (event.type === 'progress') {
+                            this.updatePendingUpload(uploadId, {
+                                progress: Math.max(1, event.progress),
+                                status: 'uploading'
+                            });
+                            return;
+                        }
+
                         remaining -= 1;
+                        this.removePendingUpload(uploadId);
+                        this.upsertDocument(event.document);
                         if (remaining === 0) {
                             this.loadDocuments();
                         }
@@ -164,6 +188,11 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
                     error: (error) => {
                         remaining -= 1;
                         this.logger.error('Error uploading vehicle document', error);
+                        this.updatePendingUpload(uploadId, {
+                            progress: 0,
+                            status: 'failed',
+                            errorMessage: error?.error?.detail || `Error uploading ${file.name}`
+                        });
                         this.showSnackBar(error?.error?.detail || `Error uploading ${file.name}`);
                     }
                 });
@@ -210,17 +239,22 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
                 return;
             }
 
-            this.ragService.deleteDocument(document.id).subscribe({
-                next: () => {
-                    this.showSnackBar('Document deleted');
-                    this.loadDocuments();
-                    this.loadKnowledge();
-                },
-                error: (error) => {
-                    this.logger.error('Error deleting document', error);
-                    this.showSnackBar('Error deleting document');
-                }
-            });
+            this.deletingDocumentIds.add(document.id);
+            this.ragService.deleteDocument(document.id)
+                .pipe(finalize(() => this.deletingDocumentIds.delete(document.id)))
+                .subscribe({
+                    next: () => {
+                        this.showSnackBar('Document deleted');
+                        this.documents = this.documents.filter((item) => item.id !== document.id);
+                        this.lastKnownStatuses.delete(document.id);
+                        this.loadDocuments();
+                        this.loadKnowledge();
+                    },
+                    error: (error) => {
+                        this.logger.error('Error deleting document', error);
+                        this.showSnackBar(error?.error?.detail || 'Error deleting document');
+                    }
+                });
         });
     }
 
@@ -321,8 +355,45 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         return this.documents.filter((document) => document.status === 'uploaded' || document.status === 'indexing').length;
     }
 
+    isDeletingDocument(documentId: number): boolean {
+        return this.deletingDocumentIds.has(documentId);
+    }
+
+    dismissPendingUpload(uploadId: string): void {
+        this.removePendingUpload(uploadId);
+    }
+
+    getDocumentProgress(document: VehicleDocument): number {
+        if (document.status === 'ready') {
+            return 100;
+        }
+        return Math.max(0, Math.min(100, document.processing_progress ?? 0));
+    }
+
+    getDocumentStageLabel(document: VehicleDocument): string {
+        const stage = document.processing_stage || document.status;
+        const labels: Record<string, string> = {
+            uploaded: 'Uploaded',
+            starting: 'Starting',
+            extracting_text: 'Extracting text',
+            chunking: 'Building chunks',
+            knowledge: 'Extracting knowledge',
+            ready: 'Ready',
+            failed: 'Failed'
+        };
+        return labels[stage] || stage.replace(/_/g, ' ');
+    }
+
+    getDocumentProgressDetail(document: VehicleDocument): string {
+        return document.processing_detail || this.getDocumentStageLabel(document);
+    }
+
     trackByDocumentId(index: number, document: VehicleDocument): number {
         return document.id;
+    }
+
+    trackByPendingUpload(index: number, upload: PendingUpload): string {
+        return upload.id;
     }
 
     trackByKnowledgeId(index: number, fact: VehicleKnowledgeFact): number {
@@ -365,6 +436,40 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
             }
             this.lastKnownStatuses.set(document.id, document.status);
         }
+    }
+
+    private createPendingUpload(file: File): string {
+        const uploadId = `${file.name}-${file.size}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        this.pendingUploads = [
+            {
+                id: uploadId,
+                fileName: file.name,
+                progress: 0,
+                status: 'uploading'
+            },
+            ...this.pendingUploads
+        ];
+        return uploadId;
+    }
+
+    private updatePendingUpload(uploadId: string, patch: Partial<PendingUpload>): void {
+        this.pendingUploads = this.pendingUploads.map((upload) => (
+            upload.id === uploadId ? { ...upload, ...patch } : upload
+        ));
+    }
+
+    private removePendingUpload(uploadId: string): void {
+        this.pendingUploads = this.pendingUploads.filter((upload) => upload.id !== uploadId);
+    }
+
+    private upsertDocument(document: VehicleDocument): void {
+        const existingIndex = this.documents.findIndex((item) => item.id === document.id);
+        if (existingIndex === -1) {
+            this.documents = [document, ...this.documents];
+            return;
+        }
+
+        this.documents = this.documents.map((item) => item.id === document.id ? document : item);
     }
 
     private buildSourceUrl(fileUrl?: string | null, pageNumber?: number | null): string | null | undefined {
