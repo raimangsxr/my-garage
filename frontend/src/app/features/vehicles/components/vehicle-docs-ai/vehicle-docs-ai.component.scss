@@ -96,6 +96,7 @@
 }
 
 .document-list,
+.pending-upload-list,
 .knowledge-list,
 .chat-log {
     display: flex;
@@ -176,14 +177,44 @@
 }
 
 .document-error,
+.document-progress-detail,
 .knowledge-content,
 .chat-confidence,
 .knowledge-excerpt {
     margin: 12px 0 0;
 }
 
+.document-progress {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.document-progress-copy {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.document-progress-detail {
+    color: var(--text-secondary);
+}
+
 .document-error {
     color: var(--danger-color);
+}
+
+.pending-upload-card {
+    border-style: dashed;
+}
+
+.status-pill[data-status='uploading'] {
+    background: rgba(26, 35, 126, 0.08);
+    color: var(--primary-color);
+    border-color: rgba(26, 35, 126, 0.2);
 }
 
 .knowledge-content {

@@ -1,6 +1,6 @@
 from types import SimpleNamespace
 
-from app.services.vehicle_document_rag_service import VehicleDocumentRAGService
+from app.services.vehicle_document_rag_service import ParsedDocumentPage, VehicleDocumentRAGService
 
 
 def test_answer_question_returns_spanish_fallback_when_no_sources(monkeypatch):
@@ -65,3 +65,72 @@ def test_distance_to_similarity_clamps_invalid_values():
     assert service._distance_to_similarity(0.2) == 0.8
     assert service._distance_to_similarity(1.4) == 0.0
     assert service._distance_to_similarity(None) == 0.0
+
+
+class FakeExecResult:
+    def all(self):
+        return []
+
+
+class FakeSession:
+    def __init__(self, document):
+        self.document = document
+        self.deleted = False
+
+    def get(self, model, document_id):
+        if self.deleted:
+            return None
+        return self.document if self.document.id == document_id else None
+
+    def add(self, obj):
+        return None
+
+    def commit(self):
+        return None
+
+    def refresh(self, obj):
+        return None
+
+    def rollback(self):
+        return None
+
+    def delete(self, obj):
+        return None
+
+    def exec(self, statement):
+        return FakeExecResult()
+
+
+def test_process_document_stops_cleanly_when_document_is_deleted_mid_processing(monkeypatch):
+    service = VehicleDocumentRAGService()
+    document = SimpleNamespace(
+        id=7,
+        vehicle_id=5,
+        file_url="/media/vehicle-documents/manual.pdf",
+        mime_type="application/pdf",
+        status="uploaded",
+        error_message=None,
+        updated_at=None,
+        extracted_text=None,
+        chunk_count=0,
+        indexed_at=None,
+        processing_progress=0,
+        processing_stage="uploaded",
+        processing_detail="Upload complete. Waiting for indexing to start.",
+        title="Manual",
+        file_name="manual.pdf",
+    )
+    session = FakeSession(document)
+
+    monkeypatch.setattr(service, "resolve_file_path", lambda file_url: "/tmp/manual.pdf")
+
+    def fake_parse_document(**kwargs):
+        session.deleted = True
+        return [ParsedDocumentPage(page_number=1, text="Torque spec 120 Nm")]
+
+    monkeypatch.setattr(service, "parse_document", fake_parse_document)
+    monkeypatch.setattr(service, "extract_knowledge_facts", lambda **kwargs: [])
+
+    result = service.process_document(session=session, document_id=document.id, gemini_api_key="fake-key")
+
+    assert result is None

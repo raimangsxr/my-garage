@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { buildApiUrl } from '../utils/api-url.util';
 
@@ -25,10 +25,17 @@ export interface VehicleDocument {
     included_in_rag: boolean;
     error_message?: string | null;
     chunk_count: number;
+    processing_progress: number;
+    processing_stage?: string | null;
+    processing_detail?: string | null;
     indexed_at?: string | null;
     created_at: string;
     updated_at: string;
 }
+
+export type VehicleDocumentUploadEvent =
+    | { type: 'progress'; progress: number }
+    | { type: 'completed'; document: VehicleDocument };
 
 export interface VehicleKnowledgeFact {
     id: number;
@@ -83,14 +90,70 @@ export class VehicleRagService {
         return this.http.get<VehicleDocument[]>(`${this.apiUrl}/vehicles/${vehicleId}/documents`);
     }
 
-    uploadDocument(vehicleId: number, file: File, documentType: VehicleDocumentType, title?: string): Observable<VehicleDocument> {
+    uploadDocument(vehicleId: number, file: File, documentType: VehicleDocumentType, title?: string): Observable<VehicleDocumentUploadEvent> {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('document_type', documentType);
         if (title?.trim()) {
             formData.append('title', title.trim());
         }
-        return this.http.post<VehicleDocument>(`${this.apiUrl}/vehicles/${vehicleId}/documents/upload`, formData);
+
+        return new Observable<VehicleDocumentUploadEvent>((subscriber) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', `${this.apiUrl}/vehicles/${vehicleId}/documents/upload`);
+            xhr.responseType = 'json';
+
+            const token = this.resolveAccessToken();
+            if (token) {
+                xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+            }
+
+            xhr.upload.addEventListener('progress', (event) => {
+                if (!event.lengthComputable) {
+                    return;
+                }
+                subscriber.next({
+                    type: 'progress',
+                    progress: Math.round((event.loaded / event.total) * 100),
+                });
+            });
+
+            xhr.addEventListener('load', () => {
+                const response = xhr.response ?? this.parseJsonResponse(xhr.responseText);
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    subscriber.next({
+                        type: 'completed',
+                        document: response as VehicleDocument,
+                    });
+                    subscriber.complete();
+                    return;
+                }
+
+                subscriber.error(new HttpErrorResponse({
+                    error: response,
+                    status: xhr.status,
+                    statusText: xhr.statusText,
+                    url: xhr.responseURL || `${this.apiUrl}/vehicles/${vehicleId}/documents/upload`,
+                }));
+            });
+
+            xhr.addEventListener('error', () => {
+                subscriber.error(new HttpErrorResponse({
+                    error: { detail: 'Network error while uploading document' },
+                    status: 0,
+                    statusText: 'Network Error',
+                    url: `${this.apiUrl}/vehicles/${vehicleId}/documents/upload`,
+                }));
+            });
+
+            xhr.send(formData);
+
+            return () => {
+                if (xhr.readyState !== XMLHttpRequest.DONE) {
+                    xhr.abort();
+                }
+            };
+        });
     }
 
     updateDocument(documentId: number, payload: Partial<Pick<VehicleDocument, 'title' | 'document_type' | 'included_in_rag'>>): Observable<VehicleDocument> {
@@ -122,5 +185,25 @@ export class VehicleRagService {
 
     ask(vehicleId: number, payload: VehicleChatRequest): Observable<VehicleChatResponse> {
         return this.http.post<VehicleChatResponse>(`${this.apiUrl}/vehicles/${vehicleId}/chat/ask`, payload);
+    }
+
+    private resolveAccessToken(): string | null {
+        const rawToken = localStorage.getItem('access_token');
+        if (!rawToken) {
+            return null;
+        }
+        const trimmed = rawToken.trim();
+        return trimmed.startsWith('Bearer ') ? trimmed.slice(7).trim() : trimmed;
+    }
+
+    private parseJsonResponse(responseText: string): unknown {
+        if (!responseText) {
+            return null;
+        }
+        try {
+            return JSON.parse(responseText);
+        } catch {
+            return { detail: responseText };
+        }
     }
 }
