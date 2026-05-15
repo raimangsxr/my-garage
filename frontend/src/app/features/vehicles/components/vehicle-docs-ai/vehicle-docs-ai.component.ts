@@ -19,7 +19,6 @@ import {
     VehicleDocument,
     VehicleDocumentUploadEvent,
     VehicleDocumentType,
-    VehicleKnowledgeFact,
     VehicleRagService
 } from '../../../../core/services/vehicle-rag.service';
 import { LoggerService } from '../../../../core/services/logger.service';
@@ -77,13 +76,10 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
     private deletingDocumentIds = new Set<number>();
 
     loadingDocuments = false;
-    loadingKnowledge = false;
     asking = false;
     documents: VehicleDocument[] = [];
-    knowledge: VehicleKnowledgeFact[] = [];
     pendingUploads: PendingUpload[] = [];
     selectedDocumentType: VehicleDocumentType = 'owner_manual';
-    includeHiddenKnowledge = false;
     chatQuestion = '';
     chatScope: 'all_documents' | 'manuals_only' = 'all_documents';
     includeInvoiceDocs = true;
@@ -115,7 +111,6 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
 
     ngOnInit(): void {
         this.loadDocuments();
-        this.loadKnowledge();
         this.startPolling();
     }
 
@@ -123,31 +118,26 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         this.pollingSubscription?.unsubscribe();
     }
 
-    loadDocuments(): void {
-        this.loadingDocuments = true;
+    loadDocuments(options: { silent?: boolean; merge?: boolean } = {}): void {
+        if (!options.silent) {
+            this.loadingDocuments = true;
+        }
         this.ragService.listDocuments(this.vehicleId)
-            .pipe(finalize(() => this.loadingDocuments = false))
+            .pipe(finalize(() => {
+                if (!options.silent) {
+                    this.loadingDocuments = false;
+                }
+            }))
             .subscribe({
                 next: (documents) => {
                     this.handleStatusTransitions(documents);
-                    this.documents = documents;
+                    this.documents = options.merge ? this.mergeDocuments(documents) : documents;
                 },
                 error: (error) => {
                     this.logger.error('Error loading vehicle documents', error);
-                    this.showSnackBar('Error loading vehicle documents');
-                }
-            });
-    }
-
-    loadKnowledge(): void {
-        this.loadingKnowledge = true;
-        this.ragService.listKnowledge(this.vehicleId, this.includeHiddenKnowledge)
-            .pipe(finalize(() => this.loadingKnowledge = false))
-            .subscribe({
-                next: (knowledge) => this.knowledge = knowledge,
-                error: (error) => {
-                    this.logger.error('Error loading vehicle knowledge', error);
-                    this.showSnackBar('Error loading knowledge');
+                    if (!options.silent) {
+                        this.showSnackBar('Error loading vehicle documents');
+                    }
                 }
             });
     }
@@ -181,7 +171,7 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
                         this.removePendingUpload(uploadId);
                         this.upsertDocument(event.document);
                         if (remaining === 0) {
-                            this.loadDocuments();
+                            this.loadDocuments({ silent: true, merge: true });
                         }
                         this.showSnackBar(`${file.name} uploaded. Indexing has started.`);
                     },
@@ -205,8 +195,7 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         this.ragService.reindexDocument(document.id).subscribe({
             next: () => {
                 this.showSnackBar('Document queued for reindexing. Watch the status pill for progress.');
-                this.loadDocuments();
-                this.loadKnowledge();
+                this.loadDocuments({ silent: true, merge: true });
             },
             error: (error) => {
                 this.logger.error('Error reindexing document', error);
@@ -247,51 +236,13 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
                         this.showSnackBar('Document deleted');
                         this.documents = this.documents.filter((item) => item.id !== document.id);
                         this.lastKnownStatuses.delete(document.id);
-                        this.loadDocuments();
-                        this.loadKnowledge();
+                        this.loadDocuments({ silent: true, merge: true });
                     },
                     error: (error) => {
                         this.logger.error('Error deleting document', error);
                         this.showSnackBar(error?.error?.detail || 'Error deleting document');
                     }
                 });
-        });
-    }
-
-    toggleKnowledgeVisibility(fact: VehicleKnowledgeFact): void {
-        this.ragService.updateKnowledge(fact.id, { is_hidden: !fact.is_hidden }).subscribe({
-            next: () => {
-                this.showSnackBar(fact.is_hidden ? 'Knowledge fact restored' : 'Knowledge fact hidden');
-                this.loadKnowledge();
-            },
-            error: (error) => {
-                this.logger.error('Error updating knowledge fact', error);
-                this.showSnackBar('Error updating knowledge fact');
-            }
-        });
-    }
-
-    deleteKnowledge(fact: VehicleKnowledgeFact): void {
-        this.confirmDialog.confirm({
-            title: 'Delete knowledge fact',
-            message: `Delete "${fact.title}" from the derived knowledge list?`,
-            confirmText: 'Delete',
-            intent: 'danger'
-        }).subscribe((confirmed) => {
-            if (!confirmed) {
-                return;
-            }
-
-            this.ragService.deleteKnowledge(fact.id).subscribe({
-                next: () => {
-                    this.showSnackBar('Knowledge fact deleted');
-                    this.loadKnowledge();
-                },
-                error: (error) => {
-                    this.logger.error('Error deleting knowledge fact', error);
-                    this.showSnackBar('Error deleting knowledge fact');
-                }
-            });
         });
     }
 
@@ -355,6 +306,10 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         return this.documents.filter((document) => document.status === 'uploaded' || document.status === 'indexing').length;
     }
 
+    get failedDocumentsCount(): number {
+        return this.documents.filter((document) => document.status === 'failed').length;
+    }
+
     isDeletingDocument(documentId: number): boolean {
         return this.deletingDocumentIds.has(documentId);
     }
@@ -396,10 +351,6 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         return upload.id;
     }
 
-    trackByKnowledgeId(index: number, fact: VehicleKnowledgeFact): number {
-        return fact.id;
-    }
-
     trackByMessage(index: number): number {
         return index;
     }
@@ -416,8 +367,7 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         this.pollingSubscription?.unsubscribe();
         this.pollingSubscription = interval(5000).subscribe(() => {
             if (this.indexingDocumentsCount > 0) {
-                this.loadDocuments();
-                this.loadKnowledge();
+                this.loadDocuments({ silent: true, merge: true });
             }
         });
     }
@@ -472,25 +422,38 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         this.documents = this.documents.map((item) => item.id === document.id ? document : item);
     }
 
+    private mergeDocuments(incomingDocuments: VehicleDocument[]): VehicleDocument[] {
+        const currentDocuments = new Map(this.documents.map((document) => [document.id, document]));
+        return incomingDocuments.map((incomingDocument) => {
+            const currentDocument = currentDocuments.get(incomingDocument.id);
+            if (!currentDocument) {
+                return incomingDocument;
+            }
+
+            return {
+                ...currentDocument,
+                ...incomingDocument,
+            };
+        });
+    }
+
     private buildSourceUrl(fileUrl?: string | null, pageNumber?: number | null): string | null | undefined {
         if (!fileUrl) {
             return fileUrl;
         }
 
-        if (!pageNumber || !this.isPdfUrl(fileUrl)) {
+        if (!pageNumber) {
             return fileUrl;
         }
 
-        const [baseUrl, fragment = ''] = fileUrl.split('#', 2);
-        const fragmentParams = fragment
+        const resolvedUrl = new URL(fileUrl, window.location.origin);
+        const fragmentParams = resolvedUrl.hash
+            .replace(/^#/, '')
             .split('&')
             .map((value) => value.trim())
             .filter((value) => value.length > 0 && !value.startsWith('page='));
 
-        return `${baseUrl}#${['page=' + pageNumber, ...fragmentParams].join('&')}`;
-    }
-
-    private isPdfUrl(fileUrl: string): boolean {
-        return fileUrl.toLowerCase().split('#', 1)[0].includes('.pdf');
+        resolvedUrl.hash = ['page=' + pageNumber, ...fragmentParams].join('&');
+        return resolvedUrl.toString();
     }
 }

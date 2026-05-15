@@ -97,7 +97,6 @@
 
 .document-list,
 .pending-upload-list,
-.knowledge-list,
 .chat-log {
     display: flex;
     flex-direction: column;
@@ -117,7 +116,6 @@
 }
 
 .document-card,
-.knowledge-card,
 .chat-message {
     border: 1px solid var(--border-soft);
     border-radius: 8px;
@@ -134,8 +132,7 @@
     flex: 1;
 }
 
-.document-title-row,
-.knowledge-heading {
+.document-title-row {
     display: flex;
     justify-content: space-between;
     gap: 12px;
@@ -143,15 +140,13 @@
     min-width: 0;
 }
 
-.document-title-row h4,
-.knowledge-heading h4 {
+.document-title-row h4 {
     margin: 0;
     font-size: 1rem;
     color: var(--text-primary);
 }
 
-.document-meta,
-.knowledge-meta {
+.document-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 8px 12px;
@@ -161,7 +156,6 @@
 }
 
 .document-actions,
-.knowledge-actions,
 .composer-actions,
 .citation-list,
 .suggested-questions {
@@ -178,9 +172,8 @@
 
 .document-error,
 .document-progress-detail,
-.knowledge-content,
 .chat-confidence,
-.knowledge-excerpt {
+.citation-list {
     margin: 12px 0 0;
 }
 
@@ -215,16 +208,6 @@
     background: rgba(26, 35, 126, 0.08);
     color: var(--primary-color);
     border-color: rgba(26, 35, 126, 0.2);
-}
-
-.knowledge-content {
-    color: var(--text-primary);
-}
-
-.knowledge-excerpt {
-    padding-left: 12px;
-    border-left: 3px solid var(--border-soft);
-    color: var(--text-secondary);
 }
 
 .ask-panel {
@@ -274,7 +257,6 @@
     .panel-toolbar,
     .chat-config,
     .document-card,
-    .knowledge-card,
     .chat-message {
         flex-direction: column;
     }
