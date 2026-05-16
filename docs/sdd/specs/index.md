@@ -21,6 +21,8 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Mejorar Feedback y Borrado de Documentos RAG](./2026-05-13-rag-document-feedback-delete/spec.md) | In Progress | hotfix | 2026-05-13 | Añade progreso visible en la carga documental y corrige el borrado concurrente de documentos RAG. |
 | [Invocación por voz en Ask de Docs & AI](./2026-05-15-vehicle-ask-voice-trigger/spec.md) | In Progress | feature | 2026-05-15 | Añade activación por palabra clave en `Ask` con transcripción editable previa al envío manual al asistente. |
 | [Homogeneizar Toasts y Snackbars](./2026-05-16-toast-standardization/spec.md) | In Progress | refactor | 2026-05-16 | Centraliza el feedback emergente en un servicio compartido y fija la posición `bottom-right`. |
+| [Restyling de Ask en Docs & AI](./2026-05-16-vehicle-ask-restyling/spec.md) | In Progress | refactor/ui | 2026-05-16 | Reordena y restiliza la pestaña `Ask` para dar más jerarquía visual al chat, la voz y el compositor. |
+| [Actualizar Fallback de Modelos Gemini](./2026-05-16-gemini-model-fallback/spec.md) | In Progress | refactor | 2026-05-16 | Ajusta el orden de modelos Gemini usados en el fallback del procesamiento de facturas. |
 
 ## Baseline Actual
 
