@@ -9,9 +9,9 @@ from app.models import Invoice, InvoiceStatus, User, Supplier, Vehicle
 from app.schemas.invoice_processing import InvoiceExtractedData
 from app.core.storage import StorageService
 from app.core.gemini_service import GeminiService
-from app.core.invoice_processor import InvoiceProcessor
 from app.core.exceptions import InvoiceProcessingError
 from app.services.invoice_approval_service import InvoiceApprovalService
+from app.services.invoice_service import InvoiceService
 from app.services.invoice_workflow_service import InvoiceWorkflowService
 import logging
 
@@ -57,7 +57,7 @@ class InvoiceListResponse(BaseModel):
 # Instancias de servicios
 storage_service = StorageService()
 gemini_service = GeminiService()
-invoice_processor = InvoiceProcessor(gemini_service)
+invoice_service = InvoiceService(gemini_service)
 invoice_approval_service = InvoiceApprovalService()
 invoice_workflow_service = InvoiceWorkflowService()
 
@@ -77,7 +77,7 @@ async def process_invoice_background(
     # Usar context manager para sesión de base de datos
     try:
         with get_db_context() as session:
-            await invoice_processor.process_invoice(
+            await invoice_service.process_invoice(
                 invoice_id=invoice_id,
                 file_path=file_path,
                 session=session,
@@ -93,7 +93,7 @@ async def process_invoice_background(
             "Invoice processing failed",
             extra={"invoice_id": invoice_id, "error": str(e), "details": e.details}
         )
-        # El estado ya fue actualizado en invoice_processor
+        # El estado ya fue actualizado en invoice_service
     except Exception as e:
         logger.exception(
             "Unexpected error in background processing",

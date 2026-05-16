@@ -9,12 +9,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, List, Optional
 
-import google.generativeai as genai
-from PIL import Image
 from pypdf import PdfReader
 from sqlmodel import Session, select
 
 from app.core.config import settings
+from app.core.gemini_service import GeminiService
 from app.core.storage import StorageService
 from app.models import Invoice, Vehicle, VehicleDocument, VehicleDocumentChunk, VehicleKnowledgeFact
 
@@ -64,19 +63,15 @@ class VehicleDocumentRAGService:
         },
     }
 
-    def __init__(self) -> None:
+    def __init__(self, gemini_service: Optional[GeminiService] = None) -> None:
         self.storage_service = StorageService(upload_dir="media/vehicle-documents")
+        self.gemini_service = gemini_service or GeminiService()
 
     def resolve_gemini_api_key(self, current_user: Any) -> str:
         user_settings = getattr(current_user, "settings", None)
         if user_settings and user_settings.gemini_api_key:
             return user_settings.gemini_api_key
         return settings.GEMINI_API_KEY
-
-    def configure_gemini(self, api_key: str) -> None:
-        if not api_key:
-            raise ValueError("Gemini API key not configured")
-        genai.configure(api_key=api_key)
 
     def process_document(self, *, session: Session, document_id: int, gemini_api_key: str) -> VehicleDocument | None:
         try:
@@ -197,7 +192,6 @@ class VehicleDocumentRAGService:
             if pages:
                 return pages
 
-        self.configure_gemini(api_key)
         prompt = """
 Convierte este documento del vehículo en texto estructurado y limpio.
 Responde SOLO con JSON válido con este formato:
@@ -215,19 +209,17 @@ Reglas:
 - No inventes contenido que no aparezca en el documento.
 - Si una página es casi ilegible, devuelve el texto más fiable posible.
 """
-
-        uploaded_file = None
-        image = None
-        try:
-            if suffix == ".pdf":
-                uploaded_file = genai.upload_file(file_path, mime_type=mime_type or "application/pdf")
-                content: list[Any] = [uploaded_file]
-            else:
-                image = Image.open(file_path)
-                content = [image]
-
-            raw_text = self._generate_json_content(prompt=prompt, content=content, models=self.TRANSCRIPTION_MODELS)
-            payload = self._parse_json_payload(raw_text)
+        with self.gemini_service.multimodal_content(
+            file_path=file_path,
+            api_key=api_key,
+            mime_type=mime_type,
+        ) as content:
+            payload = self.gemini_service.generate_json_payload(
+                prompt=prompt,
+                content=content,
+                models=self.TRANSCRIPTION_MODELS,
+                api_key=api_key,
+            )
             pages = payload.get("pages") or []
             parsed_pages = [
                 ParsedDocumentPage(
@@ -237,20 +229,15 @@ Reglas:
                 for index, page in enumerate(pages)
                 if str(page.get("text") or "").strip()
             ]
-            if not parsed_pages and image is not None:
-                fallback_text = self._generate_text_content(
+            if not parsed_pages and suffix != ".pdf":
+                fallback_text = self.gemini_service.generate_text_content(
                     prompt="Transcribe this vehicle document image faithfully in plain text.",
-                    content=[image],
+                    content=content,
                     models=self.TRANSCRIPTION_MODELS,
+                    api_key=api_key,
                 )
                 parsed_pages = [ParsedDocumentPage(page_number=1, text=fallback_text.strip())]
             return parsed_pages
-        finally:
-            if uploaded_file is not None:
-                try:
-                    uploaded_file.delete()
-                except Exception:
-                    logger.warning("Failed to delete temporary Gemini file", exc_info=True)
 
     def _parse_pdf_locally(self, file_path: str) -> List[ParsedDocumentPage]:
         reader = PdfReader(file_path)
@@ -276,7 +263,6 @@ Reglas:
         if not extracted_text.strip():
             return []
 
-        self.configure_gemini(api_key)
         trimmed_text = extracted_text[:24000]
         prompt = f"""
 Analiza esta documentación de vehículo y extrae hasta {self.MAX_FACTS} facts útiles y accionables.
@@ -298,8 +284,12 @@ Texto:
 {trimmed_text}
 """
         try:
-            raw_text = self._generate_json_content(prompt=prompt, content=[], models=self.ANSWER_MODELS)
-            payload = self._parse_json_payload(raw_text)
+            payload = self.gemini_service.generate_json_payload(
+                prompt=prompt,
+                content=[],
+                models=self.ANSWER_MODELS,
+                api_key=api_key,
+            )
             facts = []
             for item in payload.get("facts") or []:
                 title = str(item.get("title") or "").strip()
@@ -349,7 +339,6 @@ Texto:
                 "confidence_note": localized_fallback["confidence_note"],
             }
 
-        self.configure_gemini(api_key)
         context_blocks = []
         for source in sources[:6]:
             page_text = f"page {source.page_number}" if source.page_number else "unpaged"
@@ -386,8 +375,12 @@ Respond in the same language as the user's question. Do not switch to the source
 Sources:
 {chr(10).join(context_blocks)}
 """
-        raw_text = self._generate_json_content(prompt=prompt, content=[], models=self.ANSWER_MODELS)
-        payload = self._parse_json_payload(raw_text)
+        payload = self.gemini_service.generate_json_payload(
+            prompt=prompt,
+            content=[],
+            models=self.ANSWER_MODELS,
+            api_key=api_key,
+        )
         source_map = {source.source_id: source for source in sources}
         citations = []
         used_documents = []
@@ -604,7 +597,6 @@ Sources:
         return results
 
     def expand_query_for_retrieval(self, *, question: str, api_key: str) -> dict[str, str]:
-        self.configure_gemini(api_key)
         prompt = f"""
 You are preparing a multilingual search query for vehicle documentation retrieval.
 Return ONLY valid JSON with this shape:
@@ -623,8 +615,12 @@ Question:
 {question}
 """
         try:
-            raw_text = self._generate_json_content(prompt=prompt, content=[], models=self.ANSWER_MODELS)
-            payload = self._parse_json_payload(raw_text)
+            payload = self.gemini_service.generate_json_payload(
+                prompt=prompt,
+                content=[],
+                models=self.ANSWER_MODELS,
+                api_key=api_key,
+            )
             retrieval_query = str(payload.get("retrieval_query") or "").strip()
             detected_language = str(payload.get("detected_language") or "").strip() or "unknown"
             if retrieval_query:
@@ -711,41 +707,8 @@ Question:
 
         return "\n".join(value for value in fields if value).strip()
 
-    def _generate_json_content(self, *, prompt: str, content: list[Any], models: list[str]) -> str:
-        return self._generate_content(prompt=prompt, content=content, models=models, expect_json=True)
-
-    def _generate_text_content(self, *, prompt: str, content: list[Any], models: list[str]) -> str:
-        return self._generate_content(prompt=prompt, content=content, models=models, expect_json=False)
-
-    def _generate_content(self, *, prompt: str, content: list[Any], models: list[str], expect_json: bool) -> str:
-        last_error: Optional[Exception] = None
-        for model_name in models:
-            try:
-                model = genai.GenerativeModel(model_name)
-                generation_config = genai.types.GenerationConfig(
-                    temperature=0.1,
-                    response_mime_type="application/json" if expect_json else None,
-                )
-                response = model.generate_content(
-                    [prompt, *content],
-                    generation_config=generation_config,
-                )
-                return (response.text or "").strip()
-            except Exception as exc:
-                last_error = exc
-                logger.warning("Gemini model failed", extra={"model": model_name, "error": str(exc)})
-        raise ValueError(f"All Gemini models failed. Last error: {last_error}")
-
     def _parse_json_payload(self, raw_text: str) -> dict[str, Any]:
-        candidate = raw_text.strip()
-        if candidate.startswith("```json"):
-            candidate = candidate.split("```json", 1)[1].rsplit("```", 1)[0]
-        elif candidate.startswith("```"):
-            candidate = candidate.split("```", 1)[1].rsplit("```", 1)[0]
-        payload = json.loads(candidate.strip())
-        if not isinstance(payload, dict):
-            raise ValueError("Expected a JSON object")
-        return payload
+        return self.gemini_service.parse_json_payload(raw_text)
 
     def _safe_float(self, value: Any) -> Optional[float]:
         try:

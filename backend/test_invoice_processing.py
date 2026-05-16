@@ -1,9 +1,10 @@
-import asyncio
 import os
 import pytest
+from contextlib import contextmanager
 from dotenv import load_dotenv
 
 from app.core.gemini_service import GeminiService
+from app.services.invoice_service import InvoiceService
 
 
 def test_processing():
@@ -27,8 +28,57 @@ def test_processing():
     if not os.path.exists(image_path):
         pytest.skip(f"Image path not found: {image_path}")
 
-    service = GeminiService(api_key=api_key)
-    result = asyncio.run(service.extract_invoice_data(image_path))
+    service = InvoiceService(GeminiService())
+    result = service.extract_invoice_data(file_path=image_path, api_key=api_key)
 
     assert result is not None
-    assert getattr(result, "items", None) is not None
+    assert result.total_amount is not None
+
+
+def test_invoice_service_keeps_prompt_in_domain_and_delegates_generation():
+    captured = {}
+
+    class FakeGeminiService:
+        @contextmanager
+        def multimodal_content(self, *, file_path: str, api_key: str, mime_type=None):
+            captured["file_path"] = file_path
+            captured["api_key"] = api_key
+            captured["mime_type"] = mime_type
+            yield ["fake-content"]
+
+        def generate_json_payload(self, *, prompt, content, models, api_key, temperature=0.1):
+            captured["prompt"] = prompt
+            captured["content"] = content
+            captured["models"] = models
+            captured["generation_api_key"] = api_key
+            captured["temperature"] = temperature
+            return {
+                "invoice_number": "INV-1",
+                "invoice_date": None,
+                "supplier_name": "Supplier",
+                "supplier_address": None,
+                "supplier_tax_id": None,
+                "is_maintenance": False,
+                "is_parts_only": True,
+                "vehicle_plate": None,
+                "vehicle_vin": None,
+                "mileage": None,
+                "maintenances": [],
+                "parts_only": [],
+                "subtotal": None,
+                "tax_amount": None,
+                "total_amount": 42.0,
+                "confidence": 0.9,
+            }
+
+    service = InvoiceService(FakeGeminiService())
+
+    result = service.extract_invoice_data(file_path="/tmp/invoice.jpg", api_key="fake-key", detailed_mode=True)
+
+    assert result.invoice_number == "INV-1"
+    assert result.total_amount == 42.0
+    assert "Analiza esta factura" in captured["prompt"]
+    assert "MODO DETALLADO" in captured["prompt"]
+    assert captured["content"] == ["fake-content"]
+    assert captured["api_key"] == "fake-key"
+    assert captured["generation_api_key"] == "fake-key"
