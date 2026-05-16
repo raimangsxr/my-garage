@@ -21,7 +21,7 @@ export const appConfig: ApplicationConfig = {
     provideNativeDateAdapter(),
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
-      registrationStrategy: 'registerWhenStable:3000'
+      registrationStrategy: 'registerImmediately'
     })
   ]
 };

@@ -68,3 +68,4 @@ kubectl apply -f deploy/k8s/ingress.yaml
 - El backend y Alembic usan `DATABASE_URL` desde Secret (PostgreSQL externo).
 - Para NFS con `root_squash`, asegúrate de permisos de escritura para `uid/gid 10001` en el export.
 - Si usas cert-manager, actualiza `secretName` de TLS o añade anotaciones del issuer en `ingress.yaml`.
+- Los uploads documentales grandes no devuelven `504` desde FastAPI; si aparecen `502/503/504` durante la subida, revisa primero timeouts y límites del gateway o controlador de ingress que haya delante de Traefik, porque este repo no fija esos valores por entorno.

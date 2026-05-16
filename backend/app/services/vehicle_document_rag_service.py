@@ -379,35 +379,20 @@ Sources:
             content=[],
             models=self.ANSWER_MODELS,
             api_key=api_key,
+            fallback_resolver=lambda _exc: {
+                "answer": "",
+                "citations": [],
+                "confidence_note": "",
+            },
         )
         source_map = {source.source_id: source for source in sources}
-        citations = []
-        used_documents = []
-        seen_doc_labels: set[str] = set()
-        for citation in payload.get("citations") or []:
-            source_id = str(citation.get("source_id") or "").strip()
-            source = source_map.get(source_id)
-            if not source:
-                continue
-            citations.append(
-                {
-                    "source_id": source.source_id,
-                    "source_label": source.source_label,
-                    "page_number": source.page_number,
-                    "quote": str(citation.get("quote") or "").strip(),
-                    "file_url": source.file_url,
-                    "source_type": source.source_type,
-                }
-            )
-            if source.source_label not in seen_doc_labels:
-                used_documents.append(
-                    {
-                        "source_label": source.source_label,
-                        "file_url": source.file_url,
-                        "source_type": source.source_type,
-                    }
-                )
-                seen_doc_labels.add(source.source_label)
+        citations = self._build_citations_from_payload(
+            source_map=source_map,
+            payload_citations=payload.get("citations") or [],
+        )
+        if not citations:
+            citations = self._build_fallback_citations(sources=sources)
+        used_documents = self._build_used_documents(citations=citations, fallback_sources=sources)
 
         return {
             "answer": str(payload.get("answer") or "").strip(),
@@ -594,6 +579,108 @@ Sources:
                 )
             )
         return results
+
+    def _build_citations_from_payload(
+        self,
+        *,
+        source_map: dict[str, RetrievedSource],
+        payload_citations: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
+        citations: list[dict[str, Any]] = []
+        seen_source_ids: set[str] = set()
+        for citation in payload_citations:
+            source_id = str(citation.get("source_id") or "").strip()
+            if not source_id or source_id in seen_source_ids:
+                continue
+            source = source_map.get(source_id)
+            if not source:
+                continue
+            seen_source_ids.add(source_id)
+            citations.append(
+                {
+                    "source_id": source.source_id,
+                    "source_label": source.source_label,
+                    "page_number": source.page_number,
+                    "quote": str(citation.get("quote") or "").strip() or self._build_source_excerpt(source.content),
+                    "file_url": source.file_url,
+                    "source_type": source.source_type,
+                }
+            )
+        return citations
+
+    def _build_fallback_citations(self, *, sources: list[RetrievedSource]) -> list[dict[str, Any]]:
+        citations: list[dict[str, Any]] = []
+        seen_source_ids: set[str] = set()
+        for source in sources:
+            if source.source_id in seen_source_ids:
+                continue
+            seen_source_ids.add(source.source_id)
+            citations.append(
+                {
+                    "source_id": source.source_id,
+                    "source_label": source.source_label,
+                    "page_number": source.page_number,
+                    "quote": self._build_source_excerpt(source.content),
+                    "file_url": source.file_url,
+                    "source_type": source.source_type,
+                }
+            )
+            if len(citations) >= 3:
+                break
+        return citations
+
+    def _build_used_documents(
+        self,
+        *,
+        citations: list[dict[str, Any]],
+        fallback_sources: list[RetrievedSource],
+    ) -> list[dict[str, Any]]:
+        used_documents: list[dict[str, Any]] = []
+        seen_keys: set[tuple[str, Optional[int], Optional[str]]] = set()
+
+        for citation in citations:
+            key = (
+                str(citation.get("source_label") or ""),
+                citation.get("page_number"),
+                citation.get("file_url"),
+            )
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            used_documents.append(
+                {
+                    "source_label": str(citation.get("source_label") or ""),
+                    "file_url": citation.get("file_url"),
+                    "source_type": str(citation.get("source_type") or "document"),
+                    "page_number": citation.get("page_number"),
+                }
+            )
+
+        if used_documents:
+            return used_documents
+
+        for source in fallback_sources:
+            key = (source.source_label, source.page_number, source.file_url)
+            if key in seen_keys:
+                continue
+            seen_keys.add(key)
+            used_documents.append(
+                {
+                    "source_label": source.source_label,
+                    "file_url": source.file_url,
+                    "source_type": source.source_type,
+                    "page_number": source.page_number,
+                }
+            )
+            if len(used_documents) >= 3:
+                break
+        return used_documents
+
+    def _build_source_excerpt(self, content: str) -> str:
+        normalized = re.sub(r"\s+", " ", content).strip()
+        if len(normalized) <= 180:
+            return normalized
+        return normalized[:177].rstrip() + "..."
 
     def expand_query_for_retrieval(self, *, question: str, api_key: str) -> dict[str, str]:
         prompt = f"""

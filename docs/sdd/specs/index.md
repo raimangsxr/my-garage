@@ -27,6 +27,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Centralizar Fallbacks Gemini en GeminiService](./2026-05-16-centralize-gemini-fallbacks/spec.md) | In Progress | refactor | 2026-05-16 | Mueve al proxy Gemini la decisión y ejecución de fallbacks ligados al proveedor o a sus payloads. |
 | [Actualizar Fallback de Modelos Gemini](./2026-05-16-gemini-model-fallback/spec.md) | In Progress | refactor | 2026-05-16 | Ajusta el orden de modelos Gemini usados en el fallback del procesamiento de facturas. |
 | [Corregir Merge Parcial en Ask de Docs & AI](./2026-05-16-docs-ai-ask-merge-fix/spec.md) | In Progress | hotfix | 2026-05-16 | Elimina referencias huérfanas a sugerencias en `Ask` y restaura la compilación del frontend. |
+| [Corregir Fiabilidad de PWA, Ask y Uploads Documentales](./2026-05-16-docs-ai-pwa-reliability/spec.md) | In Progress | hotfix | 2026-05-16 | Refuerza instalación PWA móvil, fuentes accionables en `Ask`, envío con `Enter` y mitigación del `504` en uploads grandes. |
 
 ## Baseline Actual
 

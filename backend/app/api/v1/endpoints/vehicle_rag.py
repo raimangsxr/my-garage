@@ -85,6 +85,7 @@ class VehicleChatUsedDocumentResponse(BaseModel):
     source_label: str
     file_url: Optional[str] = None
     source_type: str
+    page_number: Optional[int] = None
 
 
 class VehicleChatAskResponse(BaseModel):

@@ -64,6 +64,7 @@ export interface VehicleChatUsedDocument {
     source_label: string;
     file_url?: string | null;
     source_type: string;
+    page_number?: number | null;
 }
 
 export interface VehicleChatResponse {
@@ -130,7 +131,7 @@ export class VehicleRagService {
                 }
 
                 subscriber.error(new HttpErrorResponse({
-                    error: response,
+                    error: this.normalizeUploadError(xhr.status, response),
                     status: xhr.status,
                     statusText: xhr.statusText,
                     url: xhr.responseURL || `${this.apiUrl}/vehicles/${vehicleId}/documents/upload`,
@@ -205,5 +206,19 @@ export class VehicleRagService {
         } catch {
             return { detail: responseText };
         }
+    }
+
+    private normalizeUploadError(status: number, response: unknown): unknown {
+        if (status === 504) {
+            return {
+                detail: 'The upload reached a gateway timeout before the server could confirm the file. This usually points to proxy or ingress timeout limits for large documents.'
+            };
+        }
+        if (status === 503 || status === 502) {
+            return {
+                detail: 'The document upload service is temporarily unavailable. Please retry in a moment.'
+            };
+        }
+        return response;
     }
 }
