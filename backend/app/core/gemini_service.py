@@ -4,12 +4,15 @@ import json
 import logging
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterator, Optional
+from typing import Any, Callable, Iterator, Optional
 
 import google.generativeai as genai
 from PIL import Image
 
 logger = logging.getLogger(__name__)
+
+PayloadValidator = Callable[[dict[str, Any]], bool]
+FallbackResolver = Callable[[Exception], dict[str, Any]]
 
 
 class GeminiService:
@@ -66,15 +69,26 @@ class GeminiService:
         models: list[str],
         api_key: str,
         temperature: float = 0.1,
+        validator: Optional[PayloadValidator] = None,
+        fallback_resolver: Optional[FallbackResolver] = None,
     ) -> dict[str, Any]:
-        raw_text = self.generate_json_content(
-            prompt=prompt,
-            content=content,
-            models=models,
-            api_key=api_key,
-            temperature=temperature,
-        )
-        return self.parse_json_payload(raw_text)
+        try:
+            raw_text = self.generate_json_content(
+                prompt=prompt,
+                content=content,
+                models=models,
+                api_key=api_key,
+                temperature=temperature,
+            )
+            payload = self.parse_json_payload(raw_text)
+            if validator and not validator(payload):
+                raise ValueError("Gemini payload failed domain validation")
+            return payload
+        except Exception as exc:
+            if fallback_resolver is None:
+                raise
+            logger.warning("Gemini fallback resolver activated", extra={"error": str(exc)})
+            return fallback_resolver(exc)
 
     def generate_json_content(
         self,

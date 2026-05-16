@@ -82,3 +82,22 @@ def test_invoice_service_keeps_prompt_in_domain_and_delegates_generation():
     assert captured["content"] == ["fake-content"]
     assert captured["api_key"] == "fake-key"
     assert captured["generation_api_key"] == "fake-key"
+
+
+def test_gemini_service_can_resolve_json_fallback_from_proxy():
+    service = GeminiService()
+
+    def fake_generate_json_content(**kwargs):
+        raise ValueError("provider failed")
+
+    service.generate_json_content = fake_generate_json_content  # type: ignore[method-assign]
+
+    payload = service.generate_json_payload(
+        prompt="prompt",
+        content=[],
+        models=["model-a"],
+        api_key="fake-key",
+        fallback_resolver=lambda _exc: {"ok": True},
+    )
+
+    assert payload == {"ok": True}

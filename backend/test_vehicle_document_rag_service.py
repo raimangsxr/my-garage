@@ -60,6 +60,36 @@ def test_answer_question_falls_back_to_english_when_language_is_unknown(monkeypa
     assert response["confidence_note"] == "No indexed sources matched this question."
 
 
+def test_expand_query_uses_gemini_service_fallback_payload(monkeypatch):
+    service = VehicleDocumentRAGService()
+
+    def fake_generate_json_payload(**kwargs):
+        return kwargs["fallback_resolver"](ValueError("boom"))
+
+    monkeypatch.setattr(service.gemini_service, "generate_json_payload", fake_generate_json_payload)
+
+    response = service.expand_query_for_retrieval(question="rear wheel torque?", api_key="fake-key")
+
+    assert response == {
+        "retrieval_query": "rear wheel torque?",
+        "detected_language": "unknown",
+    }
+
+
+def test_extract_knowledge_facts_uses_gemini_service_fallback_payload(monkeypatch):
+    service = VehicleDocumentRAGService()
+    document = SimpleNamespace(id=1, vehicle_id=99)
+
+    def fake_generate_json_payload(**kwargs):
+        return kwargs["fallback_resolver"](ValueError("boom"))
+
+    monkeypatch.setattr(service.gemini_service, "generate_json_payload", fake_generate_json_payload)
+
+    facts = service.extract_knowledge_facts(document=document, extracted_text="spec text", api_key="fake-key")
+
+    assert facts == []
+
+
 def test_distance_to_similarity_clamps_invalid_values():
     service = VehicleDocumentRAGService()
 
