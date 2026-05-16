@@ -1,5 +1,6 @@
 from types import SimpleNamespace
 
+from app.core.gemini_service import GeminiService
 from app.services.vehicle_document_rag_service import ParsedDocumentPage, VehicleDocumentRAGService
 
 
@@ -65,6 +66,60 @@ def test_distance_to_similarity_clamps_invalid_values():
     assert service._distance_to_similarity(0.2) == 0.8
     assert service._distance_to_similarity(1.4) == 0.0
     assert service._distance_to_similarity(None) == 0.0
+
+
+def test_gemini_service_generate_json_content_falls_back_after_rate_limit(monkeypatch):
+    service = GeminiService()
+    calls: list[str] = []
+
+    class FakeModel:
+        def __init__(self, model_name):
+            self.model_name = model_name
+
+        def generate_content(self, content, generation_config=None):
+            calls.append(self.model_name)
+            if self.model_name == "model-a":
+                raise Exception("429 ResourceExhausted")
+            return SimpleNamespace(text='{"answer":"ok"}')
+
+    monkeypatch.setattr("app.core.gemini_service.genai.GenerativeModel", FakeModel)
+
+    raw_text = service.generate_json_content(
+        prompt="prompt",
+        content=[],
+        models=["model-a", "model-b"],
+        api_key="fake-key",
+    )
+
+    assert raw_text == '{"answer":"ok"}'
+    assert calls == ["model-a", "model-b"]
+
+
+def test_gemini_service_generate_json_content_falls_back_after_invalid_json(monkeypatch):
+    service = GeminiService()
+    calls: list[str] = []
+
+    class FakeModel:
+        def __init__(self, model_name):
+            self.model_name = model_name
+
+        def generate_content(self, content, generation_config=None):
+            calls.append(self.model_name)
+            if self.model_name == "model-a":
+                return SimpleNamespace(text='{"answer": ')
+            return SimpleNamespace(text='{"answer":"ok"}')
+
+    monkeypatch.setattr("app.core.gemini_service.genai.GenerativeModel", FakeModel)
+
+    raw_text = service.generate_json_content(
+        prompt="prompt",
+        content=[],
+        models=["model-a", "model-b"],
+        api_key="fake-key",
+    )
+
+    assert raw_text == '{"answer":"ok"}'
+    assert calls == ["model-a", "model-b"]
 
 
 class FakeExecResult:
