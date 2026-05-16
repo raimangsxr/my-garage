@@ -23,6 +23,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Homogeneizar Toasts y Snackbars](./2026-05-16-toast-standardization/spec.md) | In Progress | refactor | 2026-05-16 | Centraliza el feedback emergente en un servicio compartido y fija la posición `bottom-right`. |
 | [Restyling de Ask en Docs & AI](./2026-05-16-vehicle-ask-restyling/spec.md) | In Progress | refactor/ui | 2026-05-16 | Reordena y restiliza la pestaña `Ask` para dar más jerarquía visual al chat, la voz y el compositor. |
 | [Actualizar Fallback de Modelos Gemini](./2026-05-16-gemini-model-fallback/spec.md) | In Progress | refactor | 2026-05-16 | Ajusta el orden de modelos Gemini usados en el fallback del procesamiento de facturas. |
+| [Corregir Merge Parcial en Ask de Docs & AI](./2026-05-16-docs-ai-ask-merge-fix/spec.md) | In Progress | hotfix | 2026-05-16 | Elimina referencias huérfanas a sugerencias en `Ask` y restaura la compilación del frontend. |
 
 ## Baseline Actual
 
