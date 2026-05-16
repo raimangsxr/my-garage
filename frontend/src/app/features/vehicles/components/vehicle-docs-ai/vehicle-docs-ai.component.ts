@@ -412,9 +412,7 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
     return pageNumber ? `Open ${sourceLabel} on page ${pageNumber}` : `Open ${sourceLabel}`;
   }
 
-  getResponseSources(
-    response?: VehicleChatResponse,
-  ): Array<
+  getResponseSources(response?: VehicleChatResponse): Array<
     Pick<VehicleChatUsedDocument, 'source_label' | 'file_url' | 'page_number'> & {
       quote?: string | null;
     }
