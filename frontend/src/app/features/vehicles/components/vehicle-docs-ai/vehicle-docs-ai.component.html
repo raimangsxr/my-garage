@@ -173,6 +173,16 @@
                         </div>
                     </section>
 
+                    <div class="suggested-questions" *ngIf="messages.length === 0">
+                        <button
+                            mat-stroked-button
+                            type="button"
+                            *ngFor="let question of suggestedQuestions"
+                            (click)="askSuggestedQuestion(question)">
+                            {{ question }}
+                        </button>
+                    </div>
+
                     <div class="chat-log" *ngIf="messages.length > 0">
                         <article class="chat-message" *ngFor="let message of messages; trackBy: trackByMessage" [attr.data-role]="message.role">
                             <div class="message-label">{{ message.role === 'user' ? 'You' : 'Assistant' }}</div>
