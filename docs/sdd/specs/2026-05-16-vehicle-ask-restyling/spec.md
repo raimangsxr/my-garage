@@ -1,17 +1,17 @@
 # Spec: Restyling de Ask en Docs & AI
 
-Estado: In Progress
+Estado: Implemented
 Fecha: 2026-05-16
 Tipo: refactor/ui
 Owner: Codex
 
 ## Resumen
 
-Rediseñar visualmente la pestaña `Ask` dentro de `Vehicle Detail > Docs & AI` para que la experiencia de consulta asistida se sienta más clara, intencional y confiable, sin cambiar el contrato funcional principal de preguntas, respuestas citadas e invocación por voz ya definido en specs previas.
+Rediseñar visualmente la pestaña `Ask` dentro de `Vehicle Detail > Docs & AI` para que la experiencia de consulta asistida se sienta más clara, intencional y confiable, con una revisión explícita de la vista móvil y un saneado fiable de la transcripción de voz para que la wake phrase no aparezca en la pregunta final.
 
 ## Problema
 
-La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actual mezcla controles de configuración, activación por voz, sugerencias, historial y compositor en un único flujo visual con poca jerarquía. El resultado es una experiencia correcta a nivel funcional, pero demasiado plana y densa para un módulo que debería transmitir foco, contexto y confianza operativa en situaciones de taller o consulta rápida.
+La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actual mezcla controles de configuración, activación por voz, historial y compositor en un único flujo visual con poca jerarquía, especialmente en móvil. Además, el flujo de voz puede dejar visible la wake phrase o repetir fragmentos cuando el reconocimiento devuelve utterances solapadas, generando una sensación de poca fiabilidad justo en un caso de uso donde el usuario necesita rapidez y manos libres.
 
 ## Usuarios y Contexto
 
@@ -25,6 +25,7 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 - Mejorar la escaneabilidad del historial, las citas y el estado de voz.
 - Hacer que el compositor de pregunta sea el CTA dominante sin competir con utilidades secundarias.
 - Convertir `Ask` en la entrada principal de `Docs & AI`, dejando `Documents` como área de gestión ocasional.
+- Corregir el flujo de voz para que la wake phrase nunca aparezca en la pregunta final y los fragmentos duplicados no se concatenen.
 - Reducir fricción en voz permitiendo envío automático opcional tras la transcripción.
 - Mantener compatibilidad total con el flujo RAG existente, la voz y las citas paginadas.
 
@@ -33,7 +34,7 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 - Cambiar el contrato backend o la semántica de `POST /api/v1/vehicles/{id}/chat/ask`.
 - Rediseñar en esta iniciativa la pestaña `Documents`.
 - Introducir nuevas capacidades IA, memoria persistente o multi-turno conversacional.
-- Alterar la lógica de reconocimiento de voz más allá de los ajustes visuales y de affordance necesarios.
+- Alterar el proveedor o contrato de reconocimiento de voz fuera del cliente.
 
 ## Comportamiento Esperado
 
@@ -42,7 +43,8 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 1. El usuario abre `Docs & AI` y aterriza directamente en `Ask` cuando existen documentos listos o cuando quiere consultar el vehículo.
 2. La vista presenta un layout con jerarquía clara: contexto y controles arriba, conversación en una zona legible y compositor destacado como acción principal.
 3. El usuario identifica fácilmente el estado del modo voz, el toggle de envío automático tras transcripción y las acciones disponibles sin competir visualmente con el chat.
-4. El usuario escribe o dicta una pregunta, decide si la transcripción debe enviarse automáticamente o quedar editable, y revisa la respuesta con citas.
+4. Si dicta una consulta, la wake phrase se usa solo como disparador y no aparece en el textarea final, aunque el navegador devuelva resultados parciales o duplicados.
+5. El usuario escribe o dicta una pregunta, decide si la transcripción debe enviarse automáticamente o quedar editable, y revisa la respuesta con citas.
 
 ### Casos Límite
 
@@ -50,6 +52,7 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 - Historial vacío: la vista no debe depender de sugerencias predefinidas para resultar útil.
 - Respuesta larga con varias citas: la lectura y el acceso a fuentes deben seguir siendo escaneables.
 - Móvil: la composición debe reordenarse sin perder la prioridad del compositor ni la claridad del estado de voz.
+- Resultados de reconocimiento solapados: la transcripción final no debe duplicar texto ni reintroducir la wake phrase.
 - Navegador sin soporte de voz: la UI debe mantener un estado visual coherente sin huecos o affordances ambiguas.
 - Envío automático desactivado: la transcripción debe seguir poblando el textarea sin llamar al endpoint hasta que el usuario pulse `Ask`.
 - Envío automático activado: una transcripción válida debe lanzar la consulta al flujo RAG sin requerir el botón manual.
@@ -67,13 +70,16 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 - RF-7.1: el `slide-toggle` de envío automático debe iniciar desactivado por defecto.
 - RF-7.2: cuando el envío automático esté desactivado, la transcripción debe dejar la pregunta editable en el textarea y requerir acción manual sobre `Ask`.
 - RF-7.3: cuando el envío automático esté activado y la transcripción sea válida, la consulta debe enviarse automáticamente al flujo RAG existente.
+- RF-8: la transcripción final del flujo de voz no debe incluir la wake phrase visible en el textarea ni en la pregunta enviada.
+- RF-8.1: si el navegador entrega resultados parciales/finales solapados, el sistema debe consolidarlos sin duplicar texto ya capturado.
+- RF-9: en móvil, los controles de configuración y voz deben mantenerse alineados, apilados por intención y con targets táctiles claros sin desbordes horizontales.
 
 ## Requisitos No Funcionales
 
 - Rendimiento: el restyling no debe introducir renders costosos ni degradar la fluidez del chat.
 - Seguridad: no debe exponer contenido documental sensible adicional ni modificar permisos.
 - Accesibilidad: deben mantenerse labels claros, foco visible, contraste AA y targets táctiles >= 40px.
-- Responsive: la composición debe revisarse explícitamente en desktop y móvil.
+- Responsive: la composición debe revisarse explícitamente en desktop y móvil, con especial atención a 680px o menos.
 - Observabilidad: no se requieren nuevos eventos; deben conservarse los logs existentes del flujo de voz y chat.
 
 ## UX y Diseño
@@ -123,11 +129,12 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
 - CA-2: Dado un usuario que entra en `Docs & AI`, cuando se carga la vista, entonces la pestaña seleccionada por defecto es `Ask`.
 - CA-3: Dada una respuesta con citas, cuando el usuario revisa el mensaje del asistente, entonces distingue claramente el contenido principal, la nota de confianza y las fuentes accionables.
 - CA-4: Dado el modo voz activo o soportado, cuando cambia de estado, entonces la UI refleja cada estado con claridad sin parecer escucha de fondo ambigua.
-- CA-5: Dado un viewport móvil, cuando el usuario usa `Ask`, entonces la composición sigue siendo legible y prioriza el compositor y el historial sin desbordes problemáticos.
+- CA-5: Dado un viewport móvil, cuando el usuario usa `Ask`, entonces la composición sigue siendo legible, prioriza el compositor y el historial, y no presenta toggles ni acciones desalineadas o con desbordes problemáticos.
 - CA-6: Dado que el usuario ya puede preguntar y abrir citas hoy, cuando se despliegue el restyling, entonces esas capacidades siguen funcionando sin regresión observable.
 - CA-7: Dado un historial vacío, cuando el usuario entra en `Ask`, entonces no ve botones de sugerencias predefinidas.
 - CA-8: Dado el `slide-toggle` de envío automático desactivado, cuando termina una transcripción válida, entonces la pregunta queda editable y no se llama todavía al endpoint RAG.
 - CA-9: Dado el `slide-toggle` de envío automático activado, cuando termina una transcripción válida, entonces la consulta se envía automáticamente al flujo RAG.
+- CA-10: Dado un dictado con wake phrase y una o más repeticiones parciales del reconocimiento, cuando se completa la transcripción, entonces la pregunta final no contiene la wake phrase ni texto duplicado evitable.
 
 ## Pruebas Esperadas
 
@@ -139,6 +146,7 @@ La pestaña `Ask` ya concentra mucho valor funcional, pero su composición actua
   - conversación con varias respuestas y citas
   - voz en `armed`, `listening`, `ready` y `unsupported`
   - transcripción con envío automático activado y desactivado
+  - transcripción con resultados solapados del reconocimiento
   - revisión desktop y móvil
 - No ejecutable ahora: validación perceptual con usuarios reales de taller
 
