@@ -16,10 +16,10 @@ class GeminiService:
     
     # Lista de modelos priorizada para fallback
     AVAILABLE_MODELS = [
+        'gemini-3.1-flash-lite',
+        'gemini-2.5-pro',
         'gemini-2.5-flash',
-        'gemini-2.0-flash',
-        'gemini-2.5-flash-lite',
-        'gemini-1.5-flash' # Fallback final
+        'gemini-2.5-flash-lite' # Fallback final
     ]
 
     def __init__(self, api_key: Optional[str] = None):

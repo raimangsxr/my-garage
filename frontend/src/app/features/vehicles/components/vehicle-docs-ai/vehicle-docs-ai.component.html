@@ -133,6 +133,9 @@
                     <mat-slide-toggle [(ngModel)]="includeInvoiceDocs" color="primary">
                         Include invoice sources
                     </mat-slide-toggle>
+                    <mat-slide-toggle [(ngModel)]="autoSubmitVoiceQuestion" color="primary">
+                        Auto-submit after voice transcription
+                    </mat-slide-toggle>
                 </div>
 
                 <app-empty-state
@@ -169,16 +172,6 @@
                             </button>
                         </div>
                     </section>
-
-                    <div class="suggested-questions" *ngIf="messages.length === 0">
-                        <button
-                            mat-stroked-button
-                            type="button"
-                            *ngFor="let question of suggestedQuestions"
-                            (click)="askSuggestedQuestion(question)">
-                            {{ question }}
-                        </button>
-                    </div>
 
                     <div class="chat-log" *ngIf="messages.length > 0">
                         <article class="chat-message" *ngFor="let message of messages; trackBy: trackByMessage" [attr.data-role]="message.role">

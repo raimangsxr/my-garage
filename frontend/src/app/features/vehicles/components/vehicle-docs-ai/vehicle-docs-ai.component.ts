@@ -142,8 +142,9 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
     chatQuestion = '';
     chatScope: 'all_documents' | 'manuals_only' = 'all_documents';
     includeInvoiceDocs = true;
+    autoSubmitVoiceQuestion = false;
     messages: ChatMessage[] = [];
-    selectedTabIndex = 0;
+    selectedTabIndex = VehicleDocsAiComponent.ASK_TAB_INDEX;
     voiceState: VoiceState = this.canUseVoiceInput ? 'idle' : 'unsupported';
     voiceStatusMessage = this.canUseVoiceInput
         ? `Listening starts automatically in Ask. Say "${VehicleDocsAiComponent.VOICE_WAKE_PHRASE}" to begin.`
@@ -165,13 +166,6 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
         'insurance',
         'registration',
         'other'
-    ];
-
-    readonly suggestedQuestions = [
-        'What engine oil should I use for this vehicle?',
-        'What torque specs are mentioned for wheels or brakes?',
-        'Summarize the maintenance intervals from the manual.',
-        'What parts or service history do the invoices mention?'
     ];
 
     ngOnInit(): void {
@@ -326,11 +320,6 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
                     }
                 });
         });
-    }
-
-    askSuggestedQuestion(question: string): void {
-        this.chatQuestion = question;
-        this.askQuestion();
     }
 
     askQuestion(): void {
@@ -823,6 +812,12 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
             this.showSnackBar('Voice transcription added to the current question.', 'success');
         } else {
             this.showSnackBar('Voice transcription ready to review.', 'success');
+        }
+
+        if (this.autoSubmitVoiceQuestion) {
+            this.showSnackBar('Voice transcription sent automatically.', 'info');
+            this.askQuestion();
+            return;
         }
 
         this.setVoiceState('ready', 'Voice transcription ready. Still listening for the next question.');
