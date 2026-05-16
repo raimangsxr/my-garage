@@ -24,6 +24,7 @@ Este índice es el registro vivo de iniciativas SDD del proyecto.
 | [Restyling de Ask en Docs & AI](./2026-05-16-vehicle-ask-restyling/spec.md) | In Progress | refactor/ui | 2026-05-16 | Reordena y restiliza la pestaña `Ask` para dar más jerarquía visual al chat, la voz y el compositor. |
 | [Robustecer Fallback Gemini en Ask](./2026-05-16-ask-gemini-fallback/spec.md) | In Progress | hotfix | 2026-05-16 | Hace que `Ask` pruebe el siguiente modelo Gemini también ante payload vacío o JSON inválido. |
 | [Unificar Llamadas LLM en GeminiService](./2026-05-16-unify-llm-gemini-service/spec.md) | In Progress | refactor | 2026-05-16 | Centraliza las llamadas a Gemini en un servicio común y deja prompts/parsing en servicios de dominio. |
+| [Centralizar Fallbacks Gemini en GeminiService](./2026-05-16-centralize-gemini-fallbacks/spec.md) | In Progress | refactor | 2026-05-16 | Mueve al proxy Gemini la decisión y ejecución de fallbacks ligados al proveedor o a sus payloads. |
 | [Actualizar Fallback de Modelos Gemini](./2026-05-16-gemini-model-fallback/spec.md) | In Progress | refactor | 2026-05-16 | Ajusta el orden de modelos Gemini usados en el fallback del procesamiento de facturas. |
 | [Corregir Merge Parcial en Ask de Docs & AI](./2026-05-16-docs-ai-ask-merge-fix/spec.md) | In Progress | hotfix | 2026-05-16 | Elimina referencias huérfanas a sugerencias en `Ask` y restaura la compilación del frontend. |
 

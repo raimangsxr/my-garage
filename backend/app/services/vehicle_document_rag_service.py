@@ -44,10 +44,14 @@ class RetrievedSource:
 class VehicleDocumentRAGService:
     TRANSCRIPTION_MODELS = [
         "gemini-2.5-flash",
-        "gemini-2.0-flash",
         "gemini-2.5-flash-lite",
     ]
-    ANSWER_MODELS = TRANSCRIPTION_MODELS
+    ANSWER_MODELS = [
+        "gemini-3.1-flash-lite",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+    ]
     EMBEDDING_DIMENSION = 256
     MAX_FACTS = 10
     CHUNK_SIZE = 1400
@@ -219,6 +223,12 @@ Reglas:
                 content=content,
                 models=self.TRANSCRIPTION_MODELS,
                 api_key=api_key,
+                validator=self._has_non_empty_page_text,
+                fallback_resolver=(
+                    lambda _exc: self._image_transcription_fallback_payload(content=content, api_key=api_key)
+                    if suffix != ".pdf"
+                    else self._empty_pages_payload()
+                ),
             )
             pages = payload.get("pages") or []
             parsed_pages = [
@@ -229,14 +239,6 @@ Reglas:
                 for index, page in enumerate(pages)
                 if str(page.get("text") or "").strip()
             ]
-            if not parsed_pages and suffix != ".pdf":
-                fallback_text = self.gemini_service.generate_text_content(
-                    prompt="Transcribe this vehicle document image faithfully in plain text.",
-                    content=content,
-                    models=self.TRANSCRIPTION_MODELS,
-                    api_key=api_key,
-                )
-                parsed_pages = [ParsedDocumentPage(page_number=1, text=fallback_text.strip())]
             return parsed_pages
 
     def _parse_pdf_locally(self, file_path: str) -> List[ParsedDocumentPage]:
@@ -283,34 +285,31 @@ Solo incluye facts realmente respaldados por el texto.
 Texto:
 {trimmed_text}
 """
-        try:
-            payload = self.gemini_service.generate_json_payload(
-                prompt=prompt,
-                content=[],
-                models=self.ANSWER_MODELS,
-                api_key=api_key,
-            )
-            facts = []
-            for item in payload.get("facts") or []:
-                title = str(item.get("title") or "").strip()
-                content = str(item.get("content") or "").strip()
-                if not title or not content:
-                    continue
-                facts.append(
-                    VehicleKnowledgeFact(
-                        vehicle_id=document.vehicle_id,
-                        document_id=document.id,
-                        title=title[:160],
-                        category=(str(item.get("category") or "other").strip() or "other")[:64],
-                        content=content,
-                        source_excerpt=str(item.get("source_excerpt") or "").strip() or None,
-                        confidence=self._safe_float(item.get("confidence")),
-                    )
+        payload = self.gemini_service.generate_json_payload(
+            prompt=prompt,
+            content=[],
+            models=self.ANSWER_MODELS,
+            api_key=api_key,
+            fallback_resolver=lambda _exc: {"facts": []},
+        )
+        facts = []
+        for item in payload.get("facts") or []:
+            title = str(item.get("title") or "").strip()
+            content = str(item.get("content") or "").strip()
+            if not title or not content:
+                continue
+            facts.append(
+                VehicleKnowledgeFact(
+                    vehicle_id=document.vehicle_id,
+                    document_id=document.id,
+                    title=title[:160],
+                    category=(str(item.get("category") or "other").strip() or "other")[:64],
+                    content=content,
+                    source_excerpt=str(item.get("source_excerpt") or "").strip() or None,
+                    confidence=self._safe_float(item.get("confidence")),
                 )
-            return facts
-        except Exception:
-            logger.warning("Knowledge fact extraction failed", extra={"document_id": document.id}, exc_info=True)
-            return []
+            )
+        return facts
 
     def answer_question(
         self,
@@ -614,26 +613,22 @@ Rules:
 Question:
 {question}
 """
-        try:
-            payload = self.gemini_service.generate_json_payload(
-                prompt=prompt,
-                content=[],
-                models=self.ANSWER_MODELS,
-                api_key=api_key,
-            )
-            retrieval_query = str(payload.get("retrieval_query") or "").strip()
-            detected_language = str(payload.get("detected_language") or "").strip() or "unknown"
-            if retrieval_query:
-                return {
-                    "retrieval_query": retrieval_query,
-                    "detected_language": detected_language,
-                }
-        except Exception:
-            logger.warning("Query expansion failed, falling back to raw question", exc_info=True)
-
+        payload = self.gemini_service.generate_json_payload(
+            prompt=prompt,
+            content=[],
+            models=self.ANSWER_MODELS,
+            api_key=api_key,
+            validator=lambda candidate: bool(str(candidate.get("retrieval_query") or "").strip()),
+            fallback_resolver=lambda _exc: {
+                "retrieval_query": question,
+                "detected_language": "unknown",
+            },
+        )
+        retrieval_query = str(payload.get("retrieval_query") or "").strip()
+        detected_language = str(payload.get("detected_language") or "").strip() or "unknown"
         return {
-            "retrieval_query": question,
-            "detected_language": "unknown",
+            "retrieval_query": retrieval_query,
+            "detected_language": detected_language,
         }
 
     def _localized_no_sources_response(self, detected_language: Optional[str], question: str) -> dict[str, str]:
@@ -709,6 +704,29 @@ Question:
 
     def _parse_json_payload(self, raw_text: str) -> dict[str, Any]:
         return self.gemini_service.parse_json_payload(raw_text)
+
+    def _has_non_empty_page_text(self, payload: dict[str, Any]) -> bool:
+        pages = payload.get("pages") or []
+        return any(str(page.get("text") or "").strip() for page in pages if isinstance(page, dict))
+
+    def _image_transcription_fallback_payload(self, *, content: list[Any], api_key: str) -> dict[str, Any]:
+        fallback_text = self.gemini_service.generate_text_content(
+            prompt="Transcribe this vehicle document image faithfully in plain text.",
+            content=content,
+            models=self.TRANSCRIPTION_MODELS,
+            api_key=api_key,
+        )
+        return {
+            "pages": [
+                {
+                    "page_number": 1,
+                    "text": fallback_text.strip(),
+                }
+            ]
+        }
+
+    def _empty_pages_payload(self) -> dict[str, Any]:
+        return {"pages": []}
 
     def _safe_float(self, value: Any) -> Optional[float]:
         try:
