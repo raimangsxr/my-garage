@@ -17,6 +17,7 @@ import { LoggerService } from '../../../../core/services/logger.service';
 import { ToastService, ToastTone } from '../../../../core/services/toast.service';
 import {
     VehicleChatResponse,
+    VehicleChatUsedDocument,
     VehicleDocument,
     VehicleDocumentType,
     VehicleDocumentUploadEvent,
@@ -378,6 +379,28 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
             : `Open ${sourceLabel}`;
     }
 
+    getResponseSources(response?: VehicleChatResponse): Array<Pick<VehicleChatUsedDocument, 'source_label' | 'file_url' | 'page_number'> & { quote?: string | null }> {
+        if (!response) {
+            return [];
+        }
+
+        if (response.citations?.length) {
+            return response.citations.map((citation) => ({
+                source_label: citation.source_label,
+                file_url: citation.file_url,
+                page_number: citation.page_number,
+                quote: citation.quote,
+            }));
+        }
+
+        return response.used_documents.map((document) => ({
+            source_label: document.source_label,
+            file_url: document.file_url,
+            page_number: document.page_number,
+            quote: null,
+        }));
+    }
+
     get readyDocumentsCount(): number {
         return this.documents.filter((document) => document.status === 'ready').length;
     }
@@ -485,6 +508,15 @@ export class VehicleDocsAiComponent implements OnInit, OnDestroy {
 
     get voiceButtonLabel(): string {
         return this.isVoiceBusy ? 'Cancel listening' : 'Resume listening';
+    }
+
+    onQuestionKeydown(event: KeyboardEvent): void {
+        if (event.key !== 'Enter' || event.shiftKey || event.isComposing) {
+            return;
+        }
+
+        event.preventDefault();
+        this.askQuestion();
     }
 
     private showSnackBar(message: string, tone: ToastTone = 'info'): void {

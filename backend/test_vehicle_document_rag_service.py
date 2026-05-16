@@ -1,7 +1,7 @@
 from types import SimpleNamespace
 
 from app.core.gemini_service import GeminiService
-from app.services.vehicle_document_rag_service import ParsedDocumentPage, VehicleDocumentRAGService
+from app.services.vehicle_document_rag_service import ParsedDocumentPage, RetrievedSource, VehicleDocumentRAGService
 
 
 def test_answer_question_returns_spanish_fallback_when_no_sources(monkeypatch):
@@ -58,6 +58,67 @@ def test_answer_question_falls_back_to_english_when_language_is_unknown(monkeypa
 
     assert response["answer"].startswith("I couldn't find enough indexed documentation")
     assert response["confidence_note"] == "No indexed sources matched this question."
+
+
+def test_answer_question_uses_retrieved_sources_when_model_returns_no_citations(monkeypatch):
+    service = VehicleDocumentRAGService()
+    vehicle = SimpleNamespace(brand="Ducati", model="Panigale V4", year=2023, license_plate="TEST123")
+    retrieved_source = RetrievedSource(
+        source_id="document:7:chunk:1",
+        source_type="document",
+        source_label="Workshop Manual",
+        page_number=42,
+        content="Rear axle tightening torque is 230 Nm using a calibrated torque wrench.",
+        file_url="/media/vehicle-documents/workshop-manual.pdf",
+        similarity=0.92,
+    )
+
+    monkeypatch.setattr(
+        service,
+        "expand_query_for_retrieval",
+        lambda **kwargs: {
+            "retrieval_query": kwargs["question"],
+            "detected_language": "en",
+        },
+    )
+    monkeypatch.setattr(service, "retrieve_sources", lambda **kwargs: [retrieved_source])
+    monkeypatch.setattr(
+        service.gemini_service,
+        "generate_json_payload",
+        lambda **kwargs: {
+            "answer": "Use 230 Nm on the rear axle nut.",
+            "citations": [],
+            "confidence_note": "Matched one workshop manual section.",
+        },
+    )
+
+    response = service.answer_question(
+        session=None,
+        vehicle=vehicle,
+        question="What is the rear axle torque?",
+        source_scope="all_documents",
+        include_invoice_docs=False,
+        api_key="fake-key",
+    )
+
+    assert response["citations"] == [
+        {
+            "source_id": "document:7:chunk:1",
+            "source_label": "Workshop Manual",
+            "page_number": 42,
+            "quote": "Rear axle tightening torque is 230 Nm using a calibrated torque wrench.",
+            "file_url": "/media/vehicle-documents/workshop-manual.pdf",
+            "source_type": "document",
+        }
+    ]
+    assert response["used_documents"] == [
+        {
+            "source_label": "Workshop Manual",
+            "file_url": "/media/vehicle-documents/workshop-manual.pdf",
+            "source_type": "document",
+            "page_number": 42,
+        }
+    ]
 
 
 def test_expand_query_uses_gemini_service_fallback_payload(monkeypatch):

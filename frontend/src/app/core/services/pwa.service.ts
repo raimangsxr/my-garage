@@ -27,6 +27,7 @@ export class PwaService {
         }
 
         this.initialized = true;
+        this.watchInstallLifecycle();
         this.watchConnectivity();
         this.watchForUpdates();
     }
@@ -36,6 +37,7 @@ export class PwaService {
     }
 
     private watchConnectivity(): void {
+        this.currentConnectivityState = navigator.onLine ? 'online' : 'offline';
         const offline$ = fromEvent(window, 'offline');
         const online$ = fromEvent(window, 'online');
 
@@ -58,6 +60,27 @@ export class PwaService {
                         tone: isOffline ? 'warning' : 'success'
                     }
                 );
+            })
+        );
+    }
+
+    private watchInstallLifecycle(): void {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.ready
+                .then(() => {
+                    this.logger.info('PWA service worker is ready for installability checks');
+                })
+                .catch((error) => {
+                    this.logger.error('PWA service worker readiness failed', error);
+                });
+        }
+
+        this.subscriptions.add(
+            fromEvent(window, 'appinstalled').subscribe(() => {
+                this.logger.info('PWA installation completed');
+                this.toast.success('My Garage installed successfully.', {
+                    duration: 3000,
+                });
             })
         );
     }

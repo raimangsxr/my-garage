@@ -183,18 +183,21 @@
                                     {{ message.response?.confidence_note }}
                                 </div>
 
-                                <div class="citation-list" *ngIf="message.response?.citations?.length">
+                                <div class="citation-section" *ngIf="getResponseSources(message.response).length">
+                                    <div class="citation-section-label">Related sources</div>
+                                    <div class="citation-list">
                                     <button
                                         mat-stroked-button
                                         type="button"
                                         class="citation-chip"
-                                        *ngFor="let citation of message.response?.citations"
+                                        *ngFor="let citation of getResponseSources(message.response)"
                                         [attr.aria-label]="buildCitationAriaLabel(citation.source_label, citation.page_number)"
                                         (click)="openCitation(citation.file_url, citation.page_number)">
                                         <mat-icon>description</mat-icon>
                                         <span>{{ citation.source_label }}</span>
                                         <span *ngIf="citation.page_number">p.{{ citation.page_number }}</span>
                                     </button>
+                                    </div>
                                 </div>
                             </div>
                         </article>
@@ -207,6 +210,7 @@
                                 matInput
                                 rows="4"
                                 [(ngModel)]="chatQuestion"
+                                (keydown)="onQuestionKeydown($event)"
                                 placeholder="Ask about fluids, maintenance intervals, procedures, torque specs or invoice history.">
                             </textarea>
                         </mat-form-field>
