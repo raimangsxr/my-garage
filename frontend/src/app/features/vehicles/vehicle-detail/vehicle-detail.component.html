@@ -29,7 +29,7 @@
     </div>
 
     <!-- Stats Bar -->
-    <app-vehicle-stats-bar [vehicle]="{
+    <app-vehicle-stats-bar *ngIf="viewMode !== 'docs'" [vehicle]="{
             year: vehicleDetails.vehicle.year,
             kilometers: vehicleDetails.vehicle.kilometers,
             next_itv_date: vehicleDetails.vehicle.next_itv_date
@@ -160,6 +160,35 @@
             [vehicleId]="vehicleDetails.vehicle.id"
             [vehicleLabel]="vehicleDetails.vehicle.brand + ' ' + vehicleDetails.vehicle.model">
         </app-vehicle-docs-ai>
+
+        <section class="docs-context-card mg-surface-card">
+            <div class="docs-context-copy">
+                <p class="docs-context-eyebrow">Vehicle context</p>
+                <p class="docs-context-note">Keep the essentials nearby while you review documentation and ask questions.</p>
+            </div>
+
+            <div class="docs-context-facts">
+                <article class="docs-context-fact">
+                    <span class="docs-context-fact-label">Year</span>
+                    <strong>{{ vehicleDetails.vehicle.year || 'N/A' }}</strong>
+                </article>
+
+                <article class="docs-context-fact">
+                    <span class="docs-context-fact-label">Fuel</span>
+                    <strong>{{ vehicleDetails.specs?.fuel_type || 'N/A' }}</strong>
+                </article>
+
+                <article class="docs-context-fact">
+                    <span class="docs-context-fact-label">Engine</span>
+                    <strong>{{ vehicleDetails.specs?.engine || 'N/A' }}</strong>
+                </article>
+
+                <article class="docs-context-fact">
+                    <span class="docs-context-fact-label">Transmission</span>
+                    <strong>{{ vehicleDetails.specs?.transmission || 'N/A' }}</strong>
+                </article>
+            </div>
+        </section>
     </div>
 </div>
 

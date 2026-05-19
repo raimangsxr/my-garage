@@ -222,7 +222,78 @@
 }
 
 .docs-ai-view {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     padding: 0 24px 40px;
+}
+
+.docs-context-card {
+    display: grid;
+    grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+    gap: 16px;
+    align-items: start;
+    padding: 18px 20px;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    background: var(--surface-color);
+}
+
+.docs-context-copy {
+    min-width: 0;
+}
+
+.docs-context-eyebrow {
+    margin: 0 0 8px;
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+}
+
+.docs-context-note {
+    margin: 0;
+    color: var(--text-secondary);
+    text-wrap: pretty;
+}
+
+.docs-context-facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.docs-context-fact {
+    flex: 1 1 160px;
+    min-width: 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border-soft);
+    background: var(--surface-muted);
+}
+
+.docs-context-fact-label,
+.docs-context-fact strong {
+    display: block;
+}
+
+.docs-context-fact-label {
+    margin-bottom: 4px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.docs-context-fact strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-primary);
+    font-size: 0.98rem;
+    font-weight: 700;
 }
 
 .track-stats-summary {
@@ -585,5 +656,17 @@
         font-size: 0.9rem;
         overflow-wrap: anywhere;
         text-align: right;
+    }
+}
+
+@media (max-width: 768px) {
+    .docs-ai-view {
+        gap: 16px;
+        padding: 0 16px 32px;
+    }
+
+    .docs-context-card {
+        grid-template-columns: minmax(0, 1fr);
+        padding: 18px;
     }
 }
