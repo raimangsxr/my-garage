@@ -61,12 +61,11 @@
 4.  **Access the App**
     Open your browser and navigate to `http://localhost:4200`.
 
-## 🤝 Contributing
-
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
-
 ## 📐 Spec-Driven Development
 
-This project uses SDD for all planned product and engineering work. Start with [docs/sdd/README.md](docs/sdd/README.md), follow [docs/sdd/governance.md](docs/sdd/governance.md), and create or update a spec folder under `docs/sdd/specs/` before implementing any behavior change.
+This project uses GitHub Spec Kit for all planned product and engineering work.
+Start in `.specify/`, create or update the relevant specification artifacts
+before implementing any non-trivial behavior change, and keep implementation
+work traceable to the governing spec, plan, and tasks documents.
 
 Automated agents must also follow [AGENTS.md](AGENTS.md).
