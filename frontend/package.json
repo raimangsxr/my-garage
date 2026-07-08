@@ -3,11 +3,12 @@
   "version": "0.0.0",
   "scripts": {
     "config": "node scripts/set-env.js",
-    "ng": "ng",
-    "start": "npm run config && ng serve",
-    "build": "npm run config && ng build",
-    "watch": "npm run config && ng build --watch --configuration development",
-    "test": "npm run config && ng test"
+    "ng": "node ./node_modules/@angular/cli/bin/ng.js",
+    "start": "npm run config && npm run ng -- serve",
+    "build": "npm run config && npm run ng -- build",
+    "watch": "npm run config && npm run ng -- build --watch --configuration development",
+    "test": "npm run config && node ./node_modules/@angular/cli/bin/ng.js test --watch=false",
+    "test:watch": "npm run config && node ./node_modules/@angular/cli/bin/ng.js test"
   },
   "prettier": {
     "printWidth": 100,

@@ -1,65 +1,32 @@
 # AGENTS.md
 
-Este repositorio trabaja imperativamente con SDD (*Spec-Driven Development*). Cualquier agente, asistente o contribuidor automatizado debe seguir estas reglas antes de modificar código, estilos, contratos, datos o configuración operativa.
+## Project context
+This repository follows Spec-Driven Development using GitHub Spec Kit.
+Codex must not implement features that are not traceable to a specification.
 
-## Regla Principal
+## Build and test
+- Install dependencies using the existing package manager only.
+- Run unit tests before completing implementation.
+- Run lint/type checks when touching application code.
+- Do not skip failing tests unless explicitly documented.
 
-No se implementa ningún cambio de comportamiento sin una spec SDD.
+## Architecture
+- Respect existing module boundaries.
+- Keep business logic outside controllers and UI components.
+- Prefer small, testable units.
+- Avoid introducing new production dependencies without justification.
 
-Antes de tocar código, crea o actualiza una carpeta:
+## Security
+- Do not hardcode secrets, tokens, credentials or internal URLs.
+- Validate input at boundaries.
+- Preserve existing authentication and authorization patterns.
 
-```text
-docs/sdd/specs/<yyyy-mm-dd-slug>/
-  spec.md
-  plan.md
-  tasks.md
-```
+## Delivery rules
+- Every code change must map to a requirement or task.
+- Update tests with changed behavior.
+- Stop and explain if the implementation requires changing the approved plan.
 
-Usa las plantillas de `docs/sdd/specs/_template/`.
-
-## Flujo Obligatorio
-
-1. Leer `docs/sdd/README.md`, `docs/sdd/workflow.md`, `docs/sdd/quality-gates.md` y, si toca UI, `system.md`.
-2. Crear o actualizar la spec de la iniciativa.
-3. Definir criterios de aceptación verificables.
-4. Crear o actualizar el plan técnico.
-5. Crear o actualizar la lista de tareas.
-6. Implementar siguiendo el plan.
-7. Actualizar la spec si el comportamiento real cambia durante la implementación.
-8. Ejecutar los checks razonables y documentar cualquier check no ejecutado.
-9. Preparar el PR con enlaces a spec, plan, tasks y ADRs.
-
-## Excepción de Hotfix
-
-Los hotfixes urgentes también requieren SDD. Si el incidente exige actuar rápido:
-
-1. Crear una spec mínima antes del cambio con problema, alcance y criterio de aceptación crítico.
-2. Implementar el fix.
-3. Completar `plan.md` y `tasks.md` antes del PR.
-4. Añadir ADR si se tomó una decisión técnica duradera.
-
-## Decisiones Técnicas
-
-Crea un ADR en `docs/sdd/decisions/` cuando haya:
-
-- cambio de arquitectura,
-- cambio de modelo de datos,
-- integración externa nueva,
-- excepción a `system.md`,
-- cambio de seguridad/autenticación,
-- decisión difícil de revertir.
-
-## Restricciones del Proyecto
-
-- Frontend: Angular, Angular Material, componentes standalone y SCSS.
-- Backend: FastAPI, SQLModel, Alembic y PostgreSQL.
-- Diseño: `system.md` es obligatorio para UI.
-- Contribución: `CONTRIBUTING.md` define branching, commit, push y PR.
-
-## Qué No Hacer
-
-- No implementar primero y documentar después, salvo hotfix con spec mínima.
-- No abrir PR sin enlaces SDD.
-- No crear patrones visuales nuevos sin revisar `system.md`.
-- No cambiar contratos API sin actualizar frontend/backend afectados.
-- No crear migraciones sin explicar compatibilidad de datos.
+<!-- SPECKIT START -->
+Active plan: `specs/012-feature-name/plan.md`
+Brownfield governance scope: current whole-system baseline, behavior-preserving only.
+<!-- SPECKIT END -->

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { buildApiUrl } from '../utils/api-url.util';
+import { AuthService } from './auth.service';
 
 export type VehicleDocumentType =
     | 'owner_manual'
@@ -85,6 +86,7 @@ export interface VehicleChatRequest {
 })
 export class VehicleRagService {
     private http = inject(HttpClient);
+    private authService = inject(AuthService);
     private apiUrl = buildApiUrl('').replace(/\/$/, '');
 
     listDocuments(vehicleId: number): Observable<VehicleDocument[]> {
@@ -104,7 +106,7 @@ export class VehicleRagService {
             xhr.open('POST', `${this.apiUrl}/vehicles/${vehicleId}/documents/upload`);
             xhr.responseType = 'json';
 
-            const token = this.resolveAccessToken();
+            const token = this.authService.getToken();
             if (token) {
                 xhr.setRequestHeader('Authorization', `Bearer ${token}`);
             }
@@ -186,15 +188,6 @@ export class VehicleRagService {
 
     ask(vehicleId: number, payload: VehicleChatRequest): Observable<VehicleChatResponse> {
         return this.http.post<VehicleChatResponse>(`${this.apiUrl}/vehicles/${vehicleId}/chat/ask`, payload);
-    }
-
-    private resolveAccessToken(): string | null {
-        const rawToken = localStorage.getItem('access_token');
-        if (!rawToken) {
-            return null;
-        }
-        const trimmed = rawToken.trim();
-        return trimmed.startsWith('Bearer ') ? trimmed.slice(7).trim() : trimmed;
     }
 
     private parseJsonResponse(responseText: string): unknown {
